@@ -26,6 +26,7 @@ def main():
 #     required=True
 #     )
 
+
 @main.group()
 def preprocessing():
     """List Pre-Processing methods available."""
@@ -44,9 +45,11 @@ def z_score():
     do_z_score()
     click.echo(f"Done With Z-Score calculation")
 
+
 @main.group()
 def vectorization():
     """List Vectorization methods available."""
+
 
 @vectorization.command()
 def row2vec():
@@ -55,6 +58,7 @@ def row2vec():
     do_row2vec()
     click.echo(f"Done With Row2Vec")
 
+
 @vectorization.command()
 def path2vec():
     """Perform pathway based vectorization"""
@@ -62,12 +66,14 @@ def path2vec():
     do_path2vec()
     click.echo(f"Done With Path2Vec")
 
+
 @vectorization.command()
 def thresh2vec():
     """Perform Threshold based Vectorization"""
     click.echo(f"Starting Thresh2Vec")
     do_thresh2vec()
     click.echo(f"Done With Thresh2Vec")
+
 
 @vectorization.command()
 def nrl():
