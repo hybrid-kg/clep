@@ -30,14 +30,16 @@ def main():
 def preprocessing():
     """List Pre-Processing methods available."""
 
-@preprocessing.command()
-def limma_based_preprocessing():
+
+@preprocessing.command(help='Limma based Pre-Processing')
+def limma():
     click.echo(f"Starting Limma Based Pre-Processing")
     do_limma()
     click.echo(f"Done With limma calculation")
 
-@preprocessing.command()
-def z_score_based_preprocessing():
+
+@preprocessing.command(help='Z-Score based Pre-Processing')
+def z_score():
     click.echo(f"Starting Z-Score Based Pre-Processing")
     do_z_score()
     click.echo(f"Done With Z-Score calculation")
