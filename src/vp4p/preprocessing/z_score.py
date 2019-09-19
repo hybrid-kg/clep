@@ -7,6 +7,7 @@ import pandas as pd
 
 
 def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control'):
+    """Z-Score based single sample DE analysis."""
     assert control[0].isalpha()
     data = data.transpose()
 
