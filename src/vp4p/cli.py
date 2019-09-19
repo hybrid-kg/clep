@@ -24,16 +24,14 @@ def main():
 @main.group()
 def preprocessing():
     """
-        List Pre-Processing methods available.
-        Formats for Data and Design Matrices:
-        -------------------------------------
-        Data:
-        -----
-        genes | Sample1 | Sample2 | Sample3
+        List Pre-Processing methods available.\n
+        Formats for Data and Design Matrices:\n
+        -------------------------------------\n
+        Data:\n
+        genes | Sample1 | Sample2 | Sample3\n\n
 
-        Design:
-        -------
-        IndexCol | FileName | Patient_Annotation
+        Design:\n
+        IndexCol | FileName | Patient_Annotation\n
     """
 
 
@@ -50,27 +48,63 @@ design_option = click.option(
     type=click.Path(file_okay=True, dir_okay=False, exists=True),
     required=True
     )
+output_option = click.option(
+    '--out',
+    help="Path to the output file",
+    type=click.Path(file_okay=True, dir_okay=False, exists=False),
+    required=True
+    )
 
 
+@preprocessing.command(help='Limma based Pre-Processing')
 @data_option
 @design_option
-@preprocessing.command(help='Limma based Pre-Processing')
-def limma(data_file, design_file):
-    click.echo(f"Starting Limma Based Pre-Processing with {data_file} & {design_file} files")
-    data = pd.read_csv(data_file, sep='\t')
-    design = pd.read_csv(design_file, sep='\t')
-    do_limma(data=data, design=design, alpha=0.05, adjust_method='fdr_bh')
+@output_option
+@click.option('--contrasts',
+              help="Contrast sets must be separated by ',' and each group in a set must be separated by '-' and the "
+                   "whole thing must be surrounded in quotes.\nE.g. - 'Group1-Group2, Group3-Group4'.",
+              type=str,
+              required=False,
+              default=[],
+              show_default=True)
+@click.option('--alpha',
+              help="Family-wise error rate",
+              type=float,
+              required=False,
+              default=0.05,
+              show_default=True)
+@click.option('--method',
+              help="Method used for testing and adjustment of P-Values",
+              type=str,
+              required=False,
+              default='fdr_bh',
+              show_default=True)
+def limma(data, design, out, contrasts, alpha, method):
+    click.echo(f"Starting Limma Based Pre-Processing with {data} & {design} files and saving it to {out}")
+    data_df = pd.read_csv(data, sep='\t')
+    design_df = pd.read_csv(design, sep='\t')
+    contrasts = contrasts.replace(' ', '').split(',')
+    output = do_limma(data=data_df, design=design_df, contrasts=contrasts, alpha=alpha, adjust_method=method)
+    output.to_csv(out, sep='\t')
     click.echo(f"Done With limma calculation")
 
 
+@preprocessing.command(help='Z-Score based Pre-Processing')
 @data_option
 @design_option
-@preprocessing.command(help='Z-Score based Pre-Processing')
-def z_score(data_file, design_file):
-    click.echo(f"Starting Z-Score Based Pre-Processing with {data_file} & {design_file} files")
-    data = pd.read_csv(data_file, sep='\t')
-    design = pd.read_csv(design_file, sep='\t')
-    do_z_score(data=data, design=design, control='Control')
+@output_option
+@click.option('--control',
+              help="Annotated value for the control samples (Must start with an alphabet)",
+              type=str,
+              required=False,
+              default='Control',
+              show_default=True)
+def z_score(data, design, out, control):
+    click.echo(f"Starting Z-Score Based Pre-Processing with {data} & {design} files and saving it to {out}")
+    data_df = pd.read_csv(data, sep='\t')
+    design_df = pd.read_csv(design, sep='\t')
+    output = do_z_score(data=data_df, design=design_df, control=control)
+    output.to_csv(out, sep='\t')
     click.echo(f"Done With Z-Score calculation")
 
 

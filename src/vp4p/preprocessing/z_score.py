@@ -7,6 +7,7 @@ import pandas as pd
 
 
 def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control'):
+    assert control[0].isalpha()
     data = data.transpose()
 
     temp = np.zeros((1, len(data.columns)))

@@ -17,10 +17,11 @@ def do_limma(data: pd.DataFrame, design: pd.DataFrame, contrasts: list = [], alp
     limma = importr('limma')
     base = importr('base')
     stats = importr('stats')
-    # Convert data and design pandas dataframes to R dataframes & Use the genes index column from data as a R String Vector
+    # Convert data and design pandas dataframes to R dataframes
     with localconverter(ro.default_converter + pandas2ri.converter):
         r_data = ro.conversion.py2rpy(data)
         r_design = ro.conversion.py2rpy(design)
+    # Use the genes index column from data as a R String Vector
     genes = ro.StrVector(data.index.tolist())
 
     f = base.factor(r_design.rx2('Target'), levels=base.unique(r_design.rx2('Target')))
