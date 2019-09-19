@@ -4,6 +4,7 @@
 
 import logging
 import click
+import pandas as pd
 from vp4p.preprocessing import (
     do_limma, do_z_score
     )
@@ -19,30 +20,57 @@ def main():
     """Run vp4p."""
     logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
 
-# matrix_option = click.option(
-#     '-m', '--matrix',
-#     help="path to matrix",
-#     type=click.Path(file_okay=True, dir_okay=False, exists=True),
-#     required=True
-#     )
-
 
 @main.group()
 def preprocessing():
-    """List Pre-Processing methods available."""
+    """
+        List Pre-Processing methods available.
+        Formats for Data and Design Matrices:
+        -------------------------------------
+        Data:
+        -----
+        genes | Sample1 | Sample2 | Sample3
+
+        Design:
+        -------
+        IndexCol | FileName | Patient_Annotation
+    """
 
 
+data_option = click.option(
+    '--data',
+    help="Path to tab-separated gene expression data file",
+    type=click.Path(file_okay=True, dir_okay=False, exists=True),
+    required=True
+    )
+
+design_option = click.option(
+    '--design',
+    help="Path to tab-separated experiment design file",
+    type=click.Path(file_okay=True, dir_okay=False, exists=True),
+    required=True
+    )
+
+
+@data_option
+@design_option
 @preprocessing.command(help='Limma based Pre-Processing')
-def limma():
-    click.echo(f"Starting Limma Based Pre-Processing")
-    do_limma()
+def limma(data_file, design_file):
+    click.echo(f"Starting Limma Based Pre-Processing with {data_file} & {design_file} files")
+    data = pd.read_csv(data_file, sep='\t')
+    design = pd.read_csv(design_file, sep='\t')
+    do_limma(data=data, design=design, alpha=0.05, adjust_method='fdr_bh')
     click.echo(f"Done With limma calculation")
 
 
+@data_option
+@design_option
 @preprocessing.command(help='Z-Score based Pre-Processing')
-def z_score():
-    click.echo(f"Starting Z-Score Based Pre-Processing")
-    do_z_score()
+def z_score(data_file, design_file):
+    click.echo(f"Starting Z-Score Based Pre-Processing with {data_file} & {design_file} files")
+    data = pd.read_csv(data_file, sep='\t')
+    design = pd.read_csv(design_file, sep='\t')
+    do_z_score(data=data, design=design, control='Control')
     click.echo(f"Done With Z-Score calculation")
 
 
