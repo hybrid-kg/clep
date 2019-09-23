@@ -150,3 +150,4 @@ vignettes/*.pdf
 # Temporary data files created by user
 temp/
 /data/
+/results/

@@ -2,6 +2,10 @@
 
 """Vectorizing the gene data & pathway using Network Representation Learning."""
 
+import pandas as pd
+from typing import TextIO
+import itertools as itt
+
 
 # TODO: the input of this method should be a csv with three columns (subject, relationship, object)
 # 1. Check if it is a BEL file, if so -> convert to csv file (ask charlie how to do it)
@@ -10,5 +14,9 @@
 # depending on the threshold (default FC 2.0). that should be an argument
 # 4. Plug that merged network into PyKEEN (the arguments should specify the type of model and its arguments)
 # 5. Returns you the predicted links ranked by likelihood but what we really want are the patient (nodes) vectors to do the clustering/prediction
-def do_nrl():
-    pass
+def do_nrl(data: pd.DataFrame, out: TextIO) -> None:
+    for patient, gene, value in data.melt():
+        if value == 1:
+            print(patient, 'positiveCorrelation', f'HGNC:{gene}', sep='\t', file=out)
+        elif value == -1:
+            print(patient, 'negativeCorrelation', f'HGNC:{gene}', sep='\t', file=out)

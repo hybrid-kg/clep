@@ -56,21 +56,20 @@ output_option = click.option(
     type=click.Path(file_okay=True, dir_okay=False, exists=False),
     required=True
 )
+control_option = click.option(
+    '--control',
+    help="Annotated value for the control samples (Must start with an alphabet)",
+    type=str,
+    required=False,
+    default='Control',
+    show_default=True
+)
 
 
 @preprocessing.command(help='Limma based Pre-Processing')
 @data_option
 @design_option
 @output_option
-@click.option(
-    '--contrasts',
-    help="Contrast sets must be separated by ',' and each group in a set must be separated by '-' and the "
-         "whole thing must be surrounded in quotes.\nE.g. - 'Group1-Group2, Group3-Group4'.",
-    type=str,
-    required=False,
-    default=[],
-    show_default=True
-)
 @click.option(
     '--alpha',
     help="Family-wise error rate",
@@ -87,16 +86,31 @@ output_option = click.option(
     default='fdr_bh',
     show_default=True
 )
-def limma(data, design, out, contrasts, alpha, method):
+@control_option
+def limma(data, design, out, alpha, method, control: str):
     click.echo(f"Starting Limma Based Pre-Processing with {data} & {design} files and saving it to {out}")
-    data_df = pd.read_csv(data, sep='\t')
 
-    design_df = pd.read_csv(design, sep='\t')
+    data_df = pd.read_csv(data, sep='\t', index_col=0)
+    design_df = pd.read_csv(design, sep='\t', index_col=0)
 
-    contrasts = contrasts.replace(' ', '').split(',')
+    ctrl_data = data_df.transpose()[list(design_df.Target == control)].transpose()
+    sample_data = data_df.transpose()[list(design_df.Target != control)].transpose()
 
-    output = do_limma(data=data_df, design=design_df, contrasts=contrasts, alpha=alpha, adjust_method=method)
-    output.to_csv(out, sep='\t')
+    ctrl_design = design_df[list(design_df.Target == control)]
+    sample_design = design_df[list(design_df.Target != control)]
+
+    output_df = pd.DataFrame(columns=sample_data.index, index=sample_data.columns)
+
+    for col_idx, col in enumerate(sample_data.columns):
+        data_df = ctrl_data.copy()
+
+        data_df[col] = sample_data.iloc[:, col_idx]
+        design_df = ctrl_design.append(sample_design.iloc[col_idx, :], ignore_index=True)
+
+        output = do_limma(data=data_df, design=design_df, alpha=alpha, adjust_method=method)
+        output_df.iloc[col_idx, :] = output['logFC'].values.flatten()
+
+    output_df.to_csv(out, sep='\t')
 
     click.echo(f"Done With limma calculation")
 
@@ -105,18 +119,11 @@ def limma(data, design, out, contrasts, alpha, method):
 @data_option
 @design_option
 @output_option
-@click.option(
-    '--control',
-    help="Annotated value for the control samples (Must start with an alphabet)",
-    type=str,
-    required=False,
-    default='Control',
-    show_default=True
-)
+@control_option
 def z_score(data, design, out, control):
     click.echo(f"Starting Z-Score Based Pre-Processing with {data} & {design} files and saving it to {out}")
-    data_df = pd.read_csv(data, sep='\t')
-    design_df = pd.read_csv(design, sep='\t')
+    data_df = pd.read_csv(data, sep='\t', index_col=0)
+    design_df = pd.read_csv(design, sep='\t', index_col=0)
     output = do_z_score(data=data_df, design=design_df, control=control)
     output.to_csv(out, sep='\t')
     click.echo(f"Done With Z-Score calculation")
@@ -144,10 +151,18 @@ def path2vec():
 
 
 @vectorization.command()
-def thresh2vec():
+@data_option
+@output_option
+def thresh2vec(data, out):
     """Perform Threshold based Vectorization"""
     click.echo(f"Starting Thresh2Vec")
-    do_thresh2vec()
+
+    data_df = pd.read_csv(data, sep='\t', header=[0, 1], index_col=0)
+
+    output = do_thresh2vec(data=data_df)
+
+    output.to_csv(out, sep='\t')
+
     click.echo(f"Done With Thresh2Vec")
 
 

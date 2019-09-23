@@ -10,19 +10,20 @@ import pandas as pd
 
 def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control'):
     """Z-Score based single sample DE analysis."""
+    # Check if the control variable is as per the R Naming standards
     assert control[0].isalpha()
+
+    # Transpose matrix to get the patients as the rows
     data = data.transpose()
 
-    temp = np.zeros((1, len(data.columns)))
-    for ind in design[design.Target == control].index.values:
-        temp = np.vstack([temp, data.iloc[ind, :]])
-    controls = temp[1:]
+    # Make sure the number of rows of transposed data and design are equal
+    assert len(data) == len(design)
 
-    temp = np.zeros((1, len(data.columns)))
-    for ind in design[design.Target != control].index.values:
-        temp = np.vstack([temp, data.iloc[ind, :]])
-    samples = temp[1:]
+    # Separate the dataset into controls and samples
+    controls = data[list(design.Target == control)]
+    samples = data[list(design.Target != control)]
 
+    # Calculate the "Z Score" of each individual patient
     control_mean = controls.mean(axis=0)
     control_std = controls.std(axis=0)
     z_scores = (samples - control_mean) / control_std
