@@ -112,7 +112,7 @@ def limma(data, design, out, alpha, method, control: str):
 
     output_df.to_csv(out, sep='\t')
 
-    click.echo(f"Done With limma calculation")
+    click.echo(f"Done With limma calculation for {data}")
 
 
 @preprocessing.command(help='Z-Score based Pre-Processing')
@@ -126,7 +126,7 @@ def z_score(data, design, out, control):
     design_df = pd.read_csv(design, sep='\t', index_col=0)
     output = do_z_score(data=data_df, design=design_df, control=control)
     output.to_csv(out, sep='\t')
-    click.echo(f"Done With Z-Score calculation")
+    click.echo(f"Done With Z-Score calculation for {data}")
 
 
 @main.group()
@@ -155,15 +155,15 @@ def path2vec():
 @output_option
 def thresh2vec(data, out):
     """Perform Threshold based Vectorization"""
-    click.echo(f"Starting Thresh2Vec")
+    click.echo(f"Starting Thresh2Vec with {data}, and out-putting to {out}")
 
-    data_df = pd.read_csv(data, sep='\t', header=[0, 1], index_col=0)
+    data_df = pd.read_csv(data, sep='\t', index_col=0)
 
     output = do_thresh2vec(data=data_df)
 
     output.to_csv(out, sep='\t')
 
-    click.echo(f"Done With Thresh2Vec")
+    click.echo(f"Done With Thresh2Vec for {data}")
 
 
 @vectorization.command()
