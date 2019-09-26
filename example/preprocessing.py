@@ -66,7 +66,7 @@ def make_targets():
 
     final_design.reset_index(inplace=True, drop=True)
 
-    final_design.to_csv(design_out_path, sep='\t')
+    final_design.to_csv(design_out_path, sep='\t', index=False)
 
 
 @main.command()

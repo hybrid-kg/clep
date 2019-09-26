@@ -91,7 +91,7 @@ def limma(data, design, out, alpha, method, control: str):
     click.echo(f"Starting Limma Based Pre-Processing with {data} & {design} files and saving it to {out}")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
-    design_df = pd.read_csv(design, sep='\t', index_col=0)
+    design_df = pd.read_csv(design, sep='\t')
 
     ctrl_data = data_df.transpose()[list(design_df.Target == control)].transpose()
     sample_data = data_df.transpose()[list(design_df.Target != control)].transpose()
