@@ -28,4 +28,6 @@ def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control
     control_std = controls.std(axis=0)
     z_scores = (samples - control_mean) / control_std
 
-    return pd.DataFrame(data=z_scores, index=data.index[:len(samples)], columns=data.columns)
+    out_z_scores = np.where(np.abs(z_scores) > 1, z_scores, 0)
+
+    return pd.DataFrame(data=out_z_scores, index=data.index[:len(samples)], columns=data.columns)
