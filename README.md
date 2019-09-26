@@ -18,4 +18,4 @@ Datasets currently used in this repo
 
 Workflow
 --------
-![image](img/VP4P_Workflow.svg)
+![image](https://docs.google.com/drawings/d/e/2PACX-1vT6-VOHbKSqFBjj7mqUR3fjkDCmjRatVZxi0gMfYWZlzXAKHZQgIG8uz2aWCypW5LdI69YojDYG3j0R/pub?w=1319&h=685)
