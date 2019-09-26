@@ -3,12 +3,12 @@ VP4P - Vectorization of Patients for Prediction
 
 
 The goal of this project is to:
-1. Build a workflow to pre-process the gene expression data, and, 
-2. Convert the expression data into a vector for prediction using various techniques
+1. Build a workflow to pre-process the gene expression data.
+2. Convert the expression data into a vector for prediction using various techniques.
 
 Datasets
 --------
-Datasets currently used in this repo
+Datasets currently used in this repo.
 
 | Number | Dataset | Sepsis Patients  | Controls  |
 | --| -------------:|:-------------:| -----:|
