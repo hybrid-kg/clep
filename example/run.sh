@@ -12,7 +12,7 @@ ls *.CEL >> phenodata.txt
 wget -O "GPL13667-15572.txt" "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?mode=raw&amp;is_datatable=true&amp;acc=GPL13667&amp;id=15572&amp;db=GeoDb_blob92"
 
 
-# Download Samples and data relationship file
+# Download Miniml file
 wget "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE65nnn/GSE65682/miniml/GSE65682_family.xml.tgz"
 tar -zxvf "GSE65682_family.xml.tgz" "GSE65682_family.xml"
 rm "GSE65682_family.xml.tgz"
