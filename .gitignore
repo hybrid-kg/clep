@@ -151,3 +151,4 @@ vignettes/*.pdf
 temp/
 /data/
 /results/
+/notebooks/Random_testing.ipynb
