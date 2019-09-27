@@ -14,9 +14,19 @@ import itertools as itt
 # depending on the threshold (default FC 2.0). that should be an argument
 # 4. Plug that merged network into PyKEEN (the arguments should specify the type of model and its arguments)
 # 5. Returns you the predicted links ranked by likelihood but what we really want are the patient (nodes) vectors to do the clustering/prediction
-def do_nrl(data: pd.DataFrame, out: TextIO) -> None:
-    for patient, gene, value in data.melt():
+
+
+def do_nrl(data: pd.DataFrame, edge_out: TextIO) -> None:
+    _make_edgelist(data, edge_out)
+
+
+def _make_edgelist(data, edge_out):
+    for patient, gene, value in pd.melt(data, id_vars=['patients']).values:
         if value == 1:
-            print(patient, 'positiveCorrelation', f'HGNC:{gene}', sep='\t', file=out)
+            relation = 'positiveCorrelation'
         elif value == -1:
-            print(patient, 'negativeCorrelation', f'HGNC:{gene}', sep='\t', file=out)
+            relation = 'negativeCorrelation'
+        else:
+            continue
+        print(patient, f'HGNC:{gene}', {'relation': relation}, sep='\t', file=edge_out)
+

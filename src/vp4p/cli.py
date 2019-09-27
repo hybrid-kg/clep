@@ -167,10 +167,20 @@ def thresh2vec(data, out) -> None:
 
 
 @vectorization.command()
-def nrl():
+@data_option
+@click.option(
+    '--edge_out',
+    help="Path to the output the edge-list file",
+    type=click.Path(file_okay=True, dir_okay=False, exists=False),
+    required=True
+)
+def nrl(data, edge_out):
     """Perform Network representation learning"""
     click.echo(f"Starting NRL")
-    do_nrl()
+    data_df = pd.read_csv(data, sep='\t')
+    data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
+    with open(edge_out, 'w') as out:
+        do_nrl(data_df, out)
     click.echo(f"Done With NRL")
 
 
