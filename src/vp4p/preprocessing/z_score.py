@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 
-def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control'):
+def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control') -> pd.DataFrame:
     """Z-Score based single sample DE analysis."""
     # Check if the control variable is as per the R Naming standards
     assert control[0].isalpha()

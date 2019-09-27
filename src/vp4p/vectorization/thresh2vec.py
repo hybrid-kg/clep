@@ -4,8 +4,10 @@
 
 # TODO: Thresholding for Z-Score
 
+import pandas as pd
 
-def do_thresh2vec(data):
+
+def do_thresh2vec(data: pd.DataFrame) -> pd.DataFrame:
     output = data.apply(_thresh).copy()
     return output
 

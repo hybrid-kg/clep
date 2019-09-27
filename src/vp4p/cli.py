@@ -33,7 +33,7 @@ def preprocessing():
         genes | Sample1 | Sample2 | Sample3\n\n
 
         Design:\n
-        IndexCol | FileName | Patient_Annotation\n
+        FileName | Patient_Annotation\n
     """
 
 
@@ -87,7 +87,7 @@ control_option = click.option(
     show_default=True
 )
 @control_option
-def limma(data, design, out, alpha, method, control: str):
+def limma(data, design, out, alpha, method, control) -> None:
     click.echo(f"Starting Limma Based Pre-Processing with {data} & {design} files and saving it to {out}")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
@@ -120,7 +120,7 @@ def limma(data, design, out, alpha, method, control: str):
 @design_option
 @output_option
 @control_option
-def z_score(data, design, out, control):
+def z_score(data, design, out, control) -> None:
     click.echo(f"Starting Z-Score Based Pre-Processing with {data} & {design} files and saving it to {out}")
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t', index_col=0)
@@ -153,7 +153,7 @@ def path2vec():
 @vectorization.command()
 @data_option
 @output_option
-def thresh2vec(data, out):
+def thresh2vec(data, out) -> None:
     """Perform Threshold based Vectorization"""
     click.echo(f"Starting Thresh2Vec with {data}, and out-putting to {out}")
 
