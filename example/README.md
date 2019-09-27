@@ -2,7 +2,7 @@ Example
 =======
 This README will walk you through a simple usage of VP4P.
 
-Alternatively `./run.sh` can be executed to run the example for you
+Alternatively [run.sh](run.sh) can be executed to run the example for you
 
 Downloading Data
 -------------------
@@ -14,17 +14,22 @@ Pre-Processing the Data
 --------------------------
 1. Add all the CEL filenames to a tab separated file with the heading as "FileName"
 2. Run the preprocessing python script using the command,
+
     `python3 preprocessing.py make-targets`
-3. Then process the expression matrix using the R affy_preprocessing script using the Command,
+3. Then process the expression matrix using the R affy_preprocessing script using the command,
+
     `Rscript affy_preprocessing.R`
 4. Generate the expression file of the correct format using the python script,
+
     `python3 preprocessing.py make-exp`
 
 Single Sample Scoring
 ------------------------
 - For limma based Single Sample Scoring, run,
+
     `vp4p preprocessing limma --data exp.txt --design targets.txt --out limma.txt`
 - For Z-Score based Single Sample Scoring, run,
+
     `vp4p preprocessing z-score --data exp.txt --design targets.txt --out z_score.txt`
 
 
