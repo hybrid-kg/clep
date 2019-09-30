@@ -7,10 +7,10 @@ import logging
 import click
 import pandas as pd
 
-from vp4p.preprocessing import (
+from vp4p.sample_scoring import (
     do_limma, do_z_score
 )
-from vp4p.vectorization import (
+from vp4p.embedding import (
     do_row2vec, do_path2vec, do_thresh2vec, do_nrl
 )
 
@@ -24,7 +24,7 @@ def main():
 
 
 @main.group()
-def preprocessing():
+def sample_scoring():
     """
         List Pre-Processing methods available.\n
         Formats for Data and Design Matrices:\n
@@ -66,7 +66,7 @@ control_option = click.option(
 )
 
 
-@preprocessing.command(help='Limma based Pre-Processing')
+@sample_scoring.command(help='Limma based Pre-Processing')
 @data_option
 @design_option
 @output_option
@@ -115,7 +115,7 @@ def limma(data, design, out, alpha, method, control) -> None:
     click.echo(f"Done With limma calculation for {data}")
 
 
-@preprocessing.command(help='Z-Score based Pre-Processing')
+@sample_scoring.command(help='Z-Score based Pre-Processing')
 @data_option
 @design_option
 @output_option
@@ -130,27 +130,27 @@ def z_score(data, design, out, control) -> None:
 
 
 @main.group()
-def vectorization():
+def embedding():
     """List Vectorization methods available."""
 
 
-@vectorization.command()
+@embedding.command()
 def row2vec():
-    """Perform row based vectorization"""
+    """Perform row based embedding"""
     click.echo(f"Starting Row2Vec")
     do_row2vec()
     click.echo(f"Done With Row2Vec")
 
 
-@vectorization.command()
+@embedding.command()
 def path2vec():
-    """Perform pathway based vectorization"""
+    """Perform pathway based embedding"""
     click.echo(f"Starting Path2Vec")
     do_path2vec()
     click.echo(f"Done With Path2Vec")
 
 
-@vectorization.command()
+@embedding.command()
 @data_option
 @output_option
 def thresh2vec(data, out) -> None:
@@ -166,21 +166,39 @@ def thresh2vec(data, out) -> None:
     click.echo(f"Done With Thresh2Vec for {data}")
 
 
-@vectorization.command()
+@embedding.command()
 @data_option
+@design_option
 @click.option(
     '--edge_out',
     help="Path to the output the edge-list file",
     type=click.Path(file_okay=True, dir_okay=False, exists=False),
     required=True
 )
-def nrl(data, edge_out):
+@click.option(
+    '--edge_out_num',
+    help="Path to the output the edge-list number file",
+    type=click.Path(file_okay=True, dir_okay=False, exists=False),
+    required=True
+)
+@click.option(
+    '--label_edge',
+    help="Path to the output the edge-list number file",
+    type=click.Path(file_okay=True, dir_okay=False, exists=False),
+    required=True
+)
+def nrl(data, design, edge_out, edge_out_num, label_edge):
     """Perform Network representation learning"""
     click.echo(f"Starting NRL")
+
     data_df = pd.read_csv(data, sep='\t')
     data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
-    with open(edge_out, 'w') as out:
-        do_nrl(data_df, out)
+
+    design_df = pd.read_csv(design, sep='\t')
+
+    with open(edge_out, 'w') as out, open(edge_out_num, 'w') as out_num, open(label_edge, 'w') as label_out:
+        do_nrl(data_df, design_df, out, out_num, label_out)
+
     click.echo(f"Done With NRL")
 
 

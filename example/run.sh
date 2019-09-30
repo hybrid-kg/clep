@@ -17,20 +17,20 @@ wget "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE65nnn/GSE65682/miniml/GSE65682_fa
 tar -zxvf "GSE65682_family.xml.tgz" "GSE65682_family.xml"
 rm "GSE65682_family.xml.tgz"
 
-python3 preprocessing.py make-targets
+python3 sample_scoring.py make-targets
 
 Rscript affy_preprocessing.R
 
 rm *.CEL
 
 # Pre-Processing of Downloaded files
-python3 preprocessing.py make-exp
+python3 sample_scoring.py make-exp
 
-# limma preprocessing
-vp4p preprocessing limma --data exp.txt --design targets.txt --out limma.txt
-# Z_Score preprocessing
-vp4p preprocessing z-score --data exp.txt --design targets.txt --out z_score.txt
-# limma data's threshold based vectorization
-vp4p vectorization thresh2vec --data limma.txt --out thresh_limma.txt
-# Z-Score data's threshold based vectorization
-vp4p vectorization thresh2vec --data z_score.txt --out thresh_z_score.txt
+# limma sample_scoring
+vp4p sample_scoring limma --data exp.txt --design targets.txt --out limma.txt
+# Z_Score sample_scoring
+vp4p sample_scoring z-score --data exp.txt --design targets.txt --out z_score.txt
+# limma data's threshold based embedding
+vp4p embedding thresh2vec --data limma.txt --out thresh_limma.txt
+# Z-Score data's threshold based embedding
+vp4p embedding thresh2vec --data z_score.txt --out thresh_z_score.txt
