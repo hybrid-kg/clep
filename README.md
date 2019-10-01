@@ -19,3 +19,17 @@ Datasets currently used in this repo.
 Workflow
 --------
 ![image](https://docs.google.com/drawings/d/e/2PACX-1vT6-VOHbKSqFBjj7mqUR3fjkDCmjRatVZxi0gMfYWZlzXAKHZQgIG8uz2aWCypW5LdI69YojDYG3j0R/pub?w=1319&h=685)
+
+Formats for Data and Design Matrices:
+-------------------------------------
+Data:
+
+| genes | Sample_1 | ... | Sample_n |
+| ----- | -------- | --- | -------- |
+| HGNC ID | float | ... | float |
+
+Design:
+
+| FileName | Target |
+| -------- | ------ |
+| sample expression array file name | annotation of sample |
