@@ -26,16 +26,8 @@ def main():
 @main.group()
 def sample_scoring():
     """
-        List Single Sample Scoring methods available.\n
-        Formats for Data and Design Matrices:\n
-        -------------------------------------\n
-        Data:\n
-        genes | Sample1 | Sample2 | Sample3\n\n
-
-        Design:\n
-        FileName | Patient_Annotation\n
+        List Single Sample Scoring methods available.
     """
-
 
 data_option = click.option(
     '--data',
@@ -145,7 +137,7 @@ def z_score(data, design, out, control) -> None:
     '--out_dir',
     help="Path to the output directory",
     type=click.Path(file_okay=False, dir_okay=True, exists=False),
-    required=True,
+    required=False,
     default=None,
     show_default=True
 )
