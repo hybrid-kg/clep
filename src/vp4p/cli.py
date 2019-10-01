@@ -11,8 +11,10 @@ from vp4p.sample_scoring import (
     do_limma, do_z_score, do_ssgsea
 )
 from vp4p.embedding import (
-    do_row2vec, do_path2vec, do_thresh2vec, do_nrl
+    do_row2vec, do_path2vec, do_thresh2vec, do_nrl, do_ss_evaluation
 )
+
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -187,6 +189,37 @@ def thresh2vec(data, out) -> None:
     output.to_csv(out, sep='\t')
 
     click.echo(f"Done With Thresh2Vec for {data}")
+
+
+@embedding.command()
+@click.option(
+    '--data',
+    help='Path to a set of binned files',
+    type=click.Path(file_okay=True, dir_okay=False, exists=False),
+    required=True,
+    nargs=2
+)
+@click.option(
+    '--label',
+    help='Label for the set of binned files',
+    type=str,
+    required=True,
+    nargs=2
+)
+def evaluate(data, label) -> None:
+    click.echo(f"Starting Evaluation of the following files: \n{data}")
+
+    data_lst = []
+    for file in data:
+        data_lst.append(pd.read_csv(file, sep='\t', index_col=0))
+
+    label = list(label)
+
+    result = do_ss_evaluation(data_lst, label)
+
+    click.echo('===============Evaluation Results===============')
+    click.echo(json.dumps(result, indent=4, sort_keys=True).replace('{', ' ').replace('}', ' '))
+    click.echo('================================================')
 
 
 @embedding.command()
