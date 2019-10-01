@@ -8,7 +8,7 @@ import click
 import pandas as pd
 
 from vp4p.sample_scoring import (
-    do_limma, do_z_score
+    do_limma, do_z_score, do_ssgsea
 )
 from vp4p.embedding import (
     do_row2vec, do_path2vec, do_thresh2vec, do_nrl
@@ -26,7 +26,7 @@ def main():
 @main.group()
 def sample_scoring():
     """
-        List Pre-Processing methods available.\n
+        List Single Sample Scoring methods available.\n
         Formats for Data and Design Matrices:\n
         -------------------------------------\n
         Data:\n
@@ -66,7 +66,7 @@ control_option = click.option(
 )
 
 
-@sample_scoring.command(help='Limma based Pre-Processing')
+@sample_scoring.command(help='Limma based Single Sample Scoring')
 @data_option
 @design_option
 @output_option
@@ -88,7 +88,7 @@ control_option = click.option(
 )
 @control_option
 def limma(data, design, out, alpha, method, control) -> None:
-    click.echo(f"Starting Limma Based Pre-Processing with {data} & {design} files and saving it to {out}")
+    click.echo(f"Starting Limma Based Single Sample Scoring with {data} & {design} files and saving it to {out}")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t')
@@ -115,18 +115,49 @@ def limma(data, design, out, alpha, method, control) -> None:
     click.echo(f"Done With limma calculation for {data}")
 
 
-@sample_scoring.command(help='Z-Score based Pre-Processing')
+@sample_scoring.command(help='Z-Score based Single Sample Scoring')
 @data_option
 @design_option
 @output_option
 @control_option
 def z_score(data, design, out, control) -> None:
-    click.echo(f"Starting Z-Score Based Pre-Processing with {data} & {design} files and saving it to {out}")
+    click.echo(f"Starting Z-Score Based Single Sample Scoring with {data} & {design} files and saving it to {out}")
+
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t', index_col=0)
+
     output = do_z_score(data=data_df, design=design_df, control=control)
     output.to_csv(out, sep='\t')
+
     click.echo(f"Done With Z-Score calculation for {data}")
+
+
+@sample_scoring.command(help='ssGSEA based Single Sample Scoring')
+@data_option
+@output_option
+@click.option(
+    '--gs',
+    help="Path to the .gmt geneset file",
+    type=click.Path(file_okay=True, dir_okay=False, exists=False),
+    required=True
+)
+@click.option(
+    '--out_dir',
+    help="Path to the output directory",
+    type=click.Path(file_okay=False, dir_okay=True, exists=False),
+    required=True,
+    default=None,
+    show_default=True
+)
+def ssgsea(data, out, gs, out_dir) -> None:
+    click.echo(f"Starting Z-Score Based Single Sample Scoring with {data} & {gs} files and saving it to {out}")
+
+    data_df = pd.read_csv(data, sep='\t', index_col=0)
+
+    single_sample_gsea = do_ssgsea(data_df, gs, out_dir)
+    single_sample_gsea.res2d.to_csv(out, sep='\t')
+
+    click.echo(f"Done With ssgsea for {data}")
 
 
 @main.group()
