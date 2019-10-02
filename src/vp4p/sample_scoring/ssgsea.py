@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+"""single sample GSEA scoring."""
+
 from gseapy.gsea import SingleSampleGSEA
 from gseapy import ssgsea
 import pandas as pd
