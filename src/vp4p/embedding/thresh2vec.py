@@ -13,6 +13,5 @@ def do_thresh2vec(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def _thresh(row):
-    """"""
     bin_data = [1 if (val > 0) else(-1 if (val < 0) else 0) for val in row]
     return bin_data

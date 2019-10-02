@@ -161,7 +161,7 @@ def embedding():
 
 @embedding.command()
 def row2vec():
-    """Perform row based embedding"""
+    """Perform row based embedding."""
     click.echo(f"Starting Row2Vec")
     do_row2vec()
     click.echo(f"Done With Row2Vec")
@@ -169,7 +169,7 @@ def row2vec():
 
 @embedding.command()
 def path2vec():
-    """Perform pathway based embedding"""
+    """Perform pathway based embedding."""
     click.echo(f"Starting Path2Vec")
     do_path2vec()
     click.echo(f"Done With Path2Vec")
@@ -179,7 +179,7 @@ def path2vec():
 @data_option
 @output_option
 def thresh2vec(data, out) -> None:
-    """Perform Threshold based Vectorization"""
+    """Performs Threshold based Vectorization."""
     click.echo(f"Starting Thresh2Vec with {data}, and out-putting to {out}")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
@@ -244,7 +244,7 @@ def evaluate(data, label) -> None:
     required=True
 )
 def nrl(data, design, edge_out, edge_out_num, label_edge):
-    """Perform Network representation learning"""
+    """Perform Network representation learning."""
     click.echo(f"Starting NRL")
 
     data_df = pd.read_csv(data, sep='\t')

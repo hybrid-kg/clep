@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Vectorizing the gene data & pathway using Network Representation Learning."""
+"""Vectorize the gene data & pathway using Network Representation Learning."""
 
 import pandas as pd
 from typing import TextIO
@@ -18,6 +18,8 @@ import numpy as np
 
 
 def do_nrl(data: pd.DataFrame, design: pd.DataFrame, edge_out: TextIO, edge_out_num: TextIO, label_edge) -> None:
+    """Carry out Network-Representation Learning for the given pandas dataframe."""
+
     _make_edgelist(data, design, edge_out, edge_out_num, label_edge)
 
 
@@ -47,6 +49,6 @@ def _make_edgelist(data, design, edge_out, edge_out_num, label_edge):
         try:
             if design.at[idx, 'FileName'] in corr:
                 print(node2num_mapping[design.at[idx, 'FileName']], label2num_mapping[design.at[idx, 'Target']], sep=' ',
-              file=label_edge)
+                      file=label_edge)
         except KeyError:
             continue

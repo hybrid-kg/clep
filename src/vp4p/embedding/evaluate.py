@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Assess the differences between the 2 pre-processing methods"""
+"""Assess the differences between the 2 pre-processing methods."""
 
 import pandas as pd
 import numpy as np
@@ -9,8 +9,8 @@ import itertools
 
 def do_ss_evaluation(data: list, labels: list) -> dict:
     """
-    This function takes in binned pandas dataframes to compare and find the percentage of similarity and contradiction
-    between the single sample scoring functions
+    Takes in binned pandas dataframes to compare and find the percentage of similarity and contradiction
+    between the single sample scoring functions.
     """
 
     if not all(isinstance(df, pd.DataFrame) for df in data):
@@ -23,8 +23,9 @@ def do_ss_evaluation(data: list, labels: list) -> dict:
     result = dict()
 
     similarity = dict()
-    missense = dict()
-    nonsense = dict()
+    missense = dict()  # Missense counts the number of genes that change from 1 -> 0 or -1 -> 0 between the 2 SS methods
+    nonsense = dict()  # Nonsense counts the number of genes that change from 1 <-> -1 between the 2 SS
+    # methods
 
     vec_len = len(data[0].values.flatten())
 

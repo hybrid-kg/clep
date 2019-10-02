@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Z-Score based single sample DE analysis."""
+"""Carry out Z-Score based single sample DE analysis."""
 
 # Research question: how much does a single disease patient differ from the distribution of normal ones? In that case you can calculate a z-score for each disease patient relative to normal ones.
 
@@ -9,7 +9,7 @@ import pandas as pd
 
 
 def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control') -> pd.DataFrame:
-    """Z-Score based single sample DE analysis."""
+    """Carry out Z-Score based single sample DE analysis."""
     # Check if the control variable is as per the R Naming standards
     assert control[0].isalpha()
 
