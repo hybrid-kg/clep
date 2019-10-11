@@ -4,13 +4,22 @@
 
 import sklearn as sk
 import seaborn as sns
+import json
 
 
-def do_classification(data, labels, model_name, outfile, title=None, *args):
+def do_classification(data, labels, model_name, out_dir, title=None, *args):
 
     model = get_classifier(model_name, *args)
 
-    cv_results = sk.model_selection.cross_validate(model, data, labels, cv=10, scoring=['roc_auc', 'accuracy', 'f1'])
+    cv_results = sk.model_selection.cross_validate(estimator=model,
+                                                   X=data,
+                                                   y=labels,
+                                                   cv=10,
+                                                   scoring=['roc_auc', 'accuracy', 'f1'],
+                                                   return_estimator=True)
+
+    with open(f'{out_dir}/cross_validation_results.json', 'w') as out:
+        json.dump(cv_results, out)
 
     scoring_metrics = ['test_accuracy', 'test_f1_micro', 'test_roc_auc']
 
@@ -29,7 +38,7 @@ def do_classification(data, labels, model_name, outfile, title=None, *args):
                  title=title,
                  xticklabels=scoring_metrics)
 
-    sns_plot.figure.savefig(outfile)
+    sns_plot.figure.savefig(f'{out_dir}/Box-Plot.png')
 
     return cv_results
 

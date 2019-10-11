@@ -9,12 +9,14 @@ import pandas as pd
 
 from vp4p.sample_scoring import (
     do_limma, do_z_score, do_ssgsea
-)
+    )
 from vp4p.embedding import (
     do_row2vec, do_path2vec, do_thresh2vec, do_nrl, do_ss_evaluation
-)
+    )
+from vp4p.classification import do_classification
 
 import json
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -31,25 +33,25 @@ def sample_scoring():
         List Single Sample Scoring methods available.
     """
 
+
 data_option = click.option(
     '--data',
     help="Path to tab-separated gene expression data file",
     type=click.Path(file_okay=True, dir_okay=False, exists=True),
     required=True
-)
-
+    )
 design_option = click.option(
     '--design',
     help="Path to tab-separated experiment design file",
     type=click.Path(file_okay=True, dir_okay=False, exists=True),
     required=True
-)
+    )
 output_option = click.option(
     '--out',
     help="Path to the output file",
     type=click.Path(file_okay=True, dir_okay=False, exists=False),
     required=True
-)
+    )
 control_option = click.option(
     '--control',
     help="Annotated value for the control samples (Must start with an alphabet)",
@@ -57,7 +59,7 @@ control_option = click.option(
     required=False,
     default='Control',
     show_default=True
-)
+    )
 
 
 @sample_scoring.command(help='Limma based Single Sample Scoring')
@@ -71,7 +73,7 @@ control_option = click.option(
     required=False,
     default=0.05,
     show_default=True
-)
+    )
 @click.option(
     '--method',
     help="Method used for testing and adjustment of P-Values",
@@ -79,9 +81,9 @@ control_option = click.option(
     required=False,
     default='fdr_bh',
     show_default=True
-)
+    )
 @control_option
-def limma(data, design, out, alpha, method, control) -> None:
+def limma(data, design, out, alpha, method, control: str) -> None:
     click.echo(f"Starting Limma Based Single Sample Scoring with {data} & {design} files and saving it to {out}")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
@@ -134,7 +136,7 @@ def z_score(data, design, out, control) -> None:
     help="Path to the .gmt geneset file",
     type=click.Path(file_okay=True, dir_okay=False, exists=False),
     required=True
-)
+    )
 @click.option(
     '--out_dir',
     help="Path to the output directory",
@@ -142,7 +144,7 @@ def z_score(data, design, out, control) -> None:
     required=False,
     default=None,
     show_default=True
-)
+    )
 def ssgsea(data, out, gs, out_dir) -> None:
     click.echo(f"Starting Z-Score Based Single Sample Scoring with {data} & {gs} files and saving it to {out}")
 
@@ -198,14 +200,14 @@ def thresh2vec(data, out) -> None:
     type=click.Path(file_okay=True, dir_okay=False, exists=False),
     required=True,
     nargs=2
-)
+    )
 @click.option(
     '--label',
     help='Label for the set of binned files',
     type=str,
     required=True,
     nargs=2
-)
+    )
 def evaluate(data, label) -> None:
     click.echo(f"Starting Evaluation of the following files: \n{data}")
 
@@ -230,20 +232,20 @@ def evaluate(data, label) -> None:
     help="Path to the output the edge-list file",
     type=click.Path(file_okay=True, dir_okay=False, exists=False),
     required=True
-)
+    )
 @click.option(
     '--edge_out_num',
     help="Path to the output the edge-list number file",
     type=click.Path(file_okay=True, dir_okay=False, exists=False),
     required=True
-)
+    )
 @click.option(
     '--label_edge',
-    help="Path to the output the edge-list number file",
+    help="Path to the output the label edge-list file",
     type=click.Path(file_okay=True, dir_okay=False, exists=False),
     required=True
-)
-def nrl(data, design, edge_out, edge_out_num, label_edge):
+    )
+def nrl(data, design, edge_out, edge_out_num, label_edge) -> None:
     """Perform Network representation learning."""
     click.echo(f"Starting NRL")
 
@@ -254,6 +256,42 @@ def nrl(data, design, edge_out, edge_out_num, label_edge):
 
     with open(edge_out, 'w') as out, open(edge_out_num, 'w') as out_num, open(label_edge, 'w') as label_out:
         do_nrl(data_df, design_df, out, out_num, label_out)
+
+    click.echo(f"Done With NRL")
+
+
+@data_option
+@click.option(
+    '--label',
+    help="Path to label file",
+    type=click.Path(file_okay=True, dir_okay=False, exists=True),
+    required=True
+    )
+@click.option(
+    '--out_dir',
+    help="Path to the output directory",
+    type=click.Path(file_okay=False, dir_okay=True, exists=False),
+    required=True
+    )
+@click.option(
+    '--model',
+    help="Choose a Classification Model",
+    type=click.Choice(['logistic_regression',
+                       'elastic_net',
+                       'svm',
+                       'random_forrest']),
+    required=True
+    )
+def classify(data, labels, out_dir, model) -> None:
+    """Perform Machine-Learning Classification."""
+
+    click.echo(f"Starting NRL")
+
+    data_df = pd.read_csv(data, sep='\t')
+    labels_df = pd.read_csv(labels, sep='\t')
+    out_dir = os.path.abspath(out_dir)
+
+    do_classification(data_df, labels_df, out_dir, model)
 
     click.echo(f"Done With NRL")
 
