@@ -24,6 +24,7 @@ def do_nrl(data: pd.DataFrame, design: pd.DataFrame, edge_out: TextIO, edge_out_
 
 
 def _make_edgelist(data, design, edge_out, edge_out_num, label_edge):
+
     label2num_mapping = dict(zip(np.unique(design['Target']), range(len(np.unique(design['Target'])))))
     pat2num_mapping = dict(zip(data['patients'], range(len(data['patients']))))
     max_val = pat2num_mapping[max(pat2num_mapping, key=lambda i: pat2num_mapping[i])]
