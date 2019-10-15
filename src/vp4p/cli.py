@@ -10,7 +10,7 @@ import click
 import pandas as pd
 from vp4p.classification import do_classification
 from vp4p.embedding import (
-    do_row2vec, do_path2vec, do_thresh2vec, do_nrl, do_ss_evaluation
+    do_thresh2vec, do_nrl, do_ss_evaluation
     )
 from vp4p.sample_scoring import (
     do_limma, do_z_score, do_ssgsea
