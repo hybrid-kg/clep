@@ -245,7 +245,8 @@ def evaluate(data, label) -> None:
     type=click.Path(file_okay=True, dir_okay=False, exists=False),
     required=True
     )
-def nrl(data, design, edge_out, edge_out_num, label_edge) -> None:
+@control_option
+def nrl(data, design, edge_out, edge_out_num, label_edge, control) -> None:
     """Perform Network representation learning."""
     click.echo(f"Starting NRL")
 
@@ -255,7 +256,7 @@ def nrl(data, design, edge_out, edge_out_num, label_edge) -> None:
     design_df = pd.read_csv(design, sep='\t')
 
     with open(edge_out, 'w') as out, open(edge_out_num, 'w') as out_num, open(label_edge, 'w') as label_out:
-        do_nrl(data_df, design_df, out, out_num, label_out)
+        do_nrl(data_df, design_df, out, out_num, label_out, control)
 
     click.echo(f"Done With NRL")
 

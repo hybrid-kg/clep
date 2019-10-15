@@ -17,10 +17,12 @@ import numpy as np
 # 5. Returns you the predicted links ranked by likelihood but what we really want are the patient (nodes) vectors to do the clustering/prediction
 
 
-def do_nrl(data: pd.DataFrame, design: pd.DataFrame, edge_out: TextIO, edge_out_num: TextIO, label_edge) -> None:
+def do_nrl(data: pd.DataFrame, design: pd.DataFrame, edge_out: TextIO, edge_out_num: TextIO, label_edge, control) -> \
+        None:
     """Carry out Network-Representation Learning for the given pandas dataframe."""
 
-    _make_edgelist(data, design, edge_out, edge_out_num, label_edge)
+    labels = design[design['Target'] != control]
+    _make_edgelist(data, labels, edge_out, edge_out_num, label_edge)
 
 
 def _make_edgelist(data, design, edge_out, edge_out_num, label_edge):
