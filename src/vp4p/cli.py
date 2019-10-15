@@ -160,22 +160,6 @@ def embedding():
 
 
 @embedding.command()
-def row2vec():
-    """Perform row based embedding."""
-    click.echo(f"Starting Row2Vec")
-    do_row2vec()
-    click.echo(f"Done With Row2Vec")
-
-
-@embedding.command()
-def path2vec():
-    """Perform pathway based embedding."""
-    click.echo(f"Starting Path2Vec")
-    do_path2vec()
-    click.echo(f"Done With Path2Vec")
-
-
-@embedding.command()
 @data_option
 @output_option
 def thresh2vec(data, out) -> None:
