@@ -2,21 +2,19 @@
 
 """Command line interface."""
 
+import json
 import logging
+import os
 
 import click
 import pandas as pd
-
-from vp4p.sample_scoring import (
-    do_limma, do_z_score, do_ssgsea
-    )
+from vp4p.classification import do_classification
 from vp4p.embedding import (
     do_row2vec, do_path2vec, do_thresh2vec, do_nrl, do_ss_evaluation
     )
-from vp4p.classification import do_classification
-
-import json
-import os
+from vp4p.sample_scoring import (
+    do_limma, do_z_score, do_ssgsea
+    )
 
 logger = logging.getLogger(__name__)
 

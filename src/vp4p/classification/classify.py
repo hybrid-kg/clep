@@ -2,24 +2,26 @@
 
 """Wrap Machine-Learning Classifiers for vp4p."""
 
-import sklearn as sk
-import seaborn as sns
 import json
+
+import seaborn as sns
+import sklearn as sk
 
 
 def do_classification(data, labels, model_name, out_dir, title=None, *args):
-
     model = get_classifier(model_name, *args)
 
-    cv_results = sk.model_selection.cross_validate(estimator=model,
-                                                   X=data,
-                                                   y=labels,
-                                                   cv=10,
-                                                   scoring=['roc_auc', 'accuracy', 'f1'],
-                                                   return_estimator=True)
+    cv_results = sk.model_selection.cross_validate(
+        estimator=model,
+        X=data,
+        y=labels,
+        cv=10,
+        scoring=['roc_auc', 'accuracy', 'f1'],
+        return_estimator=True,
+        )
 
     with open(f'{out_dir}/cross_validation_results.json', 'w') as out:
-        json.dump(cv_results, out)
+        json.dump(cv_results, out, indent=4)
 
     scoring_metrics = ['test_accuracy', 'test_f1_micro', 'test_roc_auc']
 
@@ -44,7 +46,6 @@ def do_classification(data, labels, model_name, out_dir, title=None, *args):
 
 
 def get_classifier(model_name, *args):
-
     if model_name == 'logistic_regression':
         model = sk.linear_model.LogisticRegression(*args, solver='lbfgs')
 

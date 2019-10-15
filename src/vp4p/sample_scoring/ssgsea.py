@@ -2,9 +2,9 @@
 
 """single sample GSEA scoring."""
 
-from gseapy.gsea import SingleSampleGSEA
-from gseapy import ssgsea
 import pandas as pd
+from gseapy import ssgsea
+from gseapy.gsea import SingleSampleGSEA
 
 
 def do_ssgsea(

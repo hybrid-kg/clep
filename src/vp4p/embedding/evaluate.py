@@ -2,9 +2,9 @@
 
 """Assess the differences between the 2 pre-processing methods."""
 
-import pandas as pd
-import numpy as np
 import itertools
+import numpy as np
+import pandas as pd
 
 
 def do_ss_evaluation(data: list, labels: list) -> dict:
