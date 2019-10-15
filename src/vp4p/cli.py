@@ -10,7 +10,7 @@ import click
 import pandas as pd
 from vp4p.classification import do_classification
 from vp4p.embedding import (
-    do_thresh2vec, do_nrl, do_ss_evaluation
+    do_binning, do_nrl, do_ss_evaluation
     )
 from vp4p.sample_scoring import (
     do_limma, do_z_score, do_ssgsea
@@ -46,8 +46,8 @@ design_option = click.option(
     )
 output_option = click.option(
     '--out',
-    help="Path to the output file",
-    type=click.Path(file_okay=True, dir_okay=False, exists=False),
+    help="Path to the output folder",
+    type=click.Path(file_okay=False, dir_okay=True, exists=True),
     required=True
     )
 control_option = click.option(
@@ -82,7 +82,8 @@ control_option = click.option(
     )
 @control_option
 def limma(data, design, out, alpha, method, control: str) -> None:
-    click.echo(f"Starting Limma Based Single Sample Scoring with {data} & {design} files and saving it to {out}")
+    click.echo(
+        f"Starting Limma Based Single Sample Scoring with {data} & {design} files and saving it to {out}/limma.tsv")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t')
@@ -104,7 +105,7 @@ def limma(data, design, out, alpha, method, control: str) -> None:
         output = do_limma(data=data_df, design=design_df, alpha=alpha, adjust_method=method)
         output_df.iloc[col_idx, :] = output['logFC'].values.flatten()
 
-    output_df.to_csv(out, sep='\t')
+    output_df.to_csv(f'{out}/limma.tsv', sep='\t')
 
     click.echo(f"Done With limma calculation for {data}")
 
@@ -115,13 +116,14 @@ def limma(data, design, out, alpha, method, control: str) -> None:
 @output_option
 @control_option
 def z_score(data, design, out, control) -> None:
-    click.echo(f"Starting Z-Score Based Single Sample Scoring with {data} & {design} files and saving it to {out}")
+    click.echo(
+        f"Starting Z-Score Based Single Sample Scoring with {data} & {design} files and saving it to {out}/z_score.tsv")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t', index_col=0)
 
     output = do_z_score(data=data_df, design=design_df, control=control)
-    output.to_csv(out, sep='\t')
+    output.to_csv(f'{out}/z_score.tsv', sep='\t')
 
     click.echo(f"Done With Z-Score calculation for {data}")
 
@@ -135,21 +137,14 @@ def z_score(data, design, out, control) -> None:
     type=click.Path(file_okay=True, dir_okay=False, exists=False),
     required=True
     )
-@click.option(
-    '--out_dir',
-    help="Path to the output directory",
-    type=click.Path(file_okay=False, dir_okay=True, exists=False),
-    required=False,
-    default=None,
-    show_default=True
-    )
-def ssgsea(data, out, gs, out_dir) -> None:
-    click.echo(f"Starting Z-Score Based Single Sample Scoring with {data} & {gs} files and saving it to {out}")
+def ssgsea(data, out, gs) -> None:
+    click.echo(
+        f"Starting Z-Score Based Single Sample Scoring with {data} & {gs} files and saving it to {out}/ssgsea.tsv")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
 
-    single_sample_gsea = do_ssgsea(data_df, gs, out_dir)
-    single_sample_gsea.res2d.to_csv(out, sep='\t')
+    single_sample_gsea = do_ssgsea(data_df, gs)
+    single_sample_gsea.res2d.to_csv(f'{out}/ssgsea.tsv', sep='\t')
 
     click.echo(f"Done With ssgsea for {data}")
 
@@ -162,17 +157,17 @@ def embedding():
 @embedding.command()
 @data_option
 @output_option
-def thresh2vec(data, out) -> None:
+def binning(data, out) -> None:
     """Performs Threshold based Vectorization."""
-    click.echo(f"Starting Thresh2Vec with {data}, and out-putting to {out}")
+    click.echo(f"Starting binning with {data}, and out-putting to {out}/binned.tsv")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
 
-    output = do_thresh2vec(data=data_df)
+    output = do_binning(data=data_df)
 
-    output.to_csv(out, sep='\t')
+    output.to_csv(f'{out}/binned.tsv', sep='\t')
 
-    click.echo(f"Done With Thresh2Vec for {data}")
+    click.echo(f"Done With binning for {data}")
 
 
 @embedding.command()
@@ -209,26 +204,9 @@ def evaluate(data, label) -> None:
 @embedding.command()
 @data_option
 @design_option
-@click.option(
-    '--edge_out',
-    help="Path to the output the edge-list file",
-    type=click.Path(file_okay=True, dir_okay=False, exists=False),
-    required=True
-    )
-@click.option(
-    '--edge_out_num',
-    help="Path to the output the edge-list number file",
-    type=click.Path(file_okay=True, dir_okay=False, exists=False),
-    required=True
-    )
-@click.option(
-    '--label_edge',
-    help="Path to the output the label edge-list file",
-    type=click.Path(file_okay=True, dir_okay=False, exists=False),
-    required=True
-    )
+@output_option
 @control_option
-def nrl(data, design, edge_out, edge_out_num, label_edge, control) -> None:
+def nrl(data, design, out, control) -> None:
     """Perform Network representation learning."""
     click.echo(f"Starting NRL")
 
@@ -236,9 +214,7 @@ def nrl(data, design, edge_out, edge_out_num, label_edge, control) -> None:
     data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
 
     design_df = pd.read_csv(design, sep='\t')
-
-    with open(edge_out, 'w') as out, open(edge_out_num, 'w') as out_num, open(label_edge, 'w') as label_out:
-        do_nrl(data_df, design_df, out, out_num, label_out, control)
+    do_nrl(data_df, design_df, out, control)
 
     click.echo(f"Done With NRL")
 
