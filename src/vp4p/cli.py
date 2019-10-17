@@ -240,6 +240,8 @@ def classify(data, design, control, out, model) -> None:
     click.echo(f"Starting NRL")
 
     data_df = pd.read_csv(data, sep='\t')
+    data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
+
     design_df = pd.read_csv(design, sep='\t', index_col=0)
 
     do_classification(data_df, design_df, control, out, model)

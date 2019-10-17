@@ -14,7 +14,7 @@ def do_classification(data, design, control, model_name, out_dir, title=None, *a
 
     label2num_mapping = dict(zip(np.unique(design['Target']), range(len(np.unique(design['Target'])))))
     no_control = design[design['Target'] != control].copy()
-    labels = no_control[no_control['FileName'].isin(data.iloc[:, 0])]['Target'].map(label2num_mapping)
+    labels = no_control[no_control['FileName'].isin(data['patients'])]['Target'].map(label2num_mapping)
 
     cv_results = sk.model_selection.cross_validate(
         estimator=model,
