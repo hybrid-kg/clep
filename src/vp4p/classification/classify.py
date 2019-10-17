@@ -9,16 +9,15 @@ import seaborn as sns
 from sklearn import linear_model, svm, ensemble, model_selection
 
 
-def do_classification(data, design, control, model_name, out_dir, title=None, *args):
+def do_classification(data, model_name, out_dir, title=None, *args):
     model = get_classifier(model_name, *args)
 
-    label2num_mapping = dict(zip(np.unique(design['Target']), range(len(np.unique(design['Target'])))))
-    no_control = design[design['Target'] != control].copy()
-    labels = no_control[no_control['FileName'].isin(data['patients'])]['Target'].map(label2num_mapping)
+    labels = data['label']
+    data = data.drop(columns=['patients', 'label'])
 
     cv_results = model_selection.cross_validate(
         estimator=model,
-        X=data.iloc[:, 1:],
+        X=data,
         y=labels,
         cv=10,
         scoring=['roc_auc', 'accuracy', 'f1'],

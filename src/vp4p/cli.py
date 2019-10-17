@@ -4,7 +4,7 @@
 
 import json
 import logging
-import os
+import numpy as np
 
 import click
 import pandas as pd
@@ -88,6 +88,8 @@ def limma(data, design, out, alpha, method, control: str) -> None:
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t')
 
+    label_mapping = dict(zip(np.unique(design_df['Target']), range(len(np.unique(design_df['Target'])))))
+
     ctrl_data = data_df.transpose()[list(design_df.Target == control)].transpose()
     sample_data = data_df.transpose()[list(design_df.Target != control)].transpose()
 
@@ -104,6 +106,8 @@ def limma(data, design, out, alpha, method, control: str) -> None:
 
         output = do_limma(data=data_df, design=design_df, alpha=alpha, adjust_method=method)
         output_df.iloc[col_idx, :] = output['logFC'].values.flatten()
+
+    output_df['label'] = sample_design['Target'].map(label_mapping)
 
     output_df.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
@@ -130,6 +134,7 @@ def z_score(data, design, out, control) -> None:
 
 @sample_scoring.command(help='ssGSEA based Single Sample Scoring')
 @data_option
+@design_option
 @output_option
 @click.option(
     '--gs',
@@ -137,14 +142,20 @@ def z_score(data, design, out, control) -> None:
     type=click.Path(file_okay=True, dir_okay=False, exists=False),
     required=True
     )
-def ssgsea(data, out, gs) -> None:
+def ssgsea(data, design, out, gs) -> None:
     click.echo(
         f"Starting Z-Score Based Single Sample Scoring with {data} & {gs} files and saving it to {out}/sample_scoring.tsv")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
+    design_df = pd.read_csv(design, sep='\t', index_col=0)
+
+    label_mapping = dict(zip(np.unique(design_df['Target']), range(len(np.unique(design_df['Target'])))))
 
     single_sample_gsea = do_ssgsea(data_df, gs)
-    single_sample_gsea.res2d.transpose().to_csv(f'{out}/sample_scoring.tsv', sep='\t')
+
+    df = single_sample_gsea.res2d.transpose()
+    df['label'] = design_df['Target'].map(label_mapping)
+    df.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
     click.echo(f"Done With ssgsea for {data}")
 
@@ -223,8 +234,6 @@ def nrl(data, design, out, control) -> None:
 @main.command()
 @data_option
 @output_option
-@design_option
-@control_option
 @click.option(
     '--model',
     help="Choose a Classification Model",
@@ -234,7 +243,7 @@ def nrl(data, design, out, control) -> None:
                        'random_forrest']),
     required=True
     )
-def classify(data, design, control, out, model) -> None:
+def classify(data, out, model) -> None:
     """Perform Machine-Learning Classification."""
 
     click.echo(f"Starting Classification")
@@ -242,9 +251,7 @@ def classify(data, design, control, out, model) -> None:
     data_df = pd.read_csv(data, sep='\t')
     data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
 
-    design_df = pd.read_csv(design, sep='\t', index_col=0)
-
-    do_classification(data_df, design_df, control, model, out)
+    do_classification(data_df, model, out)
 
     click.echo(f"Done With Classification")
 

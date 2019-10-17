@@ -16,6 +16,8 @@ def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control
     # Transpose matrix to get the patients as the rows
     data = data.transpose()
 
+    label_mapping = dict(zip(np.unique(design['Target']), range(len(np.unique(design['Target'])))))
+
     # Make sure the number of rows of transposed data and design are equal
     assert len(data) == len(design)
 
@@ -30,4 +32,7 @@ def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control
 
     out_z_scores = np.where(np.abs(z_scores) > 1, z_scores, 0)
 
-    return pd.DataFrame(data=out_z_scores, index=data.index[:len(samples)], columns=data.columns)
+    df = pd.DataFrame(data=out_z_scores, index=data.index[:len(samples)], columns=data.columns)
+    df['label'] = design[design['Target'] != control]['Target'].map(label_mapping)
+
+    return df
