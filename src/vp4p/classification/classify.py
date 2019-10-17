@@ -6,7 +6,7 @@ import json
 
 import numpy as np
 import seaborn as sns
-import sklearn as sk
+from sklearn import linear_model, svm, ensemble, model_selection
 
 
 def do_classification(data, design, control, model_name, out_dir, title=None, *args):
@@ -16,19 +16,29 @@ def do_classification(data, design, control, model_name, out_dir, title=None, *a
     no_control = design[design['Target'] != control].copy()
     labels = no_control[no_control['FileName'].isin(data['patients'])]['Target'].map(label2num_mapping)
 
-    cv_results = sk.model_selection.cross_validate(
+    cv_results = model_selection.cross_validate(
         estimator=model,
-        X=data,
-        y=labels.values,
+        X=data.iloc[:, 1:],
+        y=labels,
         cv=10,
         scoring=['roc_auc', 'accuracy', 'f1'],
         return_estimator=True,
         )
 
+    for key in cv_results.keys():
+        if isinstance(cv_results[key], np.ndarray):
+            cv_results[key] = cv_results[key].tolist()
+
+        else:
+            cv_results[key] = [
+                classifier.get_params()
+                for classifier in cv_results[key]
+                ]
+
     with open(f'{out_dir}/cross_validation_results.json', 'w') as out:
         json.dump(cv_results, out, indent=4)
 
-    scoring_metrics = ['test_accuracy', 'test_f1_micro', 'test_roc_auc']
+    scoring_metrics = ['test_accuracy', 'test_f1', 'test_roc_auc']
 
     data = list()
     for scores in scoring_metrics:
@@ -52,16 +62,16 @@ def do_classification(data, design, control, model_name, out_dir, title=None, *a
 
 def get_classifier(model_name, *args):
     if model_name == 'logistic_regression':
-        model = sk.linear_model.LogisticRegression(*args, solver='lbfgs')
+        model = linear_model.LogisticRegression(*args, solver='lbfgs')
 
     elif model_name == 'elastic_net':
-        model = sk.linear_model.LogisticRegression(*args, penalty='elasticnet', l1_ratio=0.5, solver='saga')
+        model = linear_model.LogisticRegression(*args, penalty='elasticnet', l1_ratio=0.5, solver='saga')
 
     elif model_name == 'svm':
-        model = sk.svm.SVC(*args, gamma='scale')
+        model = svm.SVC(*args, gamma='scale')
 
     elif model_name == 'random_forrest':
-        model = sk.ensemble.RandomForestClassifier(*args)
+        model = ensemble.RandomForestClassifier(*args)
 
     else:
         raise ModuleNotFoundError('The entered model was not found. Please check the model that was inputted')

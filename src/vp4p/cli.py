@@ -237,16 +237,16 @@ def nrl(data, design, out, control) -> None:
 def classify(data, design, control, out, model) -> None:
     """Perform Machine-Learning Classification."""
 
-    click.echo(f"Starting NRL")
+    click.echo(f"Starting Classification")
 
     data_df = pd.read_csv(data, sep='\t')
     data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
 
     design_df = pd.read_csv(design, sep='\t', index_col=0)
 
-    do_classification(data_df, design_df, control, out, model)
+    do_classification(data_df, design_df, control, model, out)
 
-    click.echo(f"Done With NRL")
+    click.echo(f"Done With Classification")
 
 
 if __name__ == '__main__':
