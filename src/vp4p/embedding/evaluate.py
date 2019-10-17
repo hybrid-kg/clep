@@ -3,14 +3,17 @@
 """Assess the differences between the 2 pre-processing methods."""
 
 import itertools
+
 import numpy as np
 import pandas as pd
 
 
 def do_ss_evaluation(data: list, labels: list) -> dict:
-    """
-    Takes in binned pandas dataframes to compare and find the percentage of similarity and contradiction
-    between the single sample scoring functions.
+    """Take binned pandas dataframes to compare and find the percentage of similarity and contradiction between
+    single sample scoring functions.
+    :param data: TODO Fillme
+    :labels data: TODO Fillme
+    :return: TODO Fillme
     """
 
     if not all(isinstance(df, pd.DataFrame) for df in data):
@@ -49,10 +52,12 @@ def do_ss_evaluation(data: list, labels: list) -> dict:
 
 
 def _similarity(arr1, arr2):
+    """TODO: Add docstring"""
     return np.sum(arr1 == arr2)
 
 
 def _missense(arr1, arr2):
+    """TODO: Add docstring"""
     o2z = np.sum(((arr1 == 0) & (arr2 == 1)) | ((arr1 == 1) & (arr2 == 0)))
     no2z = np.sum(((arr1 == 0) & (arr2 == -1)) | ((arr1 == -1) & (arr2 == 0)))
 
@@ -60,4 +65,5 @@ def _missense(arr1, arr2):
 
 
 def _nonsense(arr1, arr2):
+    """TODO: Add docstring"""
     return np.sum(((arr1 == -1) & (arr2 == 1)) | ((arr1 == 1) & (arr2 == -1)))

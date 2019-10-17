@@ -14,13 +14,17 @@ import pandas as pd
 def do_nrl(data: pd.DataFrame, design: pd.DataFrame, out, control) -> None:
     """Carry out Network-Representation Learning for the given pandas dataframe."""
 
+    # Get labels
     labels = design[design['Target'] != control]
+    # Output edge list
     with open(f'{out}/text.edgelist', 'w') as text_out, \
             open(f'{out}/number.edgelist', 'w') as num_out, \
             open(f'{out}/label.edgelist', 'w') as label_out:
-        pat2num_mapping, gene2num_mapping, label2num_mapping = _make_edgelist(data, labels, text_out,
-                                                                              num_out, label_out)
+        pat2num_mapping, gene2num_mapping, label2num_mapping = _make_edgelist(
+            data, labels, text_out, num_out, label_out
+        )
 
+    # TODO: Please comment
     with open(f'{out}/pat2num_mapping.pkl', 'wb') as pat_file, \
             open(f'{out}/gene2num_mapping.pkl', 'wb') as gene_file, \
             open(f'{out}/label_mapping.pkl', 'wb') as label_file:
@@ -30,6 +34,7 @@ def do_nrl(data: pd.DataFrame, design: pd.DataFrame, out, control) -> None:
 
 
 def _make_edgelist(data, design, edge_out, edge_out_num, label_edge):
+    """TODO: Add docstring"""
     label2num_mapping = dict(zip(np.unique(design['Target']), range(len(np.unique(design['Target'])))))
     pat2num_mapping = dict(zip(data['patients'], range(len(data['patients']))))
     max_val = pat2num_mapping[max(pat2num_mapping, key=lambda i: pat2num_mapping[i])]
@@ -52,8 +57,10 @@ def _make_edgelist(data, design, edge_out, edge_out_num, label_edge):
     for idx in design.index:
         try:
             if design.at[idx, 'FileName'] in corr:
-                print(pat2num_mapping[design.at[idx, 'FileName']], label2num_mapping[design.at[idx, 'Target']], sep=' ',
-                      file=label_edge)
+                print(
+                    pat2num_mapping[design.at[idx, 'FileName']], label2num_mapping[design.at[idx, 'Target']], sep=' ',
+                    file=label_edge
+                )
         except KeyError:
             continue
 

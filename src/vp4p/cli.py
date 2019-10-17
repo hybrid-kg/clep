@@ -4,17 +4,17 @@
 
 import json
 import logging
-import numpy as np
 
 import click
+import numpy as np
 import pandas as pd
 from vp4p.classification import do_classification
 from vp4p.embedding import (
     do_binning, do_nrl, do_ss_evaluation
-    )
+)
 from vp4p.sample_scoring import (
     do_limma, do_z_score, do_ssgsea
-    )
+)
 
 logger = logging.getLogger(__name__)
 
@@ -27,40 +27,38 @@ def main():
 
 @main.group()
 def sample_scoring():
-    """
-        List Single Sample Scoring methods available.
-    """
+    """List Single Sample Scoring methods available."""
 
 
 data_option = click.option(
     '--data',
     help="Path to tab-separated gene expression data file",
     type=click.Path(file_okay=True, dir_okay=False, exists=True),
-    required=True
-    )
+    required=True,
+)
 design_option = click.option(
     '--design',
     help="Path to tab-separated experiment design file",
     type=click.Path(file_okay=True, dir_okay=False, exists=True),
-    required=True
-    )
+    required=True,
+)
 output_option = click.option(
     '--out',
     help="Path to the output folder",
     type=click.Path(file_okay=False, dir_okay=True, exists=True),
-    required=True
-    )
+    required=True,
+)
 control_option = click.option(
     '--control',
-    help="Annotated value for the control samples (Must start with an alphabet)",
+    help="Annotated value for the control samples (must start with an alphabet)",
     type=str,
     required=False,
     default='Control',
-    show_default=True
-    )
+    show_default=True,
+)
 
 
-@sample_scoring.command(help='Limma based Single Sample Scoring')
+@sample_scoring.command(help='Limma-based Single Sample Scoring')
 @data_option
 @design_option
 @output_option
@@ -70,20 +68,25 @@ control_option = click.option(
     type=float,
     required=False,
     default=0.05,
-    show_default=True
-    )
+    show_default=True,
+)
 @click.option(
     '--method',
     help="Method used for testing and adjustment of P-Values",
     type=str,
     required=False,
     default='fdr_bh',
-    show_default=True
-    )
+    show_default=True,
+)
 @control_option
 def limma(data, design, out, alpha, method, control: str) -> None:
+    """TODO: Please write the description"""
     click.echo(
-        f"Starting Limma Based Single Sample Scoring with {data} & {design} files and saving it to {out}/sample_scoring.tsv")
+        f"Starting Limma Based Single Sample Scoring with {data} & {design} files and "
+        f"saving it to {out}/sample_scoring.tsv"
+    )
+
+    # TODO: Explain please and move it out!
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t')
@@ -98,6 +101,7 @@ def limma(data, design, out, alpha, method, control: str) -> None:
 
     output_df = pd.DataFrame(columns=sample_data.index, index=sample_data.columns)
 
+    # TODO: Explain please and move out
     for col_idx, col in enumerate(sample_data.columns):
         data_df = ctrl_data.copy()
 
@@ -111,7 +115,7 @@ def limma(data, design, out, alpha, method, control: str) -> None:
 
     output_df.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
-    click.echo(f"Done With limma calculation for {data}")
+    click.echo(f"Done with limma calculation for {data}")
 
 
 @sample_scoring.command(help='Z-Score based Single Sample Scoring')
@@ -120,8 +124,11 @@ def limma(data, design, out, alpha, method, control: str) -> None:
 @output_option
 @control_option
 def z_score(data, design, out, control) -> None:
+    """TODO: Please write the description"""
     click.echo(
-        f"Starting Z-Score Based Single Sample Scoring with {data} & {design} files and saving it to {out}/sample_scoring.tsv")
+        f"Starting Z-Score Based Single Sample Scoring with {data} & {design} files and "
+        f"saving it to {out}/sample_scoring.tsv"
+    )
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t', index_col=0)
@@ -129,7 +136,7 @@ def z_score(data, design, out, control) -> None:
     output = do_z_score(data=data_df, design=design_df, control=control)
     output.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
-    click.echo(f"Done With Z-Score calculation for {data}")
+    click.echo(f"Done with Z-Score calculation for {data}")
 
 
 @sample_scoring.command(help='ssGSEA based Single Sample Scoring')
@@ -140,9 +147,10 @@ def z_score(data, design, out, control) -> None:
     '--gs',
     help="Path to the .gmt geneset file",
     type=click.Path(file_okay=True, dir_okay=False, exists=False),
-    required=True
-    )
+    required=True,
+)
 def ssgsea(data, design, out, gs) -> None:
+    """TODO: Please write the description"""
     click.echo(
         f"Starting Z-Score Based Single Sample Scoring with {data} & {gs} files and saving it to {out}/sample_scoring.tsv")
 
@@ -157,7 +165,7 @@ def ssgsea(data, design, out, gs) -> None:
     df['label'] = design_df['Target'].map(label_mapping)
     df.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
-    click.echo(f"Done With ssgsea for {data}")
+    click.echo(f"Done with ssgsea for {data}")
 
 
 @main.group()
@@ -169,7 +177,7 @@ def embedding():
 @data_option
 @output_option
 def binning(data, out) -> None:
-    """Performs Threshold based Vectorization."""
+    """Perform Threshold based Vectorization."""
     click.echo(f"Starting binning with {data}, and out-putting to {out}/binned.tsv")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
@@ -178,7 +186,7 @@ def binning(data, out) -> None:
 
     output.to_csv(f'{out}/binned.tsv', sep='\t')
 
-    click.echo(f"Done With binning for {data}")
+    click.echo(f"Done with binning for {data}")
 
 
 @embedding.command()
@@ -188,25 +196,26 @@ def binning(data, out) -> None:
     type=click.Path(file_okay=True, dir_okay=False, exists=False),
     required=True,
     nargs=2
-    )
+)
 @click.option(
     '--label',
     help='Label for the set of binned files',
     type=str,
     required=True,
     nargs=2
-    )
+)
 def evaluate(data, label) -> None:
     """Perform Evaluation of the Embeddings"""
     click.echo(f"Starting Evaluation of the following files: \n{data}")
 
-    data_lst = []
-    for file in data:
-        data_lst.append(pd.read_csv(file, sep='\t', index_col=0))
+    # TODO: Explain please
+    data_lst = [
+        pd.read_csv(file, sep='\t', index_col=0)
+        for file in data
+    ]
 
-    label = list(label)
-
-    result = do_ss_evaluation(data_lst, label)
+    # TODO: Why are you casting label as a list?
+    result = do_ss_evaluation(data_lst, list(label))
 
     click.echo('===============Evaluation Results===============')
     click.echo(json.dumps(result, indent=4, sort_keys=True).replace('{', ' ').replace('}', ' '))
@@ -228,7 +237,7 @@ def nrl(data, design, out, control) -> None:
     design_df = pd.read_csv(design, sep='\t')
     do_nrl(data_df, design_df, out, control)
 
-    click.echo(f"Done With NRL")
+    click.echo(f"Done with NRL")
 
 
 @main.command()
@@ -237,15 +246,16 @@ def nrl(data, design, out, control) -> None:
 @click.option(
     '--model',
     help="Choose a Classification Model",
-    type=click.Choice(['logistic_regression',
-                       'elastic_net',
-                       'svm',
-                       'random_forrest']),
+    type=click.Choice([
+        'logistic_regression',
+        'elastic_net',
+        'svm',
+        'random_forrest'
+    ]),
     required=True
-    )
+)
 def classify(data, out, model) -> None:
     """Perform Machine-Learning Classification."""
-
     click.echo(f"Starting Classification")
 
     data_df = pd.read_csv(data, sep='\t')
@@ -253,7 +263,7 @@ def classify(data, out, model) -> None:
 
     do_classification(data_df, model, out)
 
-    click.echo(f"Done With Classification")
+    click.echo(f"Done with Classification")
 
 
 if __name__ == '__main__':
