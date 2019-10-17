@@ -83,7 +83,7 @@ control_option = click.option(
 @control_option
 def limma(data, design, out, alpha, method, control: str) -> None:
     click.echo(
-        f"Starting Limma Based Single Sample Scoring with {data} & {design} files and saving it to {out}/limma.tsv")
+        f"Starting Limma Based Single Sample Scoring with {data} & {design} files and saving it to {out}/sample_scoring.tsv")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t')
@@ -105,7 +105,7 @@ def limma(data, design, out, alpha, method, control: str) -> None:
         output = do_limma(data=data_df, design=design_df, alpha=alpha, adjust_method=method)
         output_df.iloc[col_idx, :] = output['logFC'].values.flatten()
 
-    output_df.to_csv(f'{out}/limma.tsv', sep='\t')
+    output_df.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
     click.echo(f"Done With limma calculation for {data}")
 
@@ -117,13 +117,13 @@ def limma(data, design, out, alpha, method, control: str) -> None:
 @control_option
 def z_score(data, design, out, control) -> None:
     click.echo(
-        f"Starting Z-Score Based Single Sample Scoring with {data} & {design} files and saving it to {out}/z_score.tsv")
+        f"Starting Z-Score Based Single Sample Scoring with {data} & {design} files and saving it to {out}/sample_scoring.tsv")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t', index_col=0)
 
     output = do_z_score(data=data_df, design=design_df, control=control)
-    output.to_csv(f'{out}/z_score.tsv', sep='\t')
+    output.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
     click.echo(f"Done With Z-Score calculation for {data}")
 
@@ -139,12 +139,12 @@ def z_score(data, design, out, control) -> None:
     )
 def ssgsea(data, out, gs) -> None:
     click.echo(
-        f"Starting Z-Score Based Single Sample Scoring with {data} & {gs} files and saving it to {out}/ssgsea.tsv")
+        f"Starting Z-Score Based Single Sample Scoring with {data} & {gs} files and saving it to {out}/sample_scoring.tsv")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
 
     single_sample_gsea = do_ssgsea(data_df, gs)
-    single_sample_gsea.res2d.to_csv(f'{out}/ssgsea.tsv', sep='\t')
+    single_sample_gsea.res2d.transpose().to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
     click.echo(f"Done With ssgsea for {data}")
 
@@ -186,6 +186,7 @@ def binning(data, out) -> None:
     nargs=2
     )
 def evaluate(data, label) -> None:
+    """Perform Evaluation of the Embeddings"""
     click.echo(f"Starting Evaluation of the following files: \n{data}")
 
     data_lst = []
@@ -219,19 +220,11 @@ def nrl(data, design, out, control) -> None:
     click.echo(f"Done With NRL")
 
 
+@main.command()
 @data_option
-@click.option(
-    '--label',
-    help="Path to label file",
-    type=click.Path(file_okay=True, dir_okay=False, exists=True),
-    required=True
-    )
-@click.option(
-    '--out_dir',
-    help="Path to the output directory",
-    type=click.Path(file_okay=False, dir_okay=True, exists=False),
-    required=True
-    )
+@output_option
+@design_option
+@control_option
 @click.option(
     '--model',
     help="Choose a Classification Model",
@@ -241,16 +234,15 @@ def nrl(data, design, out, control) -> None:
                        'random_forrest']),
     required=True
     )
-def classify(data, labels, out_dir, model) -> None:
+def classify(data, design, control, out, model) -> None:
     """Perform Machine-Learning Classification."""
 
     click.echo(f"Starting NRL")
 
     data_df = pd.read_csv(data, sep='\t')
-    labels_df = pd.read_csv(labels, sep='\t')
-    out_dir = os.path.abspath(out_dir)
+    design_df = pd.read_csv(design, sep='\t', index_col=0)
 
-    do_classification(data_df, labels_df, out_dir, model)
+    do_classification(data_df, design_df, control, out, model)
 
     click.echo(f"Done With NRL")
 
