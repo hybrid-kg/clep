@@ -13,7 +13,13 @@ def do_binning(data: pd.DataFrame) -> pd.DataFrame:
     :param data: Dataframe containing the single sample scores from limma or Z_scores
     :return Dataframe containing binned scores
     """
+    label = data['label']
+    data = data.drop(columns='label')
+
     output = data.apply(_bin).copy()
+
+    output['label'] = label
+
     return output
 
 

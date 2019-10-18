@@ -140,7 +140,12 @@ def ssgsea(data, design, out, gs) -> None:
     single_sample_gsea = do_ssgsea(data_df, gs)
 
     df = single_sample_gsea.res2d.transpose()
-    df['label'] = design_df['Target'].map(label_mapping)
+
+    label = design_df['Target'].map(label_mapping)
+    label.reset_index(drop=True, inplace=True)
+
+    df['label'] = label
+
     df.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
     click.echo(f"Done with ssGSEA for {data}")
@@ -245,7 +250,7 @@ def nrl(data, design, out, control) -> None:
     help="Metrics that should be tested during cross validation (comma separated)",
     type=str,
     required=False,
-    default='roc_auc, accuracy, f1',
+    default='roc_auc, accuracy, f1_micro, f1_macro',
     show_default=True,
 )
 @click.option(
@@ -258,7 +263,10 @@ def nrl(data, design, out, control) -> None:
 )
 def classify(data, out, model, cv, metrics, title) -> None:
     """Perform Machine-Learning Classification."""
-    click.echo(f"Starting Classification")
+    click.echo(
+        f"Starting Classification with {data} and out-putting to results to {out}/cross_validation_results.json"
+        f" & the plot to {out}/boxplot.png"
+    )
 
     data_df = pd.read_csv(data, sep='\t')
     data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)

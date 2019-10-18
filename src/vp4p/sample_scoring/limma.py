@@ -41,7 +41,10 @@ def do_limma(data, design, alpha, method, control: str) -> pd.DataFrame:
         output = _limma(data=data_df, design=design_df, alpha=alpha, adjust_method=method)
         output_df.iloc[col_idx, :] = output['logFC'].values.flatten()
 
-    output_df['label'] = sample_design['Target'].map(label_mapping)
+    label = sample_design['Target'].map(label_mapping)
+    label.reset_index(drop=True, inplace=True)
+
+    output_df['label'] = label
 
     return output_df
 
