@@ -44,6 +44,7 @@ def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control
     label = design[design['Target'] != control]['Target'].map(label_mapping)
     label.reset_index(drop=True, inplace=True)
 
-    df['label'] = label
+    df['label'] = label.values
+    print(df.label)
 
     return df

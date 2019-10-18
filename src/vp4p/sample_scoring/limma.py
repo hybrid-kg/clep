@@ -44,7 +44,7 @@ def do_limma(data, design, alpha, method, control: str) -> pd.DataFrame:
     label = sample_design['Target'].map(label_mapping)
     label.reset_index(drop=True, inplace=True)
 
-    output_df['label'] = label
+    output_df['label'] = label.values
 
     return output_df
 

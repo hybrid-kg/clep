@@ -144,7 +144,7 @@ def ssgsea(data, design, out, gs) -> None:
     label = design_df['Target'].map(label_mapping)
     label.reset_index(drop=True, inplace=True)
 
-    df['label'] = label
+    df['label'] = label.values
 
     df.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
