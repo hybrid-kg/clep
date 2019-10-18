@@ -80,38 +80,16 @@ control_option = click.option(
 )
 @control_option
 def limma(data, design, out, alpha, method, control: str) -> None:
-    """TODO: Please write the description"""
+    """Perform Single Sample limma based differential gene expression for all samples wrt the controls."""
     click.echo(
         f"Starting Limma Based Single Sample Scoring with {data} & {design} files and "
         f"saving it to {out}/sample_scoring.tsv"
     )
 
-    # TODO: Explain please and move it out!
-
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t')
 
-    label_mapping = dict(zip(np.unique(design_df['Target']), range(len(np.unique(design_df['Target'])))))
-
-    ctrl_data = data_df.transpose()[list(design_df.Target == control)].transpose()
-    sample_data = data_df.transpose()[list(design_df.Target != control)].transpose()
-
-    ctrl_design = design_df[list(design_df.Target == control)]
-    sample_design = design_df[list(design_df.Target != control)]
-
-    output_df = pd.DataFrame(columns=sample_data.index, index=sample_data.columns)
-
-    # TODO: Explain please and move out
-    for col_idx, col in enumerate(sample_data.columns):
-        data_df = ctrl_data.copy()
-
-        data_df[col] = sample_data.iloc[:, col_idx]
-        design_df = ctrl_design.append(sample_design.iloc[col_idx, :], ignore_index=True)
-
-        output = do_limma(data=data_df, design=design_df, alpha=alpha, adjust_method=method)
-        output_df.iloc[col_idx, :] = output['logFC'].values.flatten()
-
-    output_df['label'] = sample_design['Target'].map(label_mapping)
+    output_df = do_limma(data=data_df, design=design_df, alpha=alpha, method=method, control=control)
 
     output_df.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
@@ -124,7 +102,7 @@ def limma(data, design, out, alpha, method, control: str) -> None:
 @output_option
 @control_option
 def z_score(data, design, out, control) -> None:
-    """TODO: Please write the description"""
+    """Perform Single Sample Z_Score based differential gene expression for all samples wrt the controls."""
     click.echo(
         f"Starting Z-Score Based Single Sample Scoring with {data} & {design} files and "
         f"saving it to {out}/sample_scoring.tsv"
@@ -150,9 +128,9 @@ def z_score(data, design, out, control) -> None:
     required=True,
 )
 def ssgsea(data, design, out, gs) -> None:
-    """TODO: Please write the description"""
+    """Perform Single Sample GSEA for all the samples with prior knowledge (geneset)."""
     click.echo(
-        f"Starting Z-Score Based Single Sample Scoring with {data} & {gs} files and saving it to {out}/sample_scoring.tsv")
+        f"Starting ssGSEA with {data} & {gs} files and saving it to {out}/sample_scoring.tsv")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t', index_col=0)
@@ -165,7 +143,7 @@ def ssgsea(data, design, out, gs) -> None:
     df['label'] = design_df['Target'].map(label_mapping)
     df.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
-    click.echo(f"Done with ssgsea for {data}")
+    click.echo(f"Done with ssGSEA for {data}")
 
 
 @main.group()
@@ -208,13 +186,13 @@ def evaluate(data, label) -> None:
     """Perform Evaluation of the Embeddings"""
     click.echo(f"Starting Evaluation of the following files: \n{data}")
 
-    # TODO: Explain please
+    # Adding individual files to a list
     data_lst = [
         pd.read_csv(file, sep='\t', index_col=0)
         for file in data
     ]
 
-    # TODO: Why are you casting label as a list?
+    # Cast string based label argument to a list
     result = do_ss_evaluation(data_lst, list(label))
 
     click.echo('===============Evaluation Results===============')
@@ -254,14 +232,40 @@ def nrl(data, design, out, control) -> None:
     ]),
     required=True
 )
-def classify(data, out, model) -> None:
+@click.option(
+    '--cv',
+    help="Number of Cross Validation steps",
+    type=int,
+    required=False,
+    default=10,
+    show_default=True,
+)
+@click.option(
+    '--metrics',
+    help="Metrics that should be tested during cross validation (comma separated)",
+    type=str,
+    required=False,
+    default='roc_auc, accuracy, f1',
+    show_default=True,
+)
+@click.option(
+    '--title',
+    help="Title of the Box plot (If not provided a title will be generated based on the scoring metrics)",
+    type=str,
+    required=False,
+    default='',
+    show_default=True,
+)
+def classify(data, out, model, cv, metrics, title) -> None:
     """Perform Machine-Learning Classification."""
     click.echo(f"Starting Classification")
 
     data_df = pd.read_csv(data, sep='\t')
     data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
 
-    do_classification(data_df, model, out)
+    metrics_lst = metrics.replace(' ', '').replace('\n', '').split(',')
+
+    do_classification(data_df, model, out, cv, metrics_lst, title)
 
     click.echo(f"Done with Classification")
 

@@ -11,9 +11,10 @@ import pandas as pd
 def do_ss_evaluation(data: list, labels: list) -> dict:
     """Take binned pandas dataframes to compare and find the percentage of similarity and contradiction between
     single sample scoring functions.
-    :param data: TODO Fillme
-    :labels data: TODO Fillme
-    :return: TODO Fillme
+
+    :param data: list of files on which evaluations needs to be conducted
+    :param labels: list of labels for each file to indicate what the file is
+    :return: Dictionary of evaluation results for each file with the corresponding file label
     """
 
     if not all(isinstance(df, pd.DataFrame) for df in data):
@@ -52,18 +53,18 @@ def do_ss_evaluation(data: list, labels: list) -> dict:
 
 
 def _similarity(arr1, arr2):
-    """TODO: Add docstring"""
+    """Count the number of values that remain unchanged between the given files."""
     return np.sum(arr1 == arr2)
 
 
 def _missense(arr1, arr2):
-    """TODO: Add docstring"""
-    o2z = np.sum(((arr1 == 0) & (arr2 == 1)) | ((arr1 == 1) & (arr2 == 0)))
-    no2z = np.sum(((arr1 == 0) & (arr2 == -1)) | ((arr1 == -1) & (arr2 == 0)))
+    """Count the number of values that change from 1 -> 0 or -1 -> 0 between the given files."""
+    one2zero = np.sum(((arr1 == 0) & (arr2 == 1)) | ((arr1 == 1) & (arr2 == 0)))
+    neg_one2zero = np.sum(((arr1 == 0) & (arr2 == -1)) | ((arr1 == -1) & (arr2 == 0)))
 
-    return o2z + no2z
+    return one2zero + neg_one2zero
 
 
 def _nonsense(arr1, arr2):
-    """TODO: Add docstring"""
+    """Count the number of values that change from 1 -> -1 or vice-versa between the given files."""
     return np.sum(((arr1 == -1) & (arr2 == 1)) | ((arr1 == 1) & (arr2 == -1)))

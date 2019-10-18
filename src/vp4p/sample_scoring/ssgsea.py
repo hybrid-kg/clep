@@ -20,6 +20,9 @@ def do_ssgsea(
     :param filtered_expression_data: filtered gene expression values for samples
     :param gene_set: .gmt file containing gene sets
     :param output_dir: output directory
+    :param processes: Number of processes
+    :param max_size: Maximum allowed number of genes from gene set also the data set
+    :param min_size: Minimum allowed number of genes from gene set also the data set
     :return: ssGSEA results in respective directory
     """
     single_sample_gsea = ssgsea(

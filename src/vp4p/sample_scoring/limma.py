@@ -11,10 +11,44 @@ from rpy2.robjects.packages import importr
 from statsmodels.stats.multitest import multipletests
 
 
-def do_limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float = 0.05,
-             adjust_method: str = 'fdr_bh') -> pd.DataFrame:
-    """Wrap limma to perform single sample DE analysis."""
+def do_limma(data, design, alpha, method, control: str) -> pd.DataFrame:
+    """Perform data manipulation before limma based SS scoring.
 
+    :param data: Dataframe containing the gene expression values
+    :param design: Dataframe containing the design table for the data
+    :param alpha: Family-wise error rate
+    :param method: Method used family-wise error correction
+    :param control: label used for representing the control in the design table of the data
+    :return Dataframe containing the Single Sample scores from limma
+    """
+    label_mapping = dict(zip(np.unique(design['Target']), range(len(np.unique(design['Target'])))))
+
+    ctrl_data = data.transpose()[list(design.Target == control)].transpose()
+    sample_data = data.transpose()[list(design.Target != control)].transpose()
+
+    ctrl_design = design[list(design.Target == control)]
+    sample_design = design[list(design.Target != control)]
+
+    output_df = pd.DataFrame(columns=sample_data.index, index=sample_data.columns)
+
+    # Loop over every sample to get the individual limma based SS scores
+    for col_idx, col in enumerate(sample_data.columns):
+        data_df = ctrl_data.copy()
+
+        data_df[col] = sample_data.iloc[:, col_idx]
+        design_df = ctrl_design.append(sample_design.iloc[col_idx, :], ignore_index=True)
+
+        output = _limma(data=data_df, design=design_df, alpha=alpha, adjust_method=method)
+        output_df.iloc[col_idx, :] = output['logFC'].values.flatten()
+
+    output_df['label'] = sample_design['Target'].map(label_mapping)
+
+    return output_df
+
+
+def _limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float = 0.05,
+           adjust_method: str = 'fdr_bh') -> pd.DataFrame:
+    """Wrap limma to perform single sample DE analysis."""
     # Import R libraries
     limma = importr('limma')
     base = importr('base')

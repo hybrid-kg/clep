@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Vectorize the gene data & pathway using Network Representation Learning."""
+"""Embed the gene data & pathway using Network Representation Learning."""
 
 import pickle
 
@@ -16,6 +16,7 @@ def do_nrl(data: pd.DataFrame, design: pd.DataFrame, out, control) -> None:
 
     # Get labels
     labels = design[design['Target'] != control]
+
     # Output edge list
     with open(f'{out}/text.edgelist', 'w') as text_out, \
             open(f'{out}/number.edgelist', 'w') as num_out, \
@@ -24,7 +25,7 @@ def do_nrl(data: pd.DataFrame, design: pd.DataFrame, out, control) -> None:
             data, labels, text_out, num_out, label_out
         )
 
-    # TODO: Please comment
+    # Pickle patient, gene & label to numerical representation dictionaries
     with open(f'{out}/pat2num_mapping.pkl', 'wb') as pat_file, \
             open(f'{out}/gene2num_mapping.pkl', 'wb') as gene_file, \
             open(f'{out}/label_mapping.pkl', 'wb') as label_file:
@@ -34,7 +35,7 @@ def do_nrl(data: pd.DataFrame, design: pd.DataFrame, out, control) -> None:
 
 
 def _make_edgelist(data, design, edge_out, edge_out_num, label_edge):
-    """TODO: Add docstring"""
+    """Create an edgelist for the patient data."""
     label2num_mapping = dict(zip(np.unique(design['Target']), range(len(np.unique(design['Target'])))))
     pat2num_mapping = dict(zip(data['patients'], range(len(data['patients']))))
     max_val = pat2num_mapping[max(pat2num_mapping, key=lambda i: pat2num_mapping[i])]
