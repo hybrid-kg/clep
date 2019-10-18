@@ -21,7 +21,7 @@ def do_limma(data, design, alpha, method, control: str) -> pd.DataFrame:
     :param control: label used for representing the control in the design table of the data
     :return Dataframe containing the Single Sample scores from limma
     """
-    label_mapping = dict(zip(np.unique(design['Target']), range(len(np.unique(design['Target'])))))
+    label_mapping = dict((key, val) for val, key in enumerate(np.unique(design['Target'])))
 
     ctrl_data = data.transpose()[list(design.Target == control)].transpose()
     sample_data = data.transpose()[list(design.Target != control)].transpose()

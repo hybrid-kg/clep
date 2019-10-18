@@ -135,7 +135,7 @@ def ssgsea(data, design, out, gs) -> None:
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t', index_col=0)
 
-    label_mapping = dict(zip(np.unique(design_df['Target']), range(len(np.unique(design_df['Target'])))))
+    label_mapping = dict((key, val) for val, key in enumerate(np.unique(design['Target'])))
 
     single_sample_gsea = do_ssgsea(data_df, gs)
 
