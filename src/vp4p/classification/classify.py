@@ -25,9 +25,8 @@ def do_classification(data, model_name, out_dir, cv, metrics, title, *args) -> d
     model = get_classifier(model_name, *args)
 
     # Separate the embedding from the labels in the data
-    # TODO: patients and label should be and argument and they should be the default ones
     labels = data['label']
-    data = data.drop(columns=['patients', 'label'])
+    data = data.drop(columns='label')
 
     # Run cross validation over the given model
     cv_results = model_selection.cross_validate(
@@ -111,5 +110,4 @@ def _plot(cv_results, title, out_dir) -> None:
         xticklabels=scoring_metrics,
         )
 
-    # TODO: Default name but the user should be able to choose another name if he wants
     sns_plot.figure.savefig(f'{out_dir}/boxplot.png')

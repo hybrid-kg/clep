@@ -211,7 +211,7 @@ def evaluate(data, label) -> None:
 @output_option
 @control_option
 def nrl(data, design, out, control) -> None:
-    """Perform Network representation learning."""
+    """Perform network representation learning."""
     click.echo(f"Starting NRL")
 
     data_df = pd.read_csv(data, sep='\t')
@@ -228,7 +228,7 @@ def nrl(data, design, out, control) -> None:
 @output_option
 @click.option(
     '--model',
-    help="Choose a Classification Model",
+    help="Choose a classification model",
     type=click.Choice([
         'logistic_regression',
         'elastic_net',
@@ -239,7 +239,7 @@ def nrl(data, design, out, control) -> None:
 )
 @click.option(
     '--cv',
-    help="Number of Cross Validation steps",
+    help="Number of cross validation steps",
     type=int,
     required=False,
     default=10,
@@ -250,32 +250,31 @@ def nrl(data, design, out, control) -> None:
     help="Metrics that should be tested during cross validation (comma separated)",
     type=str,
     required=False,
-    default='roc_auc, accuracy, f1_micro, f1_macro',
+    default='roc_auc, accuracy, f1_micro, f1_macro, f1',
     show_default=True,
 )
 @click.option(
     '--title',
-    help="Title of the Box plot (If not provided a title will be generated based on the scoring metrics)",
+    help="Title of the box plot (if not provided a title will be generated based on the scoring metrics)",
     type=str,
     required=False,
     default='',
     show_default=True,
 )
 def classify(data, out, model, cv, metrics, title) -> None:
-    """Perform Machine-Learning Classification."""
+    """Perform machine-learning classification."""
     click.echo(
-        f"Starting Classification with {data} and out-putting to results to {out}/cross_validation_results.json"
+        f"Starting classification with {data} and out-putting to results to {out}/cross_validation_results.json"
         f" & the plot to {out}/boxplot.png"
     )
 
-    data_df = pd.read_csv(data, sep='\t')
-    data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
+    data_df = pd.read_csv(data, sep='\t', index_col=0)
 
     metrics_lst = metrics.replace(' ', '').replace('\n', '').split(',')
 
     do_classification(data_df, model, out, cv, metrics_lst, title)
 
-    click.echo(f"Done with Classification")
+    click.echo(f"Done with classification")
 
 
 if __name__ == '__main__':
