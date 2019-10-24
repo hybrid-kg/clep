@@ -3,66 +3,150 @@
 """Embed the gene data & pathway using Network Representation Learning."""
 
 import pickle
+from typing import Any, TextIO
 
 import numpy as np
 import pandas as pd
+from bionev.embed_train import embedding_training
 
 
 # TODO: Implement BioNEV
 
-
-def do_nrl(data: pd.DataFrame, design: pd.DataFrame, out, control) -> None:
+def do_nrl(data: pd.DataFrame, kg_data: pd.DataFrame, out, method) -> None:
     """Carry out Network-Representation Learning for the given pandas dataframe."""
 
     # Get labels
-    labels = design[design['Target'] != control]
+    label = data['label']
+    data = data.drop(columns='label')
 
-    # Output edge list
-    with open(f'{out}/text.edgelist', 'w') as text_out, \
-            open(f'{out}/number.edgelist', 'w') as num_out, \
-            open(f'{out}/label.edgelist', 'w') as label_out:
-        pat2num_mapping, gene2num_mapping, label2num_mapping = _make_edgelist(
-            data, labels, text_out, num_out, label_out
-        )
+    # Output edge-list
+    with open(f'{out}/data.edgelist', 'w') as data_edge:
+        pat_mapping, gene_mapping, label_mapping = _make_data_edgelist(data, label, data_edge)
 
-    # Pickle patient, gene & label to numerical representation dictionaries
-    with open(f'{out}/pat2num_mapping.pkl', 'wb') as pat_file, \
-            open(f'{out}/gene2num_mapping.pkl', 'wb') as gene_file, \
-            open(f'{out}/label_mapping.pkl', 'wb') as label_file:
-        pickle.dump(pat2num_mapping, pat_file)
-        pickle.dump(gene2num_mapping, gene_file)
-        pickle.dump(label2num_mapping, label_file)
+        joint_mapping = {**pat_mapping, **gene_mapping}
+
+        kg_mapping = _make_kg_edgelist(kg_data, joint_mapping, data_edge)
+
+    # Pickle patient, gene & Knowledge Graph to numerical representation dictionaries
+    with open(f'{out}/mapping.pkl', 'wb') as mapping_file:
+        mapping = {**joint_mapping, **kg_mapping}
+        pickle.dump(mapping, mapping_file)
+
+    embeddings = _gen_embedding(input_path=f'{out}/data.edgelist',
+                                method=method,
+                                model_out=f'{out}/model.gz',
+                                embeddings_out=f'{out}/raw.embedding')
+
+    label_col = list()
+    vectors = list()
+    index = list()
+    inv_pat_map = {v: k for k, v in pat_mapping.items()}
+
+    for node in embeddings.keys():
+        if int(node) in label_mapping.keys():
+            label_col.append(label_mapping[int(node)])
+            vectors.append(embeddings[node])
+            index.append(inv_pat_map[int(node)])
+
+    out_df = pd.DataFrame(index=index, data=vectors)
+    out_df['label'] = label_col
+
+    out_df.to_csv(f'{out}/embedding.tsv', sep='\t')
 
 
-def _make_edgelist(data, design, edge_out, edge_out_num, label_edge):
+def _make_data_edgelist(data, label, data_edge):
     """Create an edgelist for the patient data."""
-    label2num_mapping = dict(zip(np.unique(design['Target']), range(len(np.unique(design['Target'])))))
-    pat2num_mapping = dict(zip(data['patients'], range(len(data['patients']))))
-    max_val = pat2num_mapping[max(pat2num_mapping, key=lambda i: pat2num_mapping[i])]
-    gene2num_mapping = dict(zip(data.columns[1:], range(max_val + 1, len(data.columns[1:]) + max_val + 1)))
 
-    corr = []
+    pat_mapping = dict((key, val) for val, key in enumerate(np.unique(data['patients'])))
+
+    max_val = _get_max_dict_val(pat_mapping)
+
+    gene_mapping = dict(zip(data.columns[1:], range(max_val + 1, len(data.columns[1:]) + max_val + 1)))
+
+    valid_patients = []
     for patient, gene, value in pd.melt(data, id_vars=['patients']).values:
-        if value == 1:
-            relation = 'positiveCorrelation'
-        elif value == -1:
-            relation = 'negativeCorrelation'
-        else:
+        if value == 0:
             continue
-        corr.append(patient)
+        valid_patients.append(patient)
 
-        print(patient, relation, f'HGNC:{gene}', sep='\t', file=edge_out)
+        print(pat_mapping[patient], gene_mapping[gene], sep=' ', file=data_edge)
 
-        print(pat2num_mapping[patient], gene2num_mapping[gene], sep=' ', file=edge_out_num)
+    label_mapping = dict()
 
-    for idx in design.index:
-        try:
-            if design.at[idx, 'FileName'] in corr:
-                print(
-                    pat2num_mapping[design.at[idx, 'FileName']], label2num_mapping[design.at[idx, 'Target']], sep=' ',
-                    file=label_edge
-                )
-        except KeyError:
-            continue
+    for idx in data.index:
+        if data.at[idx, 'patients'] in valid_patients:
+            label_mapping[pat_mapping[data.at[idx, 'patients']]] = label[idx]
 
-    return pat2num_mapping, gene2num_mapping, label2num_mapping
+    return pat_mapping, gene_mapping, label_mapping
+
+
+def _make_kg_edgelist(kg_data, joint_mapping, data_edge: TextIO) -> dict:
+    kg_mapping = dict()
+    max_val = _get_max_dict_val(joint_mapping)
+
+    for col in [kg_data.iloc[:, 0], kg_data.iloc[:, 2]]:
+        for val_raw in col:
+            val = val_raw.split(':')[1] if len(val_raw.split(':')) > 1 else val_raw.split(':')[0]
+
+            if val in joint_mapping.keys():
+                kg_mapping[val_raw] = joint_mapping[val]
+
+            else:
+                max_val += 1
+                kg_mapping[val_raw] = max_val
+
+    for idx in kg_data.index:
+        print(kg_mapping[kg_data.iat[idx, 0]], kg_mapping[kg_data.iat[idx, 2]], sep=' ', file=data_edge)
+
+    return kg_mapping
+
+
+def _get_max_dict_val(dictionary: dict) -> Any:
+    return dictionary[max(dictionary, key=lambda value: dictionary[value])]
+
+
+def _gen_embedding(
+        *,
+        input_path,
+        method,
+        embeddings_out,
+        model_out,
+        dimensions: int = 300,
+        number_walks: int = 8,
+        walk_length: int = 8,
+        window_size: int = 4,
+        p: float = 1.5,
+        q: float = 2.1,
+        alpha: float = 0.1,
+        beta: float = 4,
+        epochs: int = 5,
+        kstep: int = 4,
+        order: int = 3,
+        weighted: bool = False,
+):
+    """Generate a NRL embedding using the model."""
+    model = embedding_training(
+        train_graph_filename=input_path,
+        method=method,
+        dimensions=dimensions,
+        number_walks=number_walks,
+        walk_length=walk_length,
+        window_size=window_size,
+        p=p,
+        q=q,
+        alpha=alpha,
+        beta=beta,
+        epochs=epochs,
+        kstep=kstep,
+        order=order,
+        weighted=weighted,
+    )
+    if model_out is not None:
+        model.save_model(model_out)
+    model.save_embeddings(embeddings_out)
+    if method == 'LINE':
+        embeddings = model.get_embeddings_train()
+    else:
+        embeddings = model.get_embeddings()
+
+    return embeddings

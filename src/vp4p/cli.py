@@ -124,7 +124,7 @@ def z_score(data, design, out, control) -> None:
 @click.option(
     '--gs',
     help="Path to the .gmt geneset file",
-    type=click.Path(file_okay=True, dir_okay=False, exists=False),
+    type=click.Path(file_okay=True, dir_okay=False, exists=True),
     required=True,
 )
 def ssgsea(data, design, out, gs) -> None:
@@ -207,18 +207,39 @@ def evaluate(data, label) -> None:
 
 @embedding.command()
 @data_option
-@design_option
+@click.option(
+    '--kg',
+    help="Path to the Knowledge Graph file in tsv format",
+    type=click.Path(file_okay=True, dir_okay=False, exists=True),
+    required=True,
+)
 @output_option
-@control_option
-def nrl(data, design, out, control) -> None:
+@click.option(
+    '--method',
+    help='The NRL method to train the model',
+    type=click.Choice(['struct2vec',
+                       'GAE',
+                       'SVD',
+                       'Laplacian',
+                       'GF',
+                       'HOPE',
+                       'GraRep',
+                       'DeepWalk',
+                       'node2vec',
+                       'LINE',
+                       'SDNE']),
+    required=True,
+)
+def nrl(data, kg, out, method) -> None:
     """Perform network representation learning."""
     click.echo(f"Starting NRL")
 
     data_df = pd.read_csv(data, sep='\t')
     data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
 
-    design_df = pd.read_csv(design, sep='\t')
-    do_nrl(data_df, design_df, out, control)
+    kg_data_df = pd.read_csv(kg, sep='\t')
+
+    do_nrl(data_df, kg_data_df, out, method)
 
     click.echo(f"Done with NRL")
 
@@ -259,7 +280,7 @@ def nrl(data, design, out, control) -> None:
     type=str,
     required=False,
     default='',
-    show_default=True,
+    show_default=False,
 )
 def classify(data, out, model, cv, metrics, title) -> None:
     """Perform machine-learning classification."""
