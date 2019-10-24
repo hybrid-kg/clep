@@ -90,6 +90,11 @@ def _plot(cv_results, title, out_dir) -> None:
         for metric in cv_results if metric not in non_metrics
     ]
 
+    metrics_for_plot = [
+        metric.split('test_')[1].title()
+        for metric in scoring_metrics
+    ]
+
     # Get the data from for each scoring metric used from the cross validation results
     data = [
         list(cv_results[scores])
@@ -101,13 +106,13 @@ def _plot(cv_results, title, out_dir) -> None:
     sns_plot = sns.boxplot(data=data)
 
     if title == '':
-        title = f'Box Plot of Scoring Metrics: {str(scoring_metrics)}\n'
+        title = f'Box Plot of: {", ".join(metrics_for_plot)}\n'
 
     sns_plot.set(
         xlabel='Scoring Metrics',
         ylabel='Score',
         title=title,
-        xticklabels=scoring_metrics,
+        xticklabels=metrics_for_plot,
         )
 
     sns_plot.figure.savefig(f'{out_dir}/boxplot.png')
