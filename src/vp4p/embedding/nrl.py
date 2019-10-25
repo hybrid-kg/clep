@@ -65,7 +65,7 @@ def do_nrl(data: pd.DataFrame, kg_data: pd.DataFrame, out, method) -> None:
     out_df.to_csv(f'{out}/embedding.tsv', sep='\t')
 
 
-def _make_data_edgelist(data, label, data_edge) -> Tuple[Dict[str: int], Dict[str: int], Dict[str: int]]:
+def _make_data_edgelist(data, label, data_edge) -> Tuple[Dict[int, int], Dict[str, int], Dict[int, int]]:
     """Create an edgelist for the patient data."""
     # Create a mapping from every samples to an unique node ID for the node representation
     pat_mapping = dict((key, val) for val, key in enumerate(np.unique(data['patients'])))
@@ -94,7 +94,7 @@ def _make_data_edgelist(data, label, data_edge) -> Tuple[Dict[str: int], Dict[st
     return pat_mapping, gene_mapping, label_mapping
 
 
-def _make_kg_edgelist(kg_data, joint_mapping, data_edge: TextIO) -> Dict[str: int]:
+def _make_kg_edgelist(kg_data, joint_mapping, data_edge: TextIO) -> Dict[str, int]:
     """Create an edgelist for the knowledge graph data."""
     kg_mapping = dict()
 
