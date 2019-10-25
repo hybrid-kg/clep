@@ -24,6 +24,16 @@ def do_classification(data, model_name, out_dir, cv, metrics, title, *args) -> d
     # Get classifier user arguments
     model = get_classifier(model_name, *args)
 
+    # Check if the data is has multiclass labels, and replace f1 with weighted f1 and remove roc_auc in-case it is
+    if len(np.unique(data['label'])) > 2:
+        if 'f1' in metrics and 'f1_weighted' not in metrics:
+            metrics.remove('f1')
+            metrics.append('f1_weighted')
+        elif 'f1' in metrics and 'f1_weighted' in metrics:
+            metrics.remove('f1')
+        elif 'roc_auc' in metrics:
+            metrics.remove('roc_auc')
+
     # Separate the embedding from the labels in the data
     labels = data['label']
     data = data.drop(columns='label')
