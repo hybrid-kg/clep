@@ -217,17 +217,7 @@ def evaluate(data, label) -> None:
 @click.option(
     '--method',
     help='The NRL method to train the model',
-    type=click.Choice(['struct2vec',
-                       'GAE',
-                       'SVD',
-                       'Laplacian',
-                       'GF',
-                       'HOPE',
-                       'GraRep',
-                       'DeepWalk',
-                       'node2vec',
-                       'LINE',
-                       'SDNE']),
+    type=click.Choice(['DeepWalk', 'node2vec', 'LINE']),
     required=True,
 )
 def nrl(data, kg, out, method) -> None:
