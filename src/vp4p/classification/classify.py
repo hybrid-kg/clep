@@ -31,7 +31,7 @@ def do_classification(data, model_name, out_dir, cv, metrics, title, *args) -> d
             metrics.append('f1_weighted')
         elif 'f1' in metrics and 'f1_weighted' in metrics:
             metrics.remove('f1')
-        elif 'roc_auc' in metrics:
+        if 'roc_auc' in metrics:
             metrics.remove('roc_auc')
 
     # Separate the embedding from the labels in the data
