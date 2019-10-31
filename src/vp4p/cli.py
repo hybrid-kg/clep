@@ -222,7 +222,7 @@ def evaluate(data, label) -> None:
 )
 def nrl(data, kg, out, method) -> None:
     """Perform network representation learning."""
-    click.echo(f"Starting NRL")
+    click.echo(f"Starting {method} based NRL with {data} & {kg} and outputting it to {out}")
 
     data_df = pd.read_csv(data, sep='\t')
     data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
