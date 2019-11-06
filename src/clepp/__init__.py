@@ -4,7 +4,7 @@
 
 Installation
 ------------
-1. ``vp4p`` can be installed with the following commmands:
+1. ``clepp`` can be installed with the following commmands:
 
 .. code-block:: sh
 
@@ -18,7 +18,7 @@ Installation
 
 .. code-block:: sh
 
-    cd vp4p
+    cd clepp
 
 .. code-block:: sh
 

@@ -8,20 +8,20 @@ import logging
 import click
 import numpy as np
 import pandas as pd
-from vp4p.classification import do_classification
-from vp4p.embedding import (
+from clepp.classification import do_classification
+from clepp.embedding import (
     do_binning, do_nrl, do_ss_evaluation
 )
-from vp4p.sample_scoring import (
+from clepp.sample_scoring import (
     do_limma, do_z_score, do_ssgsea
 )
 
 logger = logging.getLogger(__name__)
 
 
-@click.group(help='vp4p')
+@click.group(help='clepp')
 def main():
-    """Run vp4p."""
+    """Run clepp."""
     logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
 
 

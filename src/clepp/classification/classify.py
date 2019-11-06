@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Wrap Machine-Learning Classifiers for vp4p."""
+"""Wrap Machine-Learning Classifiers for clepp."""
 
 import json
 

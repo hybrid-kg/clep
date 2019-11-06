@@ -1,6 +1,6 @@
 Example
 =======
-This README will walk you through a simple usage of VP4P.
+This README will walk you through a simple usage of CLEPP.
 
 Alternatively [run.sh](run.sh) can be executed to run the example for you
 
@@ -27,9 +27,9 @@ Single Sample Scoring
 ------------------------
 - For limma based Single Sample Scoring, run,
 
-    `vp4p preprocessing limma --data exp.txt --design targets.txt --out limma.txt`
+    `clepp preprocessing limma --data exp.txt --design targets.txt --out limma.txt`
 - For Z-Score based Single Sample Scoring, run,
 
-    `vp4p preprocessing z-score --data exp.txt --design targets.txt --out z_score.txt`
+    `clepp preprocessing z-score --data exp.txt --design targets.txt --out z_score.txt`
 
 
