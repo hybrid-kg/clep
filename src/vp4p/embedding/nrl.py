@@ -165,7 +165,11 @@ def _gen_embedding(
     )
 
     # Save the model
-    model.save_model(model_out)
+    try:
+        model.save_model(model_out)
+    except TypeError as e:
+        print(f'The {method} model failed to save with the error:')
+        print(e)
 
     # Save the embeddings
     model.save_embeddings(embeddings_out)
