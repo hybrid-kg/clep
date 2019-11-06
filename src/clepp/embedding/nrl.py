@@ -37,11 +37,13 @@ def do_nrl(data: pd.DataFrame, kg_data: pd.DataFrame, out, method) -> None:
         pickle.dump(mapping, mapping_file)
 
     # Generate embeddings using the model
-    embeddings = _gen_embedding(input_path=f'{out}/data.edgelist',
-                                method=method,
-                                model_out=f'{out}/model.gz',
-                                embeddings_out=f'{out}/raw.embedding',
-                                word2vec_model_out=f'{out}/word2vec.pkl')
+    embeddings = _gen_embedding(
+        input_path=f'{out}/data.edgelist',
+        method=method,
+        model_out=f'{out}/model.gz',
+        embeddings_out=f'{out}/raw.embedding',
+        word2vec_model_out=f'{out}/word2vec.pkl',
+    )
 
     # Initialize lists for output dataframe
     label_col = list()
@@ -49,14 +51,21 @@ def do_nrl(data: pd.DataFrame, kg_data: pd.DataFrame, out, method) -> None:
     index = list()
 
     # Create inverse of the sample mapping
-    inv_pat_map = {v: k for k, v in pat_mapping.items()}
+    inv_pat_map = {
+        v: k
+        for k, v in pat_mapping.items()
+    }
 
     # Loop over the embeddings to find the sample nodes
     for node in embeddings.keys():
-        if int(node) in label_mapping.keys():
-            label_col.append(label_mapping[int(node)])
-            vectors.append(embeddings[node])
-            index.append(inv_pat_map[int(node)])
+
+        # Skip nodes in label mapping
+        if int(node) not in label_mapping.keys():
+            continue
+
+        label_col.append(label_mapping[int(node)])
+        vectors.append(embeddings[node])
+        index.append(inv_pat_map[int(node)])
 
     # Create an output dataframe with the embeddings and labels for the samples
     out_df = pd.DataFrame(index=index, data=vectors)
@@ -68,7 +77,11 @@ def do_nrl(data: pd.DataFrame, kg_data: pd.DataFrame, out, method) -> None:
 def _make_data_edgelist(data, label, data_edge) -> Tuple[Dict[int, int], Dict[str, int], Dict[int, int]]:
     """Create an edgelist for the patient data."""
     # Create a mapping from every samples to an unique node ID for the node representation
-    pat_mapping = dict((key, val) for val, key in enumerate(np.unique(data['patients'])))
+    # TODO: Why dont you make a function to do this (you do this several times)
+    pat_mapping = {
+        key: val
+        for val, key in enumerate(np.unique(data['patients']))
+    }
 
     # Get the max node ID so as to continue the mapping from that number
     max_val = _get_max_dict_val(pat_mapping)

@@ -24,7 +24,7 @@ def do_classification(data, model_name, out_dir, cv, metrics, title, *args) -> d
     # Get classifier user arguments
     model = get_classifier(model_name, *args)
 
-    # Check if the data is has multiclass labels, and replace f1 with weighted f1 and remove roc_auc in-case it is
+    # Check if we are conducting multiclass classification, if so replace f1 with weighted f1 and remove roc_auc in-case
     if len(np.unique(data['label'])) > 2:
         if 'f1' in metrics and 'f1_weighted' not in metrics:
             metrics.remove('f1')
@@ -34,7 +34,7 @@ def do_classification(data, model_name, out_dir, cv, metrics, title, *args) -> d
         if 'roc_auc' in metrics:
             metrics.remove('roc_auc')
 
-    # Separate the embedding from the labels in the data
+    # Separate embeddings from labels in data
     labels = data['label']
     data = data.drop(columns='label')
 
@@ -70,7 +70,7 @@ def get_classifier(model_name: str, *args):
         return ensemble.RandomForestClassifier(*args)
 
     raise ValueError(
-        f'The entered model "{model_name}", was not found. Please check that you have chonen a valid model.'
+        f'The entered model "{model_name}", was not found. Please check that you have chosen a valid model.'
     )
 
 
@@ -109,7 +109,7 @@ def _plot(cv_results, title, out_dir) -> None:
     data = [
         list(cv_results[scores])
         for scores in scoring_metrics
-        ]
+    ]
 
     # Increase the default font size by a degree of 1.2
     sns.set(font_scale=1.2)
@@ -123,6 +123,6 @@ def _plot(cv_results, title, out_dir) -> None:
         ylabel='Score',
         title=title,
         xticklabels=metrics_for_plot,
-        )
+    )
 
     sns_plot.figure.savefig(f'{out_dir}/boxplot.png')

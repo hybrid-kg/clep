@@ -21,7 +21,10 @@ def do_limma(data, design, alpha, method, control: str) -> pd.DataFrame:
     :param control: label used for representing the control in the design table of the data
     :return Dataframe containing the Single Sample scores from limma
     """
-    label_mapping = dict((key, val) for val, key in enumerate(np.unique(design['Target'])))
+    label_mapping = {
+        key: val
+        for val, key in enumerate(np.unique(design['Target']))
+    }
 
     ctrl_data = data.transpose()[list(design.Target == control)].transpose()
     sample_data = data.transpose()[list(design.Target != control)].transpose()
@@ -63,7 +66,12 @@ def _limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float = 0.05,
         r_design = ro.conversion.py2rpy(design)
 
     # Use the genes index column from data as a R String Vector
-    genes = ro.StrVector([str(index) for index in data.index.tolist()])
+    genes = ro.StrVector(
+        [
+            str(index)
+            for index in data.index.tolist()
+        ]
+    )
 
     # Create a model matrix using design's Target column using the R formula "~0 + f" to get all the unique factors
     # as columns
