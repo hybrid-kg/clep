@@ -1,5 +1,5 @@
-VP4P - Vectorization of Patients for Prediction
-===============================================
+CLEPP - A workflow to generate CLinical Embeddings for Patient Prediction 
+============================================================================
 
 
 The goal of this project is to:
