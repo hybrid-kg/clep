@@ -1,18 +1,6 @@
 CLEPP - A workflow to generate CLinical Embeddings for Patient Prediction 
 ============================================================================
-
-
-The goal of this project is to:
-1. Build a workflow to pre-process the gene expression data.
-2. Convert the expression data into a vector for prediction using various techniques.
-
-Datasets
---------
-Datasets currently used in this repo.
-
-| Number | Dataset | Diseased Patients  | Controls  |
-| --| -------------:|:-------------:| -----:|
-| #1 | [GSE65682](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE65682) | 192 | 33 |
+CLEPP is workflow containing several methods for generating patient embeddings from *-omics* data.
 
 Workflow
 --------
