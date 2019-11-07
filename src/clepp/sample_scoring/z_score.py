@@ -40,7 +40,7 @@ def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control
     control_std = controls.std(axis=0)
     z_scores = (samples - control_mean) / control_std
 
-    out_z_scores = np.where(np.abs(z_scores) > 1, z_scores, 0)
+    out_z_scores = np.where(np.abs(z_scores) > 4, z_scores, 0)
 
     df = pd.DataFrame(data=out_z_scores, index=data.index[:len(samples)], columns=data.columns)
 
