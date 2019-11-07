@@ -3,10 +3,12 @@
 """Wrap Machine-Learning Classifiers for clepp."""
 
 import json
+from typing import Mapping
 
 import numpy as np
 import seaborn as sns
 from sklearn import linear_model, svm, ensemble, model_selection
+from clepp import constants
 
 
 def do_classification(data, model_name, out_dir, cv, metrics, title, *args) -> dict:
@@ -50,6 +52,16 @@ def do_classification(data, model_name, out_dir, cv, metrics, title, *args) -> d
 
     _save_json(cv_results=cv_results, out_dir=out_dir)
 
+    if title == '':
+        title_as_list = [
+            param
+            for param in out_dir.split('/')
+            if param.lower() not in ['classification', 'nrl']
+        ]
+
+        title = f'Box Plot for {",".join(title_as_list)}'
+        title.replace(',', '\n')
+
     _plot(cv_results=cv_results, title=title, out_dir=out_dir)
 
     return cv_results
@@ -90,18 +102,19 @@ def _save_json(cv_results, out_dir) -> None:
         json.dump(cv_results, out, indent=4)
 
 
-def _plot(cv_results, title, out_dir) -> None:
+def _plot(cv_results: Mapping[str, ...], title, out_dir) -> None:
     """Plot the cross validation results as a boxplot."""
     non_metrics = ['estimator', 'fit_time', 'score_time']
 
     # Get only the scoring metrics and remove the fit_time, estimator and score_time.
     scoring_metrics = [
         metric
-        for metric in cv_results if metric not in non_metrics
+        for metric in cv_results
+        if metric not in non_metrics
     ]
 
     metrics_for_plot = [
-        metric.split('test_')[1].title()
+        constants.METRIC_TO_LABEL[metric.split('test_')[1]]
         for metric in scoring_metrics
     ]
 
@@ -115,11 +128,7 @@ def _plot(cv_results, title, out_dir) -> None:
     sns.set(font_scale=1.2)
     sns_plot = sns.boxplot(data=data)
 
-    if title == '':
-        title = f'Box Plot of: {", ".join(metrics_for_plot)}\n'
-
     sns_plot.set(
-        xlabel='Scoring Metrics',
         ylabel='Score',
         title=title,
         xticklabels=metrics_for_plot,

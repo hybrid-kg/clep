@@ -4,10 +4,12 @@
 
 import json
 import logging
+from typing import List
 
 import click
 import numpy as np
 import pandas as pd
+from sklearn.metrics import SCORERS
 from clepp.classification import do_classification
 from clepp.embedding import (
     do_binning, do_nrl, do_ss_evaluation
@@ -259,10 +261,9 @@ def nrl(data, kg, out, method) -> None:
 @click.option(
     '--metrics',
     help="Metrics that should be tested during cross validation (comma separated)",
-    type=str,
+    type=click.Choice(list(SCORERS.keys())),
     required=False,
-    default='roc_auc, accuracy, f1_micro, f1_macro, f1',
-    show_default=True,
+    multiple=True,
 )
 @click.option(
     '--title',
@@ -272,8 +273,11 @@ def nrl(data, kg, out, method) -> None:
     default='',
     show_default=False,
 )
-def classify(data, out, model, cv, metrics, title) -> None:
+def classify(data, out, model, cv, metrics: List[str], title) -> None:
     """Perform machine-learning classification."""
+    if not metrics:
+        metrics = ['roc_auc', 'accuracy', 'f1_micro', 'f1_macro', 'f1']
+
     click.echo(
         f"Starting classification with {data} and out-putting to results to {out}/cross_validation_results.json"
         f" & the plot to {out}/boxplot.png"
@@ -281,9 +285,7 @@ def classify(data, out, model, cv, metrics, title) -> None:
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
 
-    metrics_lst = metrics.replace(' ', '').replace('\n', '').split(',')
-
-    do_classification(data_df, model, out, cv, metrics_lst, title)
+    do_classification(data_df, model, out, cv, metrics, title)
 
     click.echo(f"Done with classification")
 
