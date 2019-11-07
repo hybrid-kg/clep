@@ -102,7 +102,7 @@ def _save_json(cv_results, out_dir) -> None:
         json.dump(cv_results, out, indent=4)
 
 
-def _plot(cv_results: Mapping[str, ...], title, out_dir) -> None:
+def _plot(cv_results, title, out_dir) -> None:
     """Plot the cross validation results as a boxplot."""
     non_metrics = ['estimator', 'fit_time', 'score_time']
 

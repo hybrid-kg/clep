@@ -25,7 +25,7 @@ def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control
     # Give each label an integer to represent the labels during classification
     label_mapping = {
         key: val
-        for val, key in enumerate(np.unique(design['Target'])
+        for val, key in enumerate(np.unique(design['Target']))
     }
 
     # Make sure the number of rows of transposed data and design are equal
