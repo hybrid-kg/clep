@@ -3,6 +3,7 @@
 """Tests constants."""
 import unittest
 
+
 class TestShitty(unittest.TestCase):
     """Stupid Test."""
 
