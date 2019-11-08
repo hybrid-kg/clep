@@ -1,4 +1,4 @@
 Classification
 ==============
-.. automodule:: clepp.sample.classification.classify
+.. automodule:: clepp.classification.classify
    :members:
