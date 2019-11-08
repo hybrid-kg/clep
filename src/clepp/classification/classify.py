@@ -3,16 +3,17 @@
 """Wrap Machine-Learning Classifiers for clepp."""
 
 import json
-from typing import Mapping
+from typing import Dict
 
 import numpy as np
 import seaborn as sns
 from sklearn import linear_model, svm, ensemble, model_selection
+
 from clepp import constants
 
 
-def do_classification(data, model_name, out_dir, cv, metrics, title, *args) -> dict:
-    """Perform Classification on embeddings generated from previous step.
+def do_classification(data, model_name, out_dir, cv, metrics, title, *args) -> Dict:
+    """Perform classification on embeddings generated from previous step.
 
     :param data: Dataframe containing the embeddings
     :param model_name: model that should be used for cross validation
