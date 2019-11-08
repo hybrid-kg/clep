@@ -17,3 +17,5 @@ recursive-exclude example *.md
 recursive-exclude example *.py
 recursive-exclude example *.sh
 recursive-exclude notebooks *.ipynb
+exclude example
+exclude notebooks
