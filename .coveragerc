@@ -1,0 +1,19 @@
+[run]
+branch = True
+source = clepp
+omit =
+    src/clepp/__main__.py
+    src/clepp/cli.py
+    tests/*
+    docs/*
+
+[paths]
+source =
+    src/clepp
+    .tox/*/lib/python*/site-packages/clepp
+
+[report]
+show_missing = True
+exclude_lines =
+    def __str__
+    def __repr__
