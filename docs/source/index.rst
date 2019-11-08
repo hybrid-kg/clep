@@ -8,6 +8,9 @@ CLEPP
 
    cli
    constants
+   embedding
+   sample_scoring
+   classification
 
 Index
 =====
