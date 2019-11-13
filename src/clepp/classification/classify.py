@@ -10,8 +10,9 @@ from typing import Dict
 import click
 import numpy as np
 import seaborn as sns
-from clepp import constants
 from sklearn import linear_model, svm, ensemble, model_selection, multiclass, metrics, preprocessing
+
+from clepp import constants
 
 
 def do_classification(data, model_name, out_dir, cv, scoring_metrics, title, *args) -> Dict:
