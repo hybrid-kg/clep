@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-"""
+"""A Python package for generating CLinical Embeddings for Patient Prediction."""
 
+"""
 Installation
 ------------
 1. ``clepp`` can be installed with the following commmands:

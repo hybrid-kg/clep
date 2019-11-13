@@ -9,14 +9,12 @@ import pandas as pd
 
 
 def do_ss_evaluation(data: list, labels: list) -> dict:
-    """Take binned pandas dataframes to compare and find the percentage of similarity and contradiction between
-    single sample scoring functions.
+    """Take binned pandas dataframes to compare and find the percentage of similarity and contradiction.
 
     :param data: list of files on which evaluations needs to be conducted
     :param labels: list of labels for each file to indicate what the file is
     :return: Dictionary of evaluation results for each file with the corresponding file label
     """
-
     if not all(isinstance(df, pd.DataFrame) for df in data):
         raise TypeError('Make sure every argument, except the labels, is a Pandas DataFrame')
     if not len(labels) == len(data):

@@ -9,8 +9,6 @@ from typing import List
 import click
 import numpy as np
 import pandas as pd
-from sklearn.metrics import SCORERS
-
 from clepp.classification import do_classification
 from clepp.embedding import (
     do_binning, do_nrl, do_ss_evaluation
@@ -18,6 +16,7 @@ from clepp.embedding import (
 from clepp.sample_scoring import (
     do_limma, do_z_score, do_ssgsea
 )
+from sklearn.metrics import SCORERS
 
 logger = logging.getLogger(__name__)
 
@@ -191,7 +190,7 @@ def binning(data, out) -> None:
     nargs=2
 )
 def evaluate(data, label) -> None:
-    """Perform Evaluation of the Embeddings"""
+    """Perform Evaluation of the Embeddings."""
     click.echo(f"Starting Evaluation of the following files: \n{data}")
 
     # Adding individual files to a list

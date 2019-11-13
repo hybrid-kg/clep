@@ -18,7 +18,6 @@ def do_nrl(data: pd.DataFrame, kg_data: pd.DataFrame, out, method) -> None:
     :param out: Path to the output directory
     :param method: model that should be used for creating the embedding
     """
-
     # Get labels
     label = data['label']
     data = data.drop(columns='label')

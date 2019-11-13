@@ -69,7 +69,7 @@ def do_classification(data, model_name, out_dir, cv, metrics, title, *args) -> D
 
 
 def get_classifier(model_name: str, *args):
-    """Wrapper to get the appropriate classifier from arguments."""
+    """Retrieve the appropriate classifier from sci-kit learn based on the arguments."""
     if model_name == 'logistic_regression':
         return linear_model.LogisticRegression(*args, solver='lbfgs')
 

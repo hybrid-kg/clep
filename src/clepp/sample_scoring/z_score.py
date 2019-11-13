@@ -2,8 +2,6 @@
 
 """Carry out Z-Score based single sample DE analysis."""
 
-# Research question: how much does a single disease patient differ from the distribution of normal ones? In that case you can calculate a z-score for each disease patient relative to normal ones.
-
 import numpy as np
 import pandas as pd
 
