@@ -3,14 +3,14 @@
 """Embed the gene data & pathway using Network Representation Learning."""
 
 import pickle
-from typing import TextIO, Dict, Tuple
+from typing import TextIO, Dict, Tuple, List
 
 import numpy as np
 import pandas as pd
 from bionev.embed_train import embedding_training
 
 
-def do_nrl(data: pd.DataFrame, kg_data: pd.DataFrame, out, method) -> None:
+def do_nrl(data: pd.DataFrame, kg_data: pd.DataFrame, out: str, method: str) -> None:
     """Carry out Network-Representation Learning for the given pandas dataframe.
 
     :param data: Dataframe containing the data to be embedded
@@ -73,7 +73,8 @@ def do_nrl(data: pd.DataFrame, kg_data: pd.DataFrame, out, method) -> None:
     out_df.to_csv(f'{out}/embedding.tsv', sep='\t')
 
 
-def _make_data_edgelist(data, label, data_edge) -> Tuple[Dict[int, int], Dict[str, int], Dict[int, int]]:
+def _make_data_edgelist(data: pd.DataFrame, label: pd.Series,
+                        data_edge: TextIO) -> Tuple[Dict[..., int], Dict[..., int],  Dict[..., int]]:
     """Create an edgelist for the patient data."""
     # Create a mapping from every samples to an unique node ID for the node representation
     # TODO: Why dont you make a function to do this (you do this several times)
@@ -106,7 +107,8 @@ def _make_data_edgelist(data, label, data_edge) -> Tuple[Dict[int, int], Dict[st
     return pat_mapping, gene_mapping, label_mapping
 
 
-def _make_kg_edgelist(kg_data, joint_mapping, data_edge: TextIO) -> Dict[str, int]:
+def _make_kg_edgelist(kg_data: pd.DataFrame, joint_mapping: Dict[Dict[..., int], Dict[..., int]],
+                      data_edge: TextIO) -> Dict[str, int]:
     """Create an edgelist for the knowledge graph data."""
     kg_mapping = dict()
 
@@ -133,18 +135,18 @@ def _make_kg_edgelist(kg_data, joint_mapping, data_edge: TextIO) -> Dict[str, in
     return kg_mapping
 
 
-def _get_max_dict_val(dictionary: dict) -> int:
+def _get_max_dict_val(dictionary: Dict[..., ...]) -> int:
     """Get the maximum value from a key, value pair in a given dictionary."""
     return dictionary[max(dictionary, key=lambda value: dictionary[value])]
 
 
 def _gen_embedding(
         *,
-        input_path,
-        method,
-        embeddings_out,
-        model_out,
-        word2vec_model_out,
+        input_path: str,
+        method: str,
+        embeddings_out: str,
+        model_out: str,
+        word2vec_model_out: str,
         dimensions: int = 300,
         number_walks: int = 8,
         walk_length: int = 8,
@@ -157,7 +159,7 @@ def _gen_embedding(
         kstep: int = 4,
         order: int = 3,
         weighted: bool = False,
-):
+) -> Dict[int , List[int]]:
     """Generate a NRL embedding using the given model."""
     model = embedding_training(
         train_graph_filename=input_path,

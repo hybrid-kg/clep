@@ -4,6 +4,8 @@
 
 # TODO: Binning limma and Z_Score in this file
 
+from typing import List
+
 import pandas as pd
 
 
@@ -23,7 +25,7 @@ def do_binning(data: pd.DataFrame) -> pd.DataFrame:
     return output
 
 
-def _bin(row):
+def _bin(row: pd.Series) -> List[int]:
     """Replace values greater than 0 as 1 and lesser than 0 as -1."""
     return [
         1 if (val > 0) else (-1 if (val < 0) else 0)

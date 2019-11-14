@@ -5,17 +5,20 @@
 import json
 import sys
 from collections import defaultdict
-from typing import Dict
+from typing import Dict, List, Any, Callable
 
 import click
 import numpy as np
+import pandas as pd
 import seaborn as sns
 from sklearn import linear_model, svm, ensemble, model_selection, multiclass, metrics, preprocessing
+from sklearn.base import BaseEstimator
 
 from clepp import constants
 
 
-def do_classification(data, model_name, out_dir, cv, scoring_metrics, title, *args) -> Dict:
+def do_classification(data: pd.DataFrame, model_name: str, out_dir: str, cv: int, scoring_metrics: List[str],
+                      title: str, *args) -> Dict[str: Any]:
     """Perform classification on embeddings generated from previous step.
 
     :param data: Dataframe containing the embeddings
@@ -73,7 +76,8 @@ def do_classification(data, model_name, out_dir, cv, scoring_metrics, title, *ar
     return cv_results
 
 
-def _do_multiclass_classification(estimator, x, y, cv, scoring, return_estimator=True):
+def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: pd.Series, cv: int, scoring: List[str],
+                                  return_estimator: bool = True) -> Dict[str: Any]:
     """Do multiclass classification using OneVsRest classifier."""
     n_classes = len(np.unique(y))
     cv_results = defaultdict(list)
@@ -98,66 +102,71 @@ def _do_multiclass_classification(estimator, x, y, cv, scoring, return_estimator
         clf = multiclass.OneVsRestClassifier(estimator)
 
         # Fit and predict using the multiclass classifier
-        y_score = clf.fit(x_train, y_train).predict(x_test)
+        y_pred = clf.fit(x_train, y_train).predict(x_test)
 
         if return_estimator:
             cv_results['estimator'].append(clf)
 
         # For the multiclass metric find the score and add it to cv_results.
-        # TODO: Add other Scorers from sklearn and abstract this by making a function to average the metrics.
+        # TODO: Add other Scorers from sklearn
         for metric in scoring:
             if metric == 'roc_auc':
-                roc_auc = 0
-
-                for label in range(n_classes):
-                    roc_auc += metrics.roc_auc_score(y_test[:, label], y_score[:, label])
-                roc_auc /= n_classes
-
+                roc_auc = _multiclass_metric_evaluator(
+                    metric_func=metrics.roc_auc_score,
+                    n_classes=n_classes,
+                    y_test=y_test,
+                    y_pred=y_pred
+                )
                 cv_results['test_roc_auc'].append(roc_auc)
 
             elif metric == 'f1':
-                f1 = 0
-
-                for label in range(n_classes):
-                    f1 += metrics.f1_score(y_test[:, label], y_score[:, label], average='binary')
-                f1 /= n_classes
-
+                f1 = _multiclass_metric_evaluator(
+                    metric_func=metrics.f1_score,
+                    n_classes=n_classes,
+                    y_test=y_test,
+                    y_pred=y_pred,
+                    average='binary',
+                )
                 cv_results['test_f1_micro'].append(f1)
 
             elif metric == 'f1_micro':
-                f1_micro = 0
-
-                for label in range(n_classes):
-                    f1_micro += metrics.f1_score(y_test[:, label], y_score[:, label], average='micro')
-                f1_micro /= n_classes
-
+                f1_micro = _multiclass_metric_evaluator(
+                    metric_func=metrics.f1_score,
+                    n_classes=n_classes,
+                    y_test=y_test,
+                    y_pred=y_pred,
+                    average='micro',
+                )
                 cv_results['test_f1_micro'].append(f1_micro)
 
             elif metric == 'f1_macro':
-                f1_macro = 0
-
-                for label in range(n_classes):
-                    f1_macro += metrics.f1_score(y_test[:, label], y_score[:, label], average='macro')
-                f1_macro /= n_classes
-
+                f1_macro = _multiclass_metric_evaluator(
+                    metric_func=metrics.roc_auc_score,
+                    n_classes=n_classes,
+                    y_test=y_test,
+                    y_pred=y_pred,
+                    average='macro',
+                )
                 cv_results['test_f1_micro'].append(f1_macro)
 
             elif metric == 'f1_weighted':
-                f1_weighted = 0
-
-                for label in range(n_classes):
-                    f1_weighted += metrics.f1_score(y_test[:, label], y_score[:, label], average='weighted')
-                f1_weighted /= n_classes
-
+                f1_weighted = _multiclass_metric_evaluator(
+                    metric_func=metrics.f1_score,
+                    n_classes=n_classes,
+                    y_test=y_test,
+                    y_pred=y_pred,
+                    average='weighted',
+                )
                 cv_results['test_f1_micro'].append(f1_weighted)
 
             elif metric == 'accuracy':
-                accuracy = 0
-
-                for label in range(n_classes):
-                    accuracy += metrics.accuracy_score(y_test[:, label], y_score[:, label])
-                accuracy /= n_classes
-
+                accuracy = _multiclass_metric_evaluator(
+                    metric_func=metrics.accuracy_score,
+                    n_classes=n_classes,
+                    y_test=y_test,
+                    y_pred=y_pred,
+                    average='micro',
+                )
                 cv_results['test_f1_micro'].append(accuracy)
 
             else:
@@ -167,12 +176,25 @@ def _do_multiclass_classification(estimator, x, y, cv, scoring, return_estimator
     return cv_results
 
 
-def get_classifier(model_name: str, *args):
+def _multiclass_metric_evaluator(metric_func: Callable[..., float], n_classes: int, y_test: np.ndarray,
+                                 y_pred: np.ndarray, **kwargs) -> float:
+    """Calculate the average metric for multiclass classifiers."""
+    metric = 0
+
+    for label in range(n_classes):
+        metric += metric_func(y_test[:, label], y_pred[:, label], **kwargs)
+    metric /= n_classes
+
+    return metric
+
+
+def get_classifier(model_name: str, *args) -> BaseEstimator:
     """Retrieve the appropriate classifier from sci-kit learn based on the arguments."""
     if model_name == 'logistic_regression':
         return linear_model.LogisticRegression(*args, solver='lbfgs')
 
     elif model_name == 'elastic_net':
+        # Logistic regression with elastic net penalty & equal weightage to l1 and l2
         return linear_model.LogisticRegression(*args, penalty='elasticnet', l1_ratio=0.5, solver='saga')
 
     elif model_name == 'svm':
@@ -186,7 +208,7 @@ def get_classifier(model_name: str, *args):
     )
 
 
-def _save_json(cv_results, out_dir) -> None:
+def _save_json(cv_results: Dict[str: Any], out_dir: str) -> None:
     """Save the cross validation results as a json file."""
     for key in cv_results.keys():
         # Check if the result is a numpy array, if yes convert to list
@@ -211,7 +233,7 @@ def _save_json(cv_results, out_dir) -> None:
         json.dump(cv_results, out, indent=4)
 
 
-def _plot(cv_results, title, out_dir) -> None:
+def _plot(cv_results: Dict[str: Any], title: str, out_dir: str) -> None:
     """Plot the cross validation results as a boxplot."""
     non_metrics = ['estimator', 'fit_time', 'score_time']
 

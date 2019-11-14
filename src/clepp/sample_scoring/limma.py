@@ -11,7 +11,7 @@ from rpy2.robjects.packages import importr
 from statsmodels.stats.multitest import multipletests
 
 
-def do_limma(data, design, alpha, method, control: str) -> pd.DataFrame:
+def do_limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float, method: str, control: str) -> pd.DataFrame:
     """Perform data manipulation before limma based SS scoring.
 
     :param data: Dataframe containing the gene expression values
@@ -26,6 +26,7 @@ def do_limma(data, design, alpha, method, control: str) -> pd.DataFrame:
         for val, key in enumerate(np.unique(design['Target']))
     }
 
+    # Only get the control data using the control parameter which defines how control is stored in the database
     ctrl_data = data.transpose()[list(design.Target == control)].transpose()
     sample_data = data.transpose()[list(design.Target != control)].transpose()
 
@@ -38,10 +39,15 @@ def do_limma(data, design, alpha, method, control: str) -> pd.DataFrame:
     for col_idx, col in enumerate(sample_data.columns):
         data_df = ctrl_data.copy()
 
+        # Get a single sample from dataframe
         data_df[col] = sample_data.iloc[:, col_idx]
+
+        # Add the design of that sample with the control samples to make the design table
         design_df = ctrl_design.append(sample_design.iloc[col_idx, :], ignore_index=True)
 
         output = _limma(data=data_df, design=design_df, alpha=alpha, adjust_method=method)
+
+        # Only store the logFC values
         output_df.iloc[col_idx, :] = output['logFC'].values.flatten()
 
     label = sample_design['Target'].map(label_mapping)

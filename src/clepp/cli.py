@@ -4,7 +4,7 @@
 
 import json
 import logging
-from typing import List
+from typing import List, Union
 
 import click
 import numpy as np
@@ -82,7 +82,7 @@ control_option = click.option(
     show_default=True,
 )
 @control_option
-def limma(data, design, out, alpha, method, control: str) -> None:
+def limma(data: str, design: str, out: str, alpha: int, method: str, control: str) -> None:
     """Perform Single Sample limma based differential gene expression for all samples wrt the controls."""
     click.echo(
         f"Starting Limma Based Single Sample Scoring with {data} & {design} files and "
@@ -104,7 +104,7 @@ def limma(data, design, out, alpha, method, control: str) -> None:
 @design_option
 @output_option
 @control_option
-def z_score(data, design, out, control) -> None:
+def z_score(data: str, design: str, out: str, control: str) -> None:
     """Perform Single Sample Z_Score based differential gene expression for all samples wrt the controls."""
     click.echo(
         f"Starting Z-Score Based Single Sample Scoring with {data} & {design} files and "
@@ -130,7 +130,7 @@ def z_score(data, design, out, control) -> None:
     type=click.Path(file_okay=True, dir_okay=False, exists=True),
     required=True,
 )
-def ssgsea(data, design, out, gs) -> None:
+def ssgsea(data: str, design: str, out: str, gs: str) -> None:
     """Perform Single Sample GSEA for all the samples with prior knowledge (geneset)."""
     click.echo(
         f"Starting ssGSEA with {data} & {gs} files and saving it to {out}/sample_scoring.tsv")
@@ -162,7 +162,7 @@ def embedding():
 @embedding.command()
 @data_option
 @output_option
-def binning(data, out) -> None:
+def binning(data: str, out: str) -> None:
     """Perform Threshold based Vectorization."""
     click.echo(f"Starting binning with {data}, and out-putting to {out}/binned.tsv")
 
@@ -190,7 +190,7 @@ def binning(data, out) -> None:
     required=True,
     nargs=2
 )
-def evaluate(data, label) -> None:
+def evaluate(data: str, label: str) -> None:
     """Perform Evaluation of the Embeddings."""
     click.echo(f"Starting Evaluation of the following files: \n{data}")
 
@@ -223,7 +223,7 @@ def evaluate(data, label) -> None:
     type=click.Choice(['DeepWalk', 'node2vec', 'LINE']),
     required=True,
 )
-def nrl(data, kg, out, method) -> None:
+def nrl(data: str, kg: str, out: str, method: str) -> None:
     """Perform network representation learning."""
     click.echo(f"Starting {method} based NRL with {data} & {kg} and outputting it to {out}")
 
@@ -274,7 +274,7 @@ def nrl(data, kg, out, method) -> None:
     default='',
     show_default=False,
 )
-def classify(data, out, model, cv, metrics: List[str], title) -> None:
+def classify(data: str, out: str, model: str, cv: int, metrics: Union[List[str], None], title: str) -> None:
     """Perform machine-learning classification."""
     if not metrics:
         metrics = ['roc_auc', 'accuracy', 'f1_micro', 'f1_macro', 'f1']

@@ -3,12 +3,13 @@
 """Assess the differences between the 2 pre-processing methods."""
 
 import itertools
+from typing import List, Dict
 
 import numpy as np
 import pandas as pd
 
 
-def do_ss_evaluation(data: list, labels: list) -> dict:
+def do_ss_evaluation(data: List[pd.DataFrame], labels: List[str]) -> Dict[str, Dict[str, str]]:
     """Take binned pandas dataframes to compare and find the percentage of similarity and contradiction.
 
     :param data: list of files on which evaluations needs to be conducted
