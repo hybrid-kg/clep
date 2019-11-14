@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/source/logo.png" height="150" alt="CLEPP Logo">
+  <img src="docs/source/logo.png" height="150">
 </p>
 
 <h1 align="center">
