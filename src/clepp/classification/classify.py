@@ -77,7 +77,7 @@ def do_classification(data: pd.DataFrame, model_name: str, out_dir: str, cv: int
 
 
 def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: pd.Series, cv: int, scoring: List[str],
-                                  return_estimator: bool = True) -> Dict[str: Any]:
+                                  return_estimator: bool = True) -> Dict[str, Any]:
     """Do multiclass classification using OneVsRest classifier."""
     n_classes = len(np.unique(y))
     cv_results = defaultdict(list)
@@ -208,7 +208,7 @@ def get_classifier(model_name: str, *args) -> BaseEstimator:
     )
 
 
-def _save_json(cv_results: Dict[str: Any], out_dir: str) -> None:
+def _save_json(cv_results: Dict[str, Any], out_dir: str) -> None:
     """Save the cross validation results as a json file."""
     for key in cv_results.keys():
         # Check if the result is a numpy array, if yes convert to list
@@ -233,7 +233,7 @@ def _save_json(cv_results: Dict[str: Any], out_dir: str) -> None:
         json.dump(cv_results, out, indent=4)
 
 
-def _plot(cv_results: Dict[str: Any], title: str, out_dir: str) -> None:
+def _plot(cv_results: Dict[str, Any], title: str, out_dir: str) -> None:
     """Plot the cross validation results as a boxplot."""
     non_metrics = ['estimator', 'fit_time', 'score_time']
 
