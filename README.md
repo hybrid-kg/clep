@@ -8,10 +8,6 @@
 
 CLEPP is workflow containing several methods for generating patient embeddings from *-omics* data.
 
-Workflow
---------
-![image](https://docs.google.com/drawings/d/e/2PACX-1vT6-VOHbKSqFBjj7mqUR3fjkDCmjRatVZxi0gMfYWZlzXAKHZQgIG8uz2aWCypW5LdI69YojDYG3j0R/pub?w=1319&h=685)
-
 Formats for Data and Design Matrices:
 -------------------------------------
 Data:
