@@ -20,6 +20,7 @@ def do_limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float, method: str
     :param method: Method used family-wise error correction
     :param control: label used for representing the control in the design table of the data
     :return Dataframe containing the Single Sample scores from limma
+
     """
     label_mapping = {
         key: val

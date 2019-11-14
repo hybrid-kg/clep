@@ -13,6 +13,7 @@ def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control
     :param design: Dataframe containing the design table for the data
     :param control: label used for representing the control in the design table of the data
     :return Dataframe containing the Single Sample scores using Z_Scores
+
     """
     # Check if the control variable is as per the R Naming standards
     assert control[0].isalpha()

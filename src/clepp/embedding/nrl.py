@@ -17,6 +17,7 @@ def do_nrl(data: pd.DataFrame, kg_data: pd.DataFrame, out: str, method: str) -> 
     :param kg_data: Dataframe containing the knowledge graph
     :param out: Path to the output directory
     :param method: model that should be used for creating the embedding
+
     """
     # Get labels
     label = data['label']

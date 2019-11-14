@@ -29,6 +29,7 @@ def do_classification(data: pd.DataFrame, model_name: str, out_dir: str, cv: int
     :param title: Title of the Boxplot
     :arg args: Custom arguments to the estimator model
     :return Dictionary containing the cross validation results
+
     """
     # Get classifier user arguments
     model = get_classifier(model_name, *args)
