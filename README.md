@@ -1,8 +1,8 @@
-<p style="text-align: center;">
+<p align="center">
   <img src="docs/source/logo.png" height="150" alt="CLEPP Logo">
 </p>
 
-<h1 style="text-align: center;">
+<h1 align="center">
   CLEPP
 </h1>
 
