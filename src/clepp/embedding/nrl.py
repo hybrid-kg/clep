@@ -74,7 +74,7 @@ def do_nrl(data: pd.DataFrame, kg_data: pd.DataFrame, out: str, method: str) -> 
 
 
 def _make_data_edgelist(data: pd.DataFrame, label: pd.Series,
-                        data_edge: TextIO) -> Tuple[Dict[..., int], Dict[..., int],  Dict[..., int]]:
+                        data_edge: TextIO) -> Tuple[Dict[..., int], Dict[..., int], Dict[..., int]]:
     """Create an edgelist for the patient data."""
     # Create a mapping from every samples to an unique node ID for the node representation
     # TODO: Why dont you make a function to do this (you do this several times)
@@ -159,7 +159,7 @@ def _gen_embedding(
         kstep: int = 4,
         order: int = 3,
         weighted: bool = False,
-) -> Dict[int , List[int]]:
+) -> Dict[int, List[int]]:
     """Generate a NRL embedding using the given model."""
     model = embedding_training(
         train_graph_filename=input_path,
