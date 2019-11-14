@@ -4,6 +4,7 @@ graft tests
 recursive-include docs/source *.py
 recursive-include docs/source *.rst
 recursive-include docs/source *.png
+recursive-include docs/source *.jpg
 include docs/Makefile
 include config/config.ini
 
