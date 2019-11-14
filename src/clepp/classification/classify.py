@@ -17,15 +17,8 @@ from sklearn.base import BaseEstimator
 from clepp import constants
 
 
-def do_classification(
-        data: pd.DataFrame,
-        model_name: str,
-        out_dir: str,
-        cv: int,
-        scoring_metrics: List[str],
-        title: str,
-        *args
-) -> Dict[str: Any]:
+def do_classification(data: pd.DataFrame, model_name: str, out_dir: str, cv: int, scoring_metrics: List[str],
+                      title: str, *args) -> Dict[str, Any]:
     """Perform classification on embeddings generated from previous step.
 
     :param data: Dataframe containing the embeddings
