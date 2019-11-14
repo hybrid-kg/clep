@@ -6,6 +6,10 @@
   CLEPP
 </h1>
 
+<p align="center">
+  <img src="https://travis-ci.org/clepp/clepp.svg?branch=master" />
+</p>
+
 CLEPP is workflow containing several methods for generating patient embeddings from *-omics* data.
 
 Formats for Data and Design Matrices:
