@@ -11,7 +11,7 @@ def do_ssgsea(
         filtered_expression_data: pd.DataFrame,
         gene_set: str,
         output_dir: str = None,
-        processes: int = 1,
+        processes: int = 4,
         max_size: int = 3000,
         min_size: int = 15,
 ) -> SingleSampleGSEA:
