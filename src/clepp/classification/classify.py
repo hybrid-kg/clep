@@ -90,7 +90,7 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
     y = preprocessing.label_binarize(y.map(class_to_label_mapping), classes=range(n_classes))
 
     # Make k-fold splits for cross validations
-    k_fold = model_selection.KFold(n_splits=cv, shuffle=True)
+    k_fold = model_selection.StratifiedKFold(n_splits=cv, shuffle=True)
 
     # Split the data and the labels
     for train_indexes, test_indexes in k_fold.split(x, y):
