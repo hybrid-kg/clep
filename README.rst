@@ -5,6 +5,7 @@
 Clinical Embeddings for Patient Prediction (CLEPP)
 ====================================================
 .. image:: https://travis-ci.org/clepp/clepp.svg?branch=master
+   :target: https://travis-ci.org/clepp/clepp
 
 CLEPP is workflow containing several methods for generating patient embeddings from *-omics* data.
 
