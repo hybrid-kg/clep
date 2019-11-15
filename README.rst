@@ -1,5 +1,5 @@
 .. image:: docs/source/logo.jpg
-   :height: 20px
+   :scale: 25%
    :align: center
 
 Clinical Embeddings for Patient Prediction (CLEPP)
