@@ -3,7 +3,7 @@
 """Embed the gene data & pathway using Network Representation Learning."""
 
 import pickle
-from typing import TextIO, Dict, Tuple, List
+from typing import TextIO, Dict, Tuple, List, Any
 
 import numpy as np
 import pandas as pd
@@ -75,7 +75,7 @@ def do_nrl(data: pd.DataFrame, kg_data: pd.DataFrame, out: str, method: str) -> 
 
 
 def _make_data_edgelist(data: pd.DataFrame, label: pd.Series,
-                        data_edge: TextIO) -> Tuple[Dict[..., int], Dict[..., int], Dict[..., int]]:
+                        data_edge: TextIO) -> Tuple[Dict[Any, int], Dict[Any, int], Dict[Any, int]]:
     """Create an edgelist for the patient data."""
     # Create a mapping from every samples to an unique node ID for the node representation
     # TODO: Why dont you make a function to do this (you do this several times)
@@ -108,7 +108,7 @@ def _make_data_edgelist(data: pd.DataFrame, label: pd.Series,
     return pat_mapping, gene_mapping, label_mapping
 
 
-def _make_kg_edgelist(kg_data: pd.DataFrame, joint_mapping: Dict[Dict[..., int], Dict[..., int]],
+def _make_kg_edgelist(kg_data: pd.DataFrame, joint_mapping: Dict[Dict[Any, int], Dict[Any, int]],
                       data_edge: TextIO) -> Dict[str, int]:
     """Create an edgelist for the knowledge graph data."""
     kg_mapping = dict()
@@ -136,7 +136,7 @@ def _make_kg_edgelist(kg_data: pd.DataFrame, joint_mapping: Dict[Dict[..., int],
     return kg_mapping
 
 
-def _get_max_dict_val(dictionary: Dict[..., ...]) -> int:
+def _get_max_dict_val(dictionary: Dict[Any, Any]) -> int:
     """Get the maximum value from a key, value pair in a given dictionary."""
     return dictionary[max(dictionary, key=lambda value: dictionary[value])]
 
