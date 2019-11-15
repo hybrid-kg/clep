@@ -1,6 +1,6 @@
-.. image:: docs/source/logo.jpg
-  :height: 150
-  :align: center
+<p align="center">
+  <img src="docs/source/logo.jpg" height="150">
+</p>
 
 <h1 align="center">
   Clinical Embeddings for Patient Prediction (CLEPP)
