@@ -83,11 +83,8 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
     n_classes = len(np.unique(y))
     cv_results = defaultdict(list)
 
-    # Map classes to integer values and store as a dictionary
-    class_to_label_mapping = dict(zip(np.unique(y), range(n_classes)))
-
     # Make a One-Hot encoding of the classes
-    y = preprocessing.label_binarize(y.map(class_to_label_mapping), classes=range(n_classes))
+    y = preprocessing.LabelEncoder().fit_transform(y)
 
     # Make k-fold splits for cross validations
     k_fold = model_selection.StratifiedKFold(n_splits=cv, shuffle=True)
