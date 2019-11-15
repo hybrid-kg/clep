@@ -84,7 +84,9 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
     cv_results = defaultdict(list)
 
     # Map classes to integer values and store as a dictionary
-    class2label_mapping = dict((key, value) for key, value in zip(np.unique(y), range(n_classes)))
+    class2label_mapping = {key: value
+        for key, value in zip(np.unique(y), range(n_classes))
+    }
 
     # Make a One-Hot encoding of the classes
     y = preprocessing.label_binarize(y.map(class2label_mapping), classes=range(n_classes))
