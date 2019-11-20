@@ -92,7 +92,7 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
     # Split the data and the labels
     for train_indexes, test_indexes in k_fold.split(x, y):
         # Make a One-Hot encoding of the classes
-        y = preprocessing.label_binarize(y, classes=range(n_classes))
+        y = preprocessing.label_binarize(y, classes=list(np.unique(y)))
 
         x_train = x.iloc[train_indexes]
         x_test = x.iloc[test_indexes]
@@ -148,7 +148,7 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
                     y_pred=y_pred,
                     average='macro',
                 )
-                cv_results['test_f1_micro'].append(f1_macro)
+                cv_results['test_f1_macro'].append(f1_macro)
 
             elif metric == 'f1_weighted':
                 f1_weighted = _multiclass_metric_evaluator(
@@ -158,7 +158,7 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
                     y_pred=y_pred,
                     average='weighted',
                 )
-                cv_results['test_f1_micro'].append(f1_weighted)
+                cv_results['test_f1_weighted'].append(f1_weighted)
 
             elif metric == 'accuracy':
                 accuracy = _multiclass_metric_evaluator(
@@ -167,7 +167,7 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
                     y_test=y_test,
                     y_pred=y_pred,
                 )
-                cv_results['test_f1_micro'].append(accuracy)
+                cv_results['test_accuracy'].append(accuracy)
 
             else:
                 click.echo('The passed metric has not been defined in the code for multiclass classification.')
