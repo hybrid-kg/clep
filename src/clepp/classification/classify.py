@@ -6,6 +6,7 @@ import json
 import sys
 from collections import defaultdict
 from typing import Dict, List, Any, Callable
+from warnings import filterwarnings
 
 import click
 import numpy as np
@@ -15,6 +16,8 @@ from sklearn import linear_model, svm, ensemble, model_selection, multiclass, me
 from sklearn.base import BaseEstimator
 
 from clepp import constants
+
+filterwarnings('ignore')
 
 
 def do_classification(data: pd.DataFrame, model_name: str, out_dir: str, cv: int, scoring_metrics: List[str],
@@ -83,14 +86,14 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
     n_classes = len(np.unique(y))
     cv_results = defaultdict(list)
 
-    # Make a One-Hot encoding of the classes
-    y = preprocessing.LabelEncoder().fit_transform(y)
-
     # Make k-fold splits for cross validations
     k_fold = model_selection.StratifiedKFold(n_splits=cv, shuffle=True)
 
     # Split the data and the labels
     for train_indexes, test_indexes in k_fold.split(x, y):
+        # Make a One-Hot encoding of the classes
+        y = preprocessing.label_binarize(y, classes=range(n_classes))
+
         x_train = x.iloc[train_indexes]
         x_test = x.iloc[test_indexes]
         y_train = np.asarray([y[train_index] for train_index in train_indexes])
@@ -163,7 +166,6 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
                     n_classes=n_classes,
                     y_test=y_test,
                     y_pred=y_pred,
-                    average='micro',
                 )
                 cv_results['test_f1_micro'].append(accuracy)
 

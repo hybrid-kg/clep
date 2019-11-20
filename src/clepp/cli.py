@@ -280,15 +280,16 @@ def classify(data: str, out: str, model: str, cv: int, metrics: Union[List[str],
         metrics = ['roc_auc', 'accuracy', 'f1_micro', 'f1_macro', 'f1']
 
     click.echo(
-        f"Starting classification with {data} and out-putting to results to {out}/cross_validation_results.json"
+        f"Starting {model} classification with {data} and out-putting to results to {out}/cross_validation_results.json"
         f" & the plot to {out}/boxplot.png"
     )
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
 
-    do_classification(data_df, model, out, cv, metrics, title)
+    results = do_classification(data_df, model, out, cv, metrics, title)
 
-    click.echo(f"Done with classification")
+    click.echo(results)
+    click.echo(f"Done with {model} classification")
 
 
 if __name__ == '__main__':
