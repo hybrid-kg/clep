@@ -6,7 +6,7 @@ import json
 import sys
 from collections import defaultdict
 from typing import Dict, List, Any, Callable
-from warnings import filterwarnings
+from warnings import filterwarnings, warn
 
 import click
 import numpy as np
@@ -92,7 +92,7 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
     # Split the data and the labels
     for train_indexes, test_indexes in k_fold.split(x, y):
         # Make a One-Hot encoding of the classes
-        y = preprocessing.label_binarize(y, classes=list(np.unique(y)))
+        y = preprocessing.label_binarize(y, classes=range(n_classes))
 
         x_train = x.iloc[train_indexes]
         x_test = x.iloc[test_indexes]
@@ -182,7 +182,11 @@ def _multiclass_metric_evaluator(metric_func: Callable[..., float], n_classes: i
     metric = 0
 
     for label in range(n_classes):
-        metric += metric_func(y_test[:, label], y_pred[:, label], **kwargs)
+        try:
+            metric += metric_func(y_test[:, label], y_pred[:, label], **kwargs)
+        except ValueError as e:
+            metric += 0
+            warn(f'Error: {e}\n was found, so using the metric is defaulted to 0.')
     metric /= n_classes
 
     return metric
