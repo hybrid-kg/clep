@@ -268,10 +268,10 @@ def nrl(data: str, kg: str, out: str, method: str) -> None:
 )
 @click.option(
     '--title',
-    help="Title of the box plot (if not provided a title will be generated based on the scoring metrics)",
+    help="Title of the box plot (if not provided a title will be 'Boxplot')",
     type=str,
     required=False,
-    default='',
+    default='Boxplot',
     show_default=False,
 )
 def classify(data: str, out: str, model: str, cv: int, metrics: Union[List[str], None], title: str) -> None:

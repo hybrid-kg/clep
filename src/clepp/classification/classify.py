@@ -65,16 +65,6 @@ def do_classification(data: pd.DataFrame, model_name: str, out_dir: str, cv: int
 
     _save_json(cv_results=cv_results, out_dir=out_dir)
 
-    if title == '':
-        title_as_list = [
-            param
-            for param in out_dir.split('/')
-            if param.lower() not in ['classification', 'nrl']
-        ]
-
-        title = f'Box Plot for {",".join(title_as_list)}'
-        title.replace(',', '\n')
-
     _plot(cv_results=cv_results, title=title, out_dir=out_dir)
 
     return cv_results
