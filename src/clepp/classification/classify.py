@@ -6,7 +6,8 @@ import json
 import sys
 from collections import defaultdict
 from typing import Dict, List, Any, Callable
-from warnings import filterwarnings, warn
+from warnings import filterwarnings
+import logging
 
 import click
 import numpy as np
@@ -17,7 +18,11 @@ from sklearn.base import BaseEstimator
 
 from clepp import constants
 
+
 filterwarnings('ignore')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARN)
+logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
 
 
 def do_classification(data: pd.DataFrame, model_name: str, out_dir: str, cv: int, scoring_metrics: List[str],
@@ -40,10 +45,12 @@ def do_classification(data: pd.DataFrame, model_name: str, out_dir: str, cv: int
     # Separate embeddings from labels in data
     labels = data['label']
     data = data.drop(columns='label')
+    logger.debug(f"data:\n {data}")
 
     # Check if we are conducting multiclass classification, if so replace f1 with weighted f1 and remove roc_auc in-case
     if len(np.unique(labels)) > 2:
         # Run cross validation over the given model for multiclass classification
+        logger.debug("Doing multiclass classification")
         cv_results = _do_multiclass_classification(
             estimator=model,
             x=data,
@@ -54,6 +61,7 @@ def do_classification(data: pd.DataFrame, model_name: str, out_dir: str, cv: int
         )
     else:
         # Run cross validation over the given model
+        logger.debug(f"Running binary cross validation")
         cv_results = model_selection.cross_validate(
             estimator=model,
             X=data,
@@ -72,29 +80,61 @@ def do_classification(data: pd.DataFrame, model_name: str, out_dir: str, cv: int
 
 def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: pd.Series, cv: int, scoring: List[str],
                                   return_estimator: bool = True) -> Dict[str, Any]:
-    """Do multiclass classification using OneVsRest classifier."""
-    unique_labels = np.unique(y).tolist()
+    """Do multiclass classification using OneVsRest classifier.
+
+    :param estimator: estimator/classifier that should be used for cross validation
+    :param x: Pandas dataframe containing the sample & feature data
+    :param y: Pandas series containing the sample's class information
+    :param cv: Number of cross validation splits to be carried out
+    :param scoring: List of scoring metrics tested during cross validation
+    :param return_estimator: Boolean value to indicate if the estimator used should returned in the results
+    """
+    unique_labels = list(np.unique(y))
+    logger.debug(f"unique_labels:\n {unique_labels}")
+
     n_classes = len(unique_labels)
+    logger.debug(f"n_classes:\n {n_classes}")
+
     cv_results = defaultdict(list)
 
     # Make k-fold splits for cross validations
     k_fold = model_selection.StratifiedKFold(n_splits=cv, shuffle=True)
+    logger.debug(f"k_fold Classifier:\n {k_fold}")
 
     # Split the data and the labels
     for train_indexes, test_indexes in k_fold.split(x, y):
         # Make a One-Hot encoding of the classes
         y = preprocessing.label_binarize(y, classes=unique_labels)
 
-        x_train = x.iloc[train_indexes]
-        x_test = x.iloc[test_indexes]
-        y_train = np.asarray([y[train_index] for train_index in train_indexes])
-        y_test = np.asarray([y[test_index] for test_index in test_indexes])
+        x_train = np.asarray(
+            [x.iloc[train_index, :].values.tolist()
+             for train_index in train_indexes]
+        )
+        x_test = np.asarray(
+            [x.iloc[test_index, :].values.tolist()
+             for test_index in test_indexes]
+        )
+        y_train = np.asarray(
+            [y[train_index]
+             for train_index in train_indexes]
+        )
+        y_test = np.asarray(
+            [y[test_index]
+             for test_index in test_indexes]
+        )
+        logger.debug(f"Counter y_train:\n {np.unique(y_train, axis=0, return_counts=True)} \nCounter y_test: \n"
+                     f"{np.unique(y_test, axis=0, return_counts=True)}")
 
         # Make a multiclass classifier for the given estimator
         clf = multiclass.OneVsRestClassifier(estimator)
+        logger.debug(f"clf:\n {clf}")
 
         # Fit and predict using the multiclass classifier
-        y_pred = clf.fit(x_train, y_train).predict(x_test)
+        y_fit = clf.fit(x_train, y_train)
+        logger.debug(f"y_fit:\n {y_fit}")
+
+        y_pred = y_fit.predict(x_test)
+        # logger.debug(f"y_pred:\n {y_pred}")
 
         if return_estimator:
             cv_results['estimator'].append(clf)
@@ -163,6 +203,7 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
             else:
                 click.echo('The passed metric has not been defined in the code for multiclass classification.')
                 sys.exit()
+        logger.debug(f"cv_results:\n {cv_results}")
 
     return cv_results
 
@@ -195,7 +236,7 @@ def get_classifier(model_name: str, *args) -> BaseEstimator:
     elif model_name == 'svm':
         return svm.SVC(*args, gamma='scale')
 
-    elif model_name == 'random_forrest':
+    elif model_name == 'random_forest':
         return ensemble.RandomForestClassifier(*args)
 
     raise ValueError(
@@ -212,6 +253,9 @@ def _save_json(cv_results: Dict[str, Any], out_dir: str) -> None:
 
         # Check if the results are numpy float values, if yes skip it
         elif isinstance(cv_results[key][0], np.float):
+            continue
+
+        elif isinstance(cv_results[key][0], list):
             continue
 
         # Check if the key is an estimator and convert it into a JSON Serializable object.

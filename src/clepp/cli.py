@@ -247,7 +247,7 @@ def nrl(data: str, kg: str, out: str, method: str) -> None:
         'logistic_regression',
         'elastic_net',
         'svm',
-        'random_forrest'
+        'random_forest'
     ]),
     required=True
 )
