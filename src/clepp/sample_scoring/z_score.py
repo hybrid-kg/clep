@@ -6,12 +6,18 @@ import numpy as np
 import pandas as pd
 
 
-def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control') -> pd.DataFrame:
+def do_z_score(
+        data: pd.DataFrame,
+        design: pd.DataFrame,
+        control: str = 'Control',
+        threshold: float = 2.0,
+) -> pd.DataFrame:
     """Carry out Z-Score based single sample DE analysis.
 
     :param data: Dataframe containing the gene expression values
     :param design: Dataframe containing the design table for the data
     :param control: label used for representing the control in the design table of the data
+    :param threshold: Threshold for choosing patients that are "extreme" w.r.t. the controls.
     :return Dataframe containing the Single Sample scores using Z_Scores
 
     """
@@ -39,8 +45,15 @@ def do_z_score(data: pd.DataFrame, design: pd.DataFrame, control: str = 'Control
     control_std = controls.std(axis=0)
     z_scores = (samples - control_mean) / control_std
 
-    # Any absolute z-score value greater than this number (4) is changed to 0
-    out_z_scores = np.where(np.abs(z_scores) > 4, z_scores, 0)
+    out_z_scores = z_scores.copy()
+
+    # Values that are greater than the 2 sigma or lesser than negative 2 sigma are considered as extremes
+
+    out_z_scores[z_scores > threshold] = 1
+    out_z_scores[z_scores < -threshold] = -1
+
+    # Values between upper and lower limit are assigned 0
+    out_z_scores[(z_scores < threshold) & (z_scores > -threshold)] = 0
 
     df = pd.DataFrame(data=out_z_scores, index=data.index[:len(samples)], columns=data.columns)
 
