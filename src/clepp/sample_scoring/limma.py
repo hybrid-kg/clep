@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
 """Python wrapper for R-based Limma to perform single sample DE analysis."""
+import sys
 
+import click
 import numpy as np
 import pandas as pd
 import rpy2.robjects as ro
+from rpy2.rinterface_lib.embedded import RRuntimeError
 from rpy2.robjects import pandas2ri, Formula
 from rpy2.robjects.conversion import localconverter
 from rpy2.robjects.packages import importr
@@ -27,13 +30,20 @@ def do_limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float, method: str
         for val, key in enumerate(np.unique(design['Target']))
     }
 
-    # Only get the control data using the control parameter which defines how control is stored in the database
-    ctrl_data = data.transpose()[list(design.Target == control)].transpose()
-    sample_data = data.transpose()[list(design.Target != control)].transpose()
+    # Get the control patients using the control parameter
+    control_filter = (design.Target == control)
 
-    ctrl_design = design[list(design.Target == control)]
-    sample_design = design[list(design.Target != control)]
+    # The data is transposed to get in the same format as the design matrix & then after the filtering transposed
+    # again to return to the original format
+    ctrl_data = data.transpose()[list(control_filter)].transpose()
 
+    # Here the sample stands for diseased patients
+    sample_data = data.transpose()[list(~control_filter)].transpose()
+
+    ctrl_design = design[list(control_filter)]
+    sample_design = design[list(~control_filter)]
+
+    # Final output dataframe (patients as rows & genes as columns)
     output_df = pd.DataFrame(columns=sample_data.index, index=sample_data.columns)
 
     # Loop over every sample to get the individual limma based SS scores
@@ -63,9 +73,16 @@ def _limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float = 0.05,
            adjust_method: str = 'fdr_bh') -> pd.DataFrame:
     """Wrap limma to perform single sample DE analysis."""
     # Import R libraries
-    limma = importr('limma')
     base = importr('base')
     stats = importr('stats')
+
+    try:
+        limma = importr('limma')
+    except RRuntimeError as e:
+        click.echo(e)
+        click.echo("Please check if limma package is installed in R. \n If not, follow the instructions from LINK "
+                   "HERE.")
+        sys.exit(1)
 
     # Convert data and design pandas dataframes to R dataframes
     with localconverter(ro.default_converter + pandas2ri.converter):
