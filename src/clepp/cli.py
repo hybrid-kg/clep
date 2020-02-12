@@ -82,7 +82,7 @@ control_option = click.option(
     show_default=True,
 )
 @control_option
-def limma(data: str, design: str, out: str, alpha: int, method: str, control: str) -> None:
+def limma(data: str, design: str, out: str, alpha: float, method: str, control: str) -> None:
     """Perform Single Sample limma based differential gene expression for all samples wrt the controls."""
     click.echo(
         f"Starting Limma Based Single Sample Scoring with {data} & {design} files and "
