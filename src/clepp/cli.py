@@ -104,7 +104,7 @@ def limma(data: str, design: str, out: str, alpha: float, method: str, control: 
 @design_option
 @output_option
 @control_option
-@control_option(
+@click.option(
     '--threshold',
     help="Threshold for choosing patients that are 'extreme' w.r.t. the controls.\nIf the z_score of a gene is "
          "greater than this threshold the gene is either up or down regulated.",
