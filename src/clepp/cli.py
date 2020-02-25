@@ -16,7 +16,7 @@ from clepp.embedding import (
     do_binning, do_nrl, do_ss_evaluation
 )
 from clepp.sample_scoring import (
-    do_limma, do_z_score, do_ssgsea
+    do_limma, do_z_score, do_ssgsea, do_radical_search
 )
 
 logger = logging.getLogger(__name__)
@@ -163,6 +163,38 @@ def ssgsea(data: str, design: str, out: str, gs: str) -> None:
     click.echo(f"Done with ssGSEA for {data}")
 
 
+@sample_scoring.command(help='Radical Searching based Single Sample Scoring')
+@data_option
+@design_option
+@output_option
+@control_option
+@click.option(
+    '--threshold',
+    help="Percentage of samples considered as 'extreme' on either side of the distribution",
+    type=float,
+    required=False,
+    default=2.5,
+    show_default=True,
+)
+def radical_search(data: str, design: str, out: str, control: str, threshold: float) -> None:
+    """Search for samples that are extremes as compared to the samples."""
+
+    assert 0 < threshold <= 100
+
+    click.echo(
+        f"Starting radical searching based single sample scoring with {data} & {design} files and "
+        f"saving it to {out}/sample_scoring.tsv"
+    )
+
+    data_df = pd.read_csv(data, sep='\t', index_col=0)
+    design_df = pd.read_csv(design, sep='\t', index_col=0)
+
+    output = do_radical_search(data=data_df, design=design_df, control=control, threshold=threshold)
+    output.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
+
+    click.echo(f"Done with Z-Score calculation for {data}")
+
+
 @main.group()
 def embedding():
     """List Vectorization methods available."""
@@ -233,6 +265,35 @@ def evaluate(data: str, label: str) -> None:
     required=True,
 )
 def nrl(data: str, kg: str, out: str, method: str) -> None:
+    """Perform network representation learning."""
+    click.echo(f"Starting {method} based NRL with {data} & {kg} and outputting it to {out}")
+
+    data_df = pd.read_csv(data, sep='\t')
+    data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
+
+    kg_data_df = pd.read_csv(kg, sep='\t')
+
+    do_nrl(data_df, kg_data_df, out, method)
+
+    click.echo(f"Done with NRL")
+
+
+@embedding.command()
+@data_option
+@click.option(
+    '--kg',
+    help="Path to the Knowledge Graph file in tsv format",
+    type=click.Path(file_okay=True, dir_okay=False, exists=True),
+    required=True,
+)
+@output_option
+@click.option(
+    '--method',
+    help='The NRL method to train the model',
+    type=click.Choice(['DeepWalk', 'node2vec', 'LINE']),
+    required=True,
+)
+def generate_knowledge_embedding(data: str, kg: str, out: str, method: str) -> None:
     """Perform network representation learning."""
     click.echo(f"Starting {method} based NRL with {data} & {kg} and outputting it to {out}")
 
