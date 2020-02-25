@@ -116,8 +116,6 @@ def overlay_samples(
         if gene in list(overlay_graph):
             overlay_graph.add_edge(patient, gene, regulation=value)
 
-    print(overlay_graph.edges(data='regulation'))
-
     return overlay_graph
 
 
@@ -175,25 +173,12 @@ def do_graph_embedding(
         information_graph = plot_interaction_net_overlap(folder_path, jaccard_threshold)
 
     final_graph = overlay_samples(data, information_graph)
-    nx.write_edgelist(final_graph, 'test.weighted.edgelist', data=['regulation'])
 
+    graph_df = nx.to_pandas_edgelist(final_graph)
+    graph_df['regulation'].fillna(0.0, inplace=True)
 
-# Tests:
-def kg_test():
-    df = pd.read_csv("data4kg.csv", index_col=None, header=0)
-    kg = pd.read_csv("kg.csv", index_col=None, header=0)
-    do_graph_embedding(data=df, embedding_method=1, kg_data=kg)
+    col_list = list(graph_df)
+    col_list[1], col_list[2] = col_list[2], col_list[1]
+    graph_df = graph_df.loc[:, col_list]
 
-
-# def gmt_test():
-#     df = pd.read_csv("data4kg.csv", index_col=None, header=0)
-#     kg = pd.read_csv("kg.csv", index_col=None, header=0)
-#     do_graph_embedding(data=df, embedding_method=1, kg_data=kg)
-#
-#
-# def folder_test():
-#     df = pd.read_csv("data4kg.csv", index_col=None, header=0)
-#     kg = pd.read_csv("kg.csv", index_col=None, header=0)
-#     do_graph_embedding(data=df, embedding_method=1, kg_data=kg)
-
-kg_test()
+    graph_df.to_csv('weighted.edgelist', sep='\t', header=False, index=False)
