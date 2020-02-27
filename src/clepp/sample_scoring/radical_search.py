@@ -103,7 +103,14 @@ def _apply_func(
     """
     final_df = pd.DataFrame()
 
+    new_columns = [index for index, _ in enumerate(df.columns)]
+    old_columns = list(df.columns)
+
+    df.columns = new_columns
+
     for idx, i in enumerate(df.columns):
         final_df[i] = np.apply_along_axis(func_list[idx], 0, df[i].values)
+
+    final_df.columns = old_columns
 
     return final_df
