@@ -1,0 +1,4 @@
+*.gexf filter=lfs diff=lfs merge=lfs -text
+*.eps filter=lfs diff=lfs merge=lfs -text
+*.edgelist filter=lfs diff=lfs merge=lfs -text
+*.graphml filter=lfs diff=lfs merge=lfs -text

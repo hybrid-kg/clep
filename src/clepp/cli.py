@@ -187,12 +187,12 @@ def radical_search(data: str, design: str, out: str, control: str, threshold: fl
     )
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
-    design_df = pd.read_csv(design, sep='\t', index_col=0)
+    design_df = pd.read_csv(design, sep='\t')
 
     output = do_radical_search(data=data_df, design=design_df, control=control, threshold=threshold)
     output.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
-    click.echo(f"Done with Z-Score calculation for {data}")
+    click.echo(f"Done with Radical-Score calculation for {data}")
 
 
 @main.group()
