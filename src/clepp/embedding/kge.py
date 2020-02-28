@@ -110,3 +110,10 @@ def _model_to_numpy(
         model: Model
 ) -> np.array:
     return model.entity_embeddings.weight.detach().cpu().numpy()
+
+
+if __name__ == '__main__':
+    do_kge(
+        edgelist=pd.read_csv('weighted_edgelist', sep='\t', index_col=None, header=None),
+        design=pd.read_csv('targets.txt', sep='\t'),
+    )
