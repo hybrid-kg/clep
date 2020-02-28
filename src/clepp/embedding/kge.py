@@ -13,7 +13,9 @@ from typing import Tuple, Optional
 
 def do_kge(
     edgelist: pd.DataFrame,
+    design: pd.DataFrame,
     out: str,
+    return_patients: bool = True,
     model: Optional[str] = 'TransE',
     train_size: Optional[float] = 0.8,
     validation_size: Optional[float] = 0.1
@@ -48,6 +50,20 @@ def do_kge(
 
     # Get the embedding as a numpy array
     embedding_values = _model_to_numpy(pipeline_result.model)
+
+    # Create 50 column names
+    embedding_columns = [f'Component_{i}' for i in range(1, 51)]
+
+    # Get the nodes of the training triples as index
+    node_list = list(training_triples.entity_to_id.keys())
+    embedding_index = sorted(node_list, key=lambda x: training_triples.entity_to_id[x])
+
+    embedding = pd.DataFrame(data=embedding_values, columns=embedding_columns, index=embedding_index)
+
+    if return_patients:
+        return embedding[embedding.index.isin(design['FileName'])]
+    else:
+        return embedding
 
 
 def _weighted_splitter(
