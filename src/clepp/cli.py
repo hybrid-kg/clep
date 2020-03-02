@@ -422,7 +422,7 @@ def generate_network(
     show_default=True,
 )
 def kge(
-    edgelist: str,
+    data: str,
     design: str,
     out: str,
     all_nodes: Optional[bool] = False,
@@ -431,7 +431,7 @@ def kge(
     validation_size: Optional[float] = 0.1
 ) -> None:
     """Perform knowledge graph embedding."""
-    edgelist_df = pd.read_csv(edgelist, sep='\t', index_col=None, header=None)
+    edgelist_df = pd.read_csv(data, sep='\t', index_col=None, header=None)
     design_df = pd.read_csv(design, sep='\t')
 
     embedding_df = do_kge(
