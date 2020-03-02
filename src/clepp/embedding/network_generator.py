@@ -11,6 +11,39 @@ from os import listdir
 from os.path import isfile, join
 
 
+def do_graph_gen(
+        data: pd.DataFrame,
+        network_gen_method: Optional[str] = 'Interaction Network',
+        gmt: Optional[str] = None,
+        intersection_threshold: Optional[float] = 0.1,
+        kg_data: Optional[pd.DataFrame] = None,
+        folder_path: Optional[str] = None,
+        jaccard_threshold: Optional[float] = 0.2
+):
+    information_graph = nx.Graph()
+
+    if network_gen_method == 'Pathway Overlap':
+        with open(gmt, 'r') as geneset:
+            information_graph = plot_pathway_overlap(geneset, intersection_threshold)
+
+    elif network_gen_method == 'Interaction Network':
+        information_graph = plot_interaction_network(kg_data)
+
+    elif network_gen_method == 'Interaction Network Overlap':
+        information_graph = plot_interaction_net_overlap(folder_path, jaccard_threshold)
+
+    final_graph = overlay_samples(data, information_graph)
+
+    graph_df = nx.to_pandas_edgelist(final_graph)
+    graph_df['regulation'].fillna(0.0, inplace=True)
+
+    col_list = list(graph_df)
+    col_list[1], col_list[2] = col_list[2], col_list[1]
+    graph_df = graph_df.loc[:, col_list]
+
+    return graph_df
+
+
 def plot_pathway_overlap(
         geneset: TextIO,
         intersection_threshold: float = 0.1
@@ -149,36 +182,3 @@ def show_graph(graph: nx.Graph):
     plt.tight_layout()
     plt.tick_params(axis='y', length=8)
     plt.show()
-
-
-def do_graph_embedding(
-        data: pd.DataFrame,
-        embedding_method: int,
-        gmt: Optional[str] = None,
-        intersection_threshold: Optional[float] = None,
-        kg_data: Optional[pd.DataFrame] = None,
-        folder_path: Optional[str] = None,
-        jaccard_threshold: Optional[float] = None
-):
-    information_graph = nx.Graph()
-
-    if embedding_method == 0:
-        with open(gmt, 'r') as geneset:
-            information_graph = plot_pathway_overlap(geneset, intersection_threshold)
-
-    elif embedding_method == 1:
-        information_graph = plot_interaction_network(kg_data)
-
-    elif embedding_method == 2:
-        information_graph = plot_interaction_net_overlap(folder_path, jaccard_threshold)
-
-    final_graph = overlay_samples(data, information_graph)
-
-    graph_df = nx.to_pandas_edgelist(final_graph)
-    graph_df['regulation'].fillna(0.0, inplace=True)
-
-    col_list = list(graph_df)
-    col_list[1], col_list[2] = col_list[2], col_list[1]
-    graph_df = graph_df.loc[:, col_list]
-
-    graph_df.to_csv('weighted.edgelist', sep='\t', header=False, index=False)

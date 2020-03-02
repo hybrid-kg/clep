@@ -4,7 +4,7 @@
 
 import json
 import logging
-from typing import List, Union
+from typing import List, Union, Optional
 
 import click
 import numpy as np
@@ -13,8 +13,8 @@ from sklearn.metrics import SCORERS
 
 from clepp.classification import do_classification
 from clepp.embedding import (
-    do_binning, do_nrl, do_ss_evaluation
-)
+    do_binning, do_nrl, do_ss_evaluation,
+    do_graph_gen, do_kge)
 from clepp.sample_scoring import (
     do_limma, do_z_score, do_ssgsea, do_radical_search
 )
@@ -280,31 +280,171 @@ def nrl(data: str, kg: str, out: str, method: str) -> None:
 
 @embedding.command()
 @data_option
-@click.option(
-    '--kg',
-    help="Path to the Knowledge Graph file in tsv format",
-    type=click.Path(file_okay=True, dir_okay=False, exists=True),
-    required=True,
-)
 @output_option
 @click.option(
     '--method',
-    help='The NRL method to train the model',
-    type=click.Choice(['DeepWalk', 'node2vec', 'LINE']),
-    required=True,
+    help='The method used to generate the network',
+    type=click.Choice(['Pathway Overlap', 'Interaction Network', 'Interaction Network Overlap']),
+    required=False,
+    default='Interaction Network',
+    show_default=True,
 )
-def generate_knowledge_embedding(data: str, kg: str, out: str, method: str) -> None:
-    """Perform network representation learning."""
-    click.echo(f"Starting {method} based NRL with {data} & {kg} and outputting it to {out}")
+@click.option(
+    '--kg',
+    help="Path to the Knowledge Graph file in tsv format if Interaction Network method is chosen",
+    type=click.Path(file_okay=True, dir_okay=False, exists=True),
+    required=False,
+)
+@click.option(
+    '--gmt',
+    help="Path to the gmt file if Pathway Overlap method is chosen",
+    type=click.Path(file_okay=True, dir_okay=False, exists=True),
+    required=False,
+)
+@click.option(
+    '--network_folder',
+    help="Path to the folder containing all the knowledge graph files if Interaction Network Overlap method is chosen",
+    type=click.Path(file_okay=False, dir_okay=True, exists=True),
+    required=False,
+)
+@click.option(
+    '--intersect_thr',
+    help="Threshold to make edges in Pathway Overlap method",
+    type=float,
+    required=False,
+    default=0.1,
+    show_default=True,
+)
+@click.option(
+    '--jaccard_thr',
+    help="Threshold to make edges in Interaction Network Overlap method",
+    type=float,
+    required=False,
+    default=0.1,
+    show_default=True,
+)
+def generate_network(
+        data: str,
+        out: str,
+        method: str,
+        intersect_thr: float,
+        jaccard_thr: float,
+        kg: Optional[str] = None,
+        gmt: Optional[str] = None,
+        network_folder: Optional[str] = None,
+) -> None:
+    """Generate Network for the given data."""
 
     data_df = pd.read_csv(data, sep='\t')
     data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
 
-    kg_data_df = pd.read_csv(kg, sep='\t')
+    if method == 'Pathway Overlap':
+        assert gmt is not None
+        click.echo(f"Generating {method} based network with {data} & {gmt} and outputting it to {out}")
 
-    do_nrl(data_df, kg_data_df, out, method)
+        graph_df = do_graph_gen(data=data_df, gmt=gmt, network_gen_method=method, intersection_threshold=intersect_thr)
 
-    click.echo(f"Done with NRL")
+    elif method == 'Interaction Network':
+        assert kg is not None
+        click.echo(f"Generating {method} based network with {data} & {kg} and outputting it to {out}")
+
+        kg_data_df = pd.read_csv(kg, sep='\t')
+
+        graph_df = do_graph_gen(data=data_df, kg_data=kg_data_df, network_gen_method=method)
+
+    else:
+        assert network_folder is not None
+        design = network_folder
+
+        graph_df = do_graph_gen(data=data_df, folder_path=design, network_gen_method=method, jaccard_threshold=jaccard_thr)
+
+    graph_df.to_csv(f'{out}/weighted.edgelist', sep='\t', header=False, index=False)
+
+    click.echo(f"Done with network generation")
+
+
+@embedding.command()
+@data_option
+@design_option
+@output_option
+@click.option(
+    '--all_nodes',
+    help='Use this tag to return all nodes (not just patients)',
+    is_flag=True,
+    show_default=True,
+)
+@click.option(
+    '--model',
+    help='The model used for knowledge graph embedding',
+    type=click.Choice([
+        'ComplEx',
+        'ComplExLiteral',
+        'ConvE',
+        'ConvKB',
+        'DistMult',
+        'DistMultLiteral',
+        'ERMLP',
+        'ERMLPE',
+        'HolE',
+        'KG2E',
+        'NTN',
+        'ProjE',
+        'RESCAL',
+        'RGCN',
+        'RotatE',
+        'SimplE',
+        'StructuredEmbedding',
+        'TransD',
+        'TransE',
+        'TransH',
+        'TransR',
+        'TuckER',
+        'UnstructuredModel'
+    ]),
+    required=False,
+    default='TransE',
+    show_default=True,
+)
+@click.option(
+    '--train_size',
+    help='Size of the training data for the knowledge graph embedding model',
+    type=float,
+    required=False,
+    default=0.8,
+    show_default=True,
+)
+@click.option(
+    '--validation_size',
+    help='Size of the validation data for the knowledge graph embedding model',
+    type=float,
+    required=False,
+    default=0.1,
+    show_default=True,
+)
+def kge(
+    edgelist: str,
+    design: str,
+    out: str,
+    all_nodes: Optional[bool] = False,
+    model: Optional[str] = 'TransE',
+    train_size: Optional[float] = 0.8,
+    validation_size: Optional[float] = 0.1
+) -> None:
+    """Perform knowledge graph embedding."""
+    edgelist_df = pd.read_csv(edgelist, sep='\t', index_col=None, header=None)
+    design_df = pd.read_csv(design, sep='\t')
+
+    embedding_df = do_kge(
+        edgelist=edgelist_df,
+        design=design_df,
+        out=out,
+        return_patients=(not all_nodes),
+        model=model,
+        train_size=train_size,
+        validation_size=validation_size
+    )
+
+    embedding_df.to_csv(f'{out}/embedding.tsv', sep='\t')
 
 
 @main.command()
