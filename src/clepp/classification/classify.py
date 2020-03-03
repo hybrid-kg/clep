@@ -66,7 +66,7 @@ def do_classification(data: pd.DataFrame, model_name: str, out_dir: str, cv: int
             estimator=model,
             X=data,
             y=labels,
-            cv=cv,
+            cv=model_selection.StratifiedKFold(n_splits=cv, shuffle=True),
             scoring=scoring_metrics,
             return_estimator=True,
         )
@@ -134,7 +134,7 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
         logger.debug(f"y_fit:\n {y_fit}")
 
         y_pred = y_fit.predict(x_test)
-        # logger.debug(f"y_pred:\n {y_pred}")
+        logger.debug(f"y_pred:\n {y_pred}")
 
         if return_estimator:
             cv_results['estimator'].append(clf)

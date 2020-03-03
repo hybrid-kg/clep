@@ -61,6 +61,7 @@ def do_kge(
     embedding = pd.DataFrame(data=embedding_values, columns=embedding_columns, index=embedding_index)
 
     if return_patients:
+        # TODO: Use clustering before classification to see if embeddings are already good enough
         return embedding[embedding.index.isin(design['FileName'])]
     else:
         return embedding
