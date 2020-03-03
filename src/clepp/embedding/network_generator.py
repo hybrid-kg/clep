@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from itertools import combinations
 from os import listdir
 from os.path import isfile, join
+from igraph import plot
 
 
 def do_graph_gen(
@@ -33,6 +34,8 @@ def do_graph_gen(
         information_graph = plot_interaction_net_overlap(folder_path, jaccard_threshold)
 
     final_graph = overlay_samples(data, information_graph)
+
+    nx.write_gexf(final_graph, "~/Work/pathway_modelling/clepp/tests/test.gexf")
 
     graph_df = nx.to_pandas_edgelist(final_graph)
     graph_df['regulation'].fillna(0.0, inplace=True)
