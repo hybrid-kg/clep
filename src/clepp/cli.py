@@ -457,7 +457,8 @@ def kge(
         'logistic_regression',
         'elastic_net',
         'svm',
-        'random_forest'
+        'random_forest',
+        'gradient_boost'
     ]),
     required=True
 )
