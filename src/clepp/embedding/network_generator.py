@@ -14,7 +14,7 @@ from igraph import plot
 
 def do_graph_gen(
         data: pd.DataFrame,
-        network_gen_method: Optional[str] = 'Interaction Network',
+        network_gen_method: Optional[str] = 'interaction_network',
         gmt: Optional[str] = None,
         intersection_threshold: Optional[float] = 0.1,
         kg_data: Optional[pd.DataFrame] = None,
@@ -23,19 +23,17 @@ def do_graph_gen(
 ):
     information_graph = nx.Graph()
 
-    if network_gen_method == 'Pathway Overlap':
+    if network_gen_method == 'pathway_overlap':
         with open(gmt, 'r') as geneset:
             information_graph = plot_pathway_overlap(geneset, intersection_threshold)
 
-    elif network_gen_method == 'Interaction Network':
+    elif network_gen_method == 'interaction_network':
         information_graph = plot_interaction_network(kg_data)
 
-    elif network_gen_method == 'Interaction Network Overlap':
+    elif network_gen_method == 'interaction_network_overlap':
         information_graph = plot_interaction_net_overlap(folder_path, jaccard_threshold)
 
     final_graph = overlay_samples(data, information_graph)
-
-    nx.write_gexf(final_graph, "~/Work/pathway_modelling/clepp/tests/test.gexf")
 
     graph_df = nx.to_pandas_edgelist(final_graph)
     graph_df['regulation'].fillna(0.0, inplace=True)
