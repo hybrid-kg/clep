@@ -15,6 +15,7 @@ import pandas as pd
 import seaborn as sns
 from sklearn import linear_model, svm, ensemble, model_selection, multiclass, metrics, preprocessing
 from sklearn.base import BaseEstimator
+from xgboost import XGBClassifier
 
 from clepp import constants
 
@@ -238,6 +239,9 @@ def get_classifier(model_name: str, *args) -> BaseEstimator:
 
     elif model_name == 'random_forest':
         return ensemble.RandomForestClassifier(*args)
+
+    elif model_name == 'gradient_boost':
+        return XGBClassifier(*args)
 
     raise ValueError(
         f'The entered model "{model_name}", was not found. Please check that you have chosen a valid model.'
