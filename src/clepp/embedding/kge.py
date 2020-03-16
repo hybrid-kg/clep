@@ -3,6 +3,8 @@
 """Embed patients with the biomedical entities (genes and metabolites) using Knowledge graph embedding."""
 
 from pykeen.pipeline import pipeline
+from pykeen.hpo.hpo import hpo_pipeline
+from pykeen.datasets import DataSet
 from pykeen.triples.triples_factory import TriplesFactory
 from pykeen.models.base import Model
 import pandas as pd
@@ -20,6 +22,8 @@ def do_kge(
     train_size: Optional[float] = 0.8,
     validation_size: Optional[float] = 0.1
 ):
+    # labels = edgelist[3]
+    # edgelist.drop(columns=3, inplace=True)
     # Split the edgelist into training, validation and testing data
     train, validation, test = _weighted_splitter(
         edgelist=edgelist,
@@ -32,31 +36,45 @@ def do_kge(
     test.to_csv(f'{out}/test.edgelist', sep='\t', index=False, header=False)
 
     # Create triples for training and testing TODO: Add validation once implemented
-    training_triples = TriplesFactory(
-        path=f'{out}/train.edgelist'
-    )
-    testing_triples = TriplesFactory(
-        path=f'{out}/test.edgelist',
-        entity_to_id=training_triples.entity_to_id,
-        relation_to_id=training_triples.relation_to_id
+    # training_triples = TriplesFactory(
+    #     path=f'{out}/train.edgelist'
+    # )
+    # testing_triples = TriplesFactory(
+    #     path=f'{out}/test.edgelist',
+    #     entity_to_id=training_triples.entity_to_id,
+    #     relation_to_id=training_triples.relation_to_id
+    # )
+
+    kge_dataset = DataSet(
+        training_path=f'{out}/train.edgelist',
+        validation_path=f'{out}/validation.edgelist',
+        testing_path=f'{out}/test.edgelist'
     )
 
     # Run the pipeline with the given model
-    pipeline_result = pipeline(
+    # pipeline_result = pipeline(
+    #     model=model,
+    #     training_triples_factory=training_triples,
+    #     testing_triples_factory=testing_triples,
+    # )
+
+    pipeline_result = hpo_pipeline(
         model=model,
-        training_triples_factory=training_triples,
-        testing_triples_factory=testing_triples,
+        dataset=kge_dataset,
+        n_trials=30
     )
 
+    best_model = pipeline_result.study.best_trial.user_attrs['model']
+
     # Get the embedding as a numpy array
-    embedding_values = _model_to_numpy(pipeline_result.model)
+    embedding_values = _model_to_numpy(best_model)
 
     # Create 50 column names
     embedding_columns = [f'Component_{i}' for i in range(1, 51)]
 
     # Get the nodes of the training triples as index
-    node_list = list(training_triples.entity_to_id.keys())
-    embedding_index = sorted(node_list, key=lambda x: training_triples.entity_to_id[x])
+    node_list = list(best_model.training_triples.entity_to_id.keys())
+    embedding_index = sorted(node_list, key=lambda x: best_model.training_triples.entity_to_id[x])
 
     embedding = pd.DataFrame(data=embedding_values, columns=embedding_columns, index=embedding_index)
 
