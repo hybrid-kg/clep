@@ -9,6 +9,72 @@
 
 CLEPP is workflow containing several methods for generating patient embeddings from *-omics* data.
 
+Installation:
+-------------
+
+The most recent code can be installed from the source on [GitHub](https://github.com/clepp/clepp) with:
+
+```
+    $ python3 -m pip install git+https://github.com/clepp/clepp.git
+```
+
+For developers, the repository can be cloned from [GitHub](https://github.com/clepp/clepp) and installed in editable mode with:
+
+```
+    $ git clone https://github.com/clepp/clepp.git
+    $ cd clepp
+    $ python3 -m pip install -e .
+```
+
+Requirements:
+--------------
+`clepp` requires the following libraries:
+
+    click==7.0
+    pandas==0.25.0
+    numpy==1.17.0
+    rpy2==3.1.0
+    statsmodels==0.10.1
+    scikit-learn==0.21.3
+    seaborn==0.9.0
+    gseapy==0.9.15
+    cffi==1.12.3
+    bionev@git+https://github.com/seffnet/BioNEV.git@2192ad7
+    python-igraph==0.8.0
+    pycairo==1.19.1
+    xgboost==1.0.2
+    pykeen
+
+
+Command Line Interface:
+-----------------------
+The following commands can be used directly use from your terminal:
+
+1. **Radical Searching**
+The following command finds the extreme samples with extreme feature values based on the control population.
+
+.. code-block:: sh
+
+    $ python3 -m clepp sample-scoring radical-search --data <DATA_FILE> --design <DESIGN_FILE> --out <OUTPUT_DIR>
+
+2. **Graph Generation**
+The following command generates the patient-gene network based on the method chosen (pathway_overlap
+, Interaction_network, Interaction_Network_Overlap).
+
+.. code-block:: sh
+
+    $ python3 -m clepp embedding generate-network --data <PROCESSED_DATA_FILE> --method [pathway_overlap
+    |interaction_network|interaction_Network_Overlap] --out <OUTPUT_DIR>
+
+
+3. **Knowledge Graph Embedding**
+The following command generates the embedding of the network passed to it.
+
+.. code-block:: sh
+
+    $ python3 -m clepp embedding --data <NETWORK_FILE> --design <DESIGN_FILE> --model <PYKEEN_MODEL> --out <OUTPUT_DIR>
+
+
 Formats for Data and Design Matrices:
 -------------------------------------
 Data:
@@ -22,6 +88,31 @@ Design:
 | FileName | Target |
 | -------- | ------ |
 | sample expression array file name | annotation of sample |
+
+
+Network file format
+-----------------
+The graph format CLEPP can handle is a modified version of the Edge List Format. Which looks as follows:
+
+    source1 target1 edgeweight1 label_source label_target
+    source2 target2 edgeweight2 label_source label_target
+    source3 target3 edgeweight3 label_source label_target
+
+A toy example with three subnetworks:
+
+    1 2 0.00 0 0
+    0 2 0.88 1 0
+    3 4 1.00 1 0
+    5 7 0.52 2 0
+    7 8 0.52 2 0
+    6 8 0.52 2 0
+    0 3 1.00 1 0
+    2 4 1.00 1 0
+    1 7 1.00 1 0
+    4 6 1.00 1 0
+    4 8 1.00 1 0
+    
+Please note that node ids must be unique, even if they belong to different subnetworks. By default, ProphTools will use node identifiers, not labels (second column in txt file) as IDs for nodes. Optionally, you can use the ``--labels_as_ids`` parameter to use labels instead. Please note that in this case labels must be unique per node.
 
 Disclaimer
 ----------
