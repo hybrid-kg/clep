@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Calculate the intersection between the pathways & generate an edgelist based upon that."""
+"""Ensemble of methods for network generation."""
 from typing import TextIO, Optional
 
 import pandas as pd

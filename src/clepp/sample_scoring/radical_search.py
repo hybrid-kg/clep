@@ -16,7 +16,7 @@ def do_radical_search(
         control: str = 'Control',
         threshold: float = 2.5,
 ) -> pd.DataFrame:
-    """Finds the samples with extreme feature values based on the feature population.
+    """Finds the samples with extreme feature values based on the control population.
 
     :param data: Dataframe containing the gene expression values
     :param design: Dataframe containing the design table for the data
