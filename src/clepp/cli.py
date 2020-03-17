@@ -338,13 +338,13 @@ def generate_network(
     data_df = pd.read_csv(data, sep='\t')
     data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
 
-    if method == 'Pathway Overlap':
+    if method == 'pathway_overlap':
         assert gmt is not None
         click.echo(f"Generating {method} based network with {data} & {gmt} and outputting it to {out}")
 
         graph_df = do_graph_gen(data=data_df, gmt=gmt, network_gen_method=method, intersection_threshold=intersect_thr)
 
-    elif method == 'Interaction Network':
+    elif method == 'interaction_network':
         assert kg is not None
         click.echo(f"Generating {method} based network with {data} & {kg} and outputting it to {out}")
 
