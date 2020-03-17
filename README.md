@@ -64,7 +64,7 @@ The following command generates the patient-gene network based on the method cho
 .. code-block:: sh
 
     $ python3 -m clepp embedding generate-network --data <PROCESSED_DATA_FILE> --method [pathway_overlap
-    |interaction_network|interaction_Network_Overlap] --out <OUTPUT_DIR>
+    |interaction_network|interaction_network_overlap] --out <OUTPUT_DIR>
 
 
 3. **Knowledge Graph Embedding**
@@ -94,23 +94,23 @@ Network file format
 -----------------
 The graph format CLEPP can handle is a modified version of the Edge List Format. Which looks as follows:
 
-    source1 target1 edgeweight1 label_source label_target
-    source2 target2 edgeweight2 label_source label_target
-    source3 target3 edgeweight3 label_source label_target
+    source1 edgeweight1 target1 source_label
+    source2 edgeweight2 target2 source_label
+    source3 edgeweight3 target3 source_label
 
 A toy example with three subnetworks:
 
-    1 2 0.00 0 0
-    0 2 0.88 1 0
-    3 4 1.00 1 0
-    5 7 0.52 2 0
-    7 8 0.52 2 0
-    6 8 0.52 2 0
-    0 3 1.00 1 0
-    2 4 1.00 1 0
-    1 7 1.00 1 0
-    4 6 1.00 1 0
-    4 8 1.00 1 0
+    1 0.00 2 0
+    0 0.88 2 1
+    3 1.00 4 1
+    5 0.52 7 2
+    7 0.52 8 2
+    6 0.52 8 2
+    0 1.00 3 1
+    2 1.00 4 0
+    1 1.00 7 0
+    4 1.00 6 1
+    4 1.00 8 0
     
 Please note that node ids must be unique, even if they belong to different subnetworks. By default, ProphTools will use node identifiers, not labels (second column in txt file) as IDs for nodes. Optionally, you can use the ``--labels_as_ids`` parameter to use labels instead. Please note that in this case labels must be unique per node.
 
