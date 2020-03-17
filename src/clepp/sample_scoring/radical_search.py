@@ -6,6 +6,7 @@ from typing import Callable, Optional, List
 
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 from scipy.interpolate import interp1d
 from statsmodels.distributions.empirical_distribution import ECDF
 
@@ -108,7 +109,7 @@ def _apply_func(
 
     df.columns = new_columns
 
-    for idx, i in enumerate(df.columns):
+    for idx, i in tqdm(enumerate(df.columns), desc='Searching for radicals: '):
         final_df[i] = np.apply_along_axis(func_list[idx], 0, df[i].values)
 
     final_df.columns = old_columns

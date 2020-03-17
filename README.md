@@ -43,6 +43,7 @@ Requirements:
     python-igraph==0.8.0
     pycairo==1.19.1
     xgboost==1.0.2
+    tqdm==4.43.0
     pykeen
 
 

@@ -6,6 +6,7 @@ from typing import TextIO, Optional
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 from itertools import combinations
 from os import listdir
 from os.path import isfile, join
@@ -57,7 +58,7 @@ def plot_pathway_overlap(
 
     pathway_overlap_graph = nx.Graph()
 
-    for pathway_1 in pathway_dict.keys():
+    for pathway_1 in tqdm(pathway_dict.keys(), desc='Finding pathway overlap: '):
         for pathway_2 in pathway_dict.keys():
             if pathway_1 == pathway_2:
                 continue
@@ -78,7 +79,7 @@ def plot_interaction_network(
     interaction_graph = nx.Graph()
 
     # Append the source to target mapping to the main data edgelist
-    for idx in kg_data.index:
+    for idx in tqdm(kg_data.index, desc='Plotting interaction network: '):
         interaction_graph.add_edge(kg_data.iat[idx, 0], kg_data.iat[idx, 2])
 
     return interaction_graph
@@ -97,7 +98,7 @@ def plot_interaction_net_overlap(
     ]
 
     # Get all the interaction network files from the folder and add them as individual graphs to a list
-    for filename in files:
+    for filename in tqdm(files, desc='Plotting interaction network: '):
         with open(join(folder_path, filename), 'r') as file:
             graph = nx.Graph(name=filename)
             for line in file:
@@ -108,7 +109,7 @@ def plot_interaction_net_overlap(
 
     overlap_graph = nx.Graph()
 
-    for graph_1, graph_2 in combinations(graphs, 2):
+    for graph_1, graph_2 in tqdm(combinations(graphs, 2), desc='Finding interaction network overlap: '):
         if _get_jaccard_index(graph_1, graph_2) > jaccard_threshold:
             overlap_graph.add_edge(graph_1.graph['name'], graph_2.graph['name'])
 
@@ -147,7 +148,8 @@ def overlay_samples(
 
     overlay_graph = information_graph.copy()
 
-    for patient, gene, value in pd.melt(data, id_vars=data.columns[0]).values:
+    for patient, gene, value in tqdm(pd.melt(data, id_vars=data.columns[0]).values, desc='Adding patients to the '
+                                                                                         'network: '):
         if value == 0:
             continue
         if gene in list(overlay_graph):
