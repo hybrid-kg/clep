@@ -143,7 +143,7 @@ def overlay_samples(
 ) -> nx.Graph:
     """Overlays the data on the information graph by adding edges between patients and information nodes if pairwise
     value is not 0."""
-    patient_label_mapping = {patient: label for patient, label in zip(data[0], data['label'])}
+    patient_label_mapping = {patient: label for patient, label in zip(data['0'], data['label'])}
     data.drop(columns='label', inplace=True)
 
     overlay_graph = information_graph.copy()
