@@ -20,7 +20,7 @@ def do_graph_gen(
         kg_data: Optional[pd.DataFrame] = None,
         folder_path: Optional[str] = None,
         jaccard_threshold: Optional[float] = 0.2
-):
+) -> pd.DataFrame:
     information_graph = nx.Graph()
 
     if network_gen_method == 'pathway_overlap':
@@ -142,13 +142,16 @@ def overlay_samples(
 ) -> nx.Graph:
     """Overlays the data on the information graph by adding edges between patients and information nodes if pairwise
     value is not 0."""
+    patient_label_mapping = {patient: label for patient, label in zip(data[0], data['label'])}
+    data.drop(columns='label', inplace=True)
+
     overlay_graph = information_graph.copy()
 
     for patient, gene, value in pd.melt(data, id_vars=data.columns[0]).values:
         if value == 0:
             continue
         if gene in list(overlay_graph):
-            overlay_graph.add_edge(patient, gene, regulation=value)
+            overlay_graph.add_edge(patient, gene, regulation=value, label=patient_label_mapping[patient])
 
     return overlay_graph
 
