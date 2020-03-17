@@ -48,8 +48,11 @@ def do_radical_search(
     df = pd.DataFrame(0, index=data.index, columns=data.columns)
 
     # Values that are greater than the threshold or lesser than negative threshold are considered as extremes.
-    df[cdf_score > 1 - (threshold / 100)] = 1
-    df[cdf_score < (threshold / 100)] = -1
+    upper_thresh = 1 - (threshold / 100)
+    lower_thresh = (threshold / 100)
+
+    df = pd.DataFrame(np.where(cdf_score.values > upper_thresh, 1, df.values))
+    df = pd.DataFrame(np.where(cdf_score.values < lower_thresh, -1, df.values))
 
     # Add labels to the data samples
     label = design['Target'].map(label_mapping)
