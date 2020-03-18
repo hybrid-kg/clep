@@ -144,17 +144,22 @@ def overlay_samples(
 ) -> nx.DiGraph:
     """Overlays the data on the information graph by adding edges between patients and information nodes if pairwise
     value is not 0."""
-    patient_label_mapping = {patient: label for patient, label in zip(data['0'], data['label'])}
-    data.drop(columns='label', inplace=True)
+    patient_label_mapping = {patient: label for patient, label in zip(data.index, data['label'])}
 
     overlay_graph = information_graph.copy()
 
-    for patient, gene, value in tqdm(pd.melt(data, id_vars=data.columns[0]).values, desc='Adding patients to the '
-                                                                                         'network: '):
-        if value == 0:
-            continue
-        if gene in list(overlay_graph):
-            overlay_graph.add_edge(patient, gene, regulation=value, label=patient_label_mapping[patient])
+    data_copy = data.drop(columns='label')
+    values_data = data_copy.values
+
+    for index, value_list in enumerate(tqdm(values_data, desc='Adding patients to the network: ')):
+        for column, value in enumerate(value_list):
+            patient = data_copy.index[index]
+            gene = data_copy.columns[column]
+
+            if value == 0:
+                continue
+            if gene in information_graph.nodes:
+                overlay_graph.add_edge(patient, gene, regulation=value, label=patient_label_mapping[patient])
 
     return overlay_graph
 
