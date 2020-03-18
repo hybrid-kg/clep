@@ -54,6 +54,8 @@ def do_radical_search(
     df = pd.DataFrame(np.where(cdf_score.values > upper_thresh, 1, df.values))
     df = pd.DataFrame(np.where(cdf_score.values < lower_thresh, -1, df.values))
 
+    df.columns = data.index
+
     # Add labels to the data samples
     label = design['Target'].map(label_mapping)
     label.reset_index(drop=True, inplace=True)
