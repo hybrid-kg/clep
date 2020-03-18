@@ -112,7 +112,7 @@ def _apply_func(
 
     df.columns = new_columns
 
-    for idx, i in tqdm(enumerate(df.columns), desc='Searching for radicals: '):
+    for idx, i in enumerate(tqdm(df.columns, desc='Searching for radicals: ')):
         final_df[i] = np.apply_along_axis(func_list[idx], 0, df[i].values)
 
     final_df.columns = old_columns
