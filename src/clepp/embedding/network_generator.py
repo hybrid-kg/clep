@@ -22,7 +22,7 @@ def do_graph_gen(
         folder_path: Optional[str] = None,
         jaccard_threshold: Optional[float] = 0.2
 ) -> pd.DataFrame:
-    information_graph = nx.Graph()
+    information_graph = nx.DiGraph()
 
     if network_gen_method == 'pathway_overlap':
         with open(gmt, 'r') as geneset:
@@ -37,6 +37,7 @@ def do_graph_gen(
     final_graph = overlay_samples(data, information_graph)
 
     graph_df = nx.to_pandas_edgelist(final_graph)
+
     graph_df['regulation'].fillna(0.0, inplace=True)
 
     col_list = list(graph_df)
@@ -49,14 +50,14 @@ def do_graph_gen(
 def plot_pathway_overlap(
         geneset: TextIO,
         intersection_threshold: float = 0.1
-) -> nx.Graph:
+) -> nx.DiGraph:
     """Plots the overlap/intersection between pathways as a graph based on shared genes."""
     pathway_dict = {
         line.strip().split("\t")[0]: line.strip().split("\t")[2:]
         for line in geneset.readlines()
     }
 
-    pathway_overlap_graph = nx.Graph()
+    pathway_overlap_graph = nx.DiGraph()
 
     for pathway_1 in tqdm(pathway_dict.keys(), desc='Finding pathway overlap: '):
         for pathway_2 in pathway_dict.keys():
@@ -74,9 +75,9 @@ def plot_pathway_overlap(
 
 def plot_interaction_network(
         kg_data: pd.DataFrame
-) -> nx.Graph:
+) -> nx.DiGraph:
     """Plots a knowledge graph based on the interaction data."""
-    interaction_graph = nx.Graph()
+    interaction_graph = nx.DiGraph()
 
     # Append the source to target mapping to the main data edgelist
     for idx in tqdm(kg_data.index, desc='Plotting interaction network: '):
@@ -88,7 +89,7 @@ def plot_interaction_network(
 def plot_interaction_net_overlap(
         folder_path: str,
         jaccard_threshold: float = 0.2
-) -> nx.Graph:
+) -> nx.DiGraph:
     """Plots the overlap/intersection between interaction networks as a graph based on shared nodes."""
     graphs = []
     files = [
@@ -100,14 +101,14 @@ def plot_interaction_net_overlap(
     # Get all the interaction network files from the folder and add them as individual graphs to a list
     for filename in tqdm(files, desc='Plotting interaction network: '):
         with open(join(folder_path, filename), 'r') as file:
-            graph = nx.Graph(name=filename)
+            graph = nx.DiGraph(name=filename)
             for line in file:
                 src, attr, dst = line.split()
                 graph.add_edge(src, dst)
                 graph[src][dst]['attribute'] = attr
             graphs.append(graph)
 
-    overlap_graph = nx.Graph()
+    overlap_graph = nx.DiGraph()
 
     for graph_1, graph_2 in tqdm(combinations(graphs, 2), desc='Finding interaction network overlap: '):
         if _get_jaccard_index(graph_1, graph_2) > jaccard_threshold:
@@ -117,8 +118,8 @@ def plot_interaction_net_overlap(
 
 
 def _get_jaccard_index(
-        graph_1: nx.Graph,
-        graph_2: nx.Graph
+        graph_1: nx.DiGraph,
+        graph_2: nx.DiGraph
 ) -> float:
     """Calculates the jaccard index between 2 graphs based on pairwise (edges) jaccard index."""
     j = 0
@@ -139,8 +140,8 @@ def _get_jaccard_index(
 
 def overlay_samples(
         data: pd.DataFrame,
-        information_graph: nx.Graph
-) -> nx.Graph:
+        information_graph: nx.DiGraph
+) -> nx.DiGraph:
     """Overlays the data on the information graph by adding edges between patients and information nodes if pairwise
     value is not 0."""
     patient_label_mapping = {patient: label for patient, label in zip(data['0'], data['label'])}
@@ -158,7 +159,7 @@ def overlay_samples(
     return overlay_graph
 
 
-def show_graph(graph: nx.Graph):
+def show_graph(graph: nx.DiGraph):
     options = {'font_color': 'g', 'font_size': 17, 'font_weight': 'bold'}
 
     pos = nx.spring_layout(graph)
