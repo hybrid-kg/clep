@@ -22,8 +22,12 @@ def do_kge(
     train_size: Optional[float] = 0.8,
     validation_size: Optional[float] = 0.1
 ):
-    # labels = edgelist[3]
-    # edgelist.drop(columns=3, inplace=True)
+    unique_nodes = edgelist[~edgelist['label'].isna()].drop_duplicates('source')
+
+    label_mapping = {patient: label for patient, label in zip(unique_nodes['source'], unique_nodes['label'])}
+
+    edgelist = edgelist.drop(columns='label')
+
     # Split the edgelist into training, validation and testing data
     train, validation, test = _weighted_splitter(
         edgelist=edgelist,
@@ -36,35 +40,36 @@ def do_kge(
     test.to_csv(f'{out}/test.edgelist', sep='\t', index=False, header=False)
 
     # Create triples for training and testing TODO: Add validation once implemented
-    # training_triples = TriplesFactory(
-    #     path=f'{out}/train.edgelist'
-    # )
-    # testing_triples = TriplesFactory(
-    #     path=f'{out}/test.edgelist',
-    #     entity_to_id=training_triples.entity_to_id,
-    #     relation_to_id=training_triples.relation_to_id
-    # )
-
-    kge_dataset = DataSet(
-        training_path=f'{out}/train.edgelist',
-        validation_path=f'{out}/validation.edgelist',
-        testing_path=f'{out}/test.edgelist'
+    training_triples = TriplesFactory(
+        path=f'{out}/train.edgelist'
     )
+    testing_triples = TriplesFactory(
+        path=f'{out}/test.edgelist',
+        entity_to_id=training_triples.entity_to_id,
+        relation_to_id=training_triples.relation_to_id
+    )
+
+    # kge_dataset = DataSet(
+    #     training_path=f'{out}/train.edgelist',
+    #     validation_path=f'{out}/validation.edgelist',
+    #     testing_path=f'{out}/test.edgelist'
+    # )
 
     # Run the pipeline with the given model
-    # pipeline_result = pipeline(
-    #     model=model,
-    #     training_triples_factory=training_triples,
-    #     testing_triples_factory=testing_triples,
-    # )
-
-    pipeline_result = hpo_pipeline(
+    pipeline_result = pipeline(
         model=model,
-        dataset=kge_dataset,
-        n_trials=30
+        training_triples_factory=training_triples,
+        testing_triples_factory=testing_triples,
     )
 
-    best_model = pipeline_result.study.best_trial.user_attrs['model']
+    # pipeline_result = hpo_pipeline(
+    #     model=model,
+    #     dataset=kge_dataset,
+    #     n_trials=30
+    # )
+
+    # best_model = pipeline_result.study.best_trial.user_attrs['model']
+    best_model = pipeline_result.model
 
     # Get the embedding as a numpy array
     embedding_values = _model_to_numpy(best_model)
@@ -80,9 +85,12 @@ def do_kge(
 
     if return_patients:
         # TODO: Use clustering before classification to see if embeddings are already good enough
-        return embedding[embedding.index.isin(design['FileName'])]
-    else:
-        return embedding
+        embedding = embedding[embedding.index.isin(design['FileName'])]
+
+        for index in embedding.index:
+            embedding.at[index, 'label'] = label_mapping[index]
+
+    return embedding
 
 
 def _weighted_splitter(
@@ -104,7 +112,7 @@ def _weighted_splitter(
     test_size = 1
 
     # Get the unique relations in the network
-    unique_relations = np.unique(edgelist[1])
+    unique_relations = np.unique(edgelist['regulation'])
 
     data = edgelist.copy()
 
@@ -114,7 +122,7 @@ def _weighted_splitter(
         frames = []
         # Random sampling of the data for every type of relation
         for relation in unique_relations:
-            temp = data[data[1] == relation].sample(frac=frac_size)
+            temp = data[data['regulation'] == relation].sample(frac=frac_size)
 
             data = data[~data.index.isin(temp.index)]
 

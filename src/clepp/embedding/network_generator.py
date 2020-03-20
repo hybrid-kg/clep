@@ -40,9 +40,7 @@ def do_graph_gen(
 
     graph_df['regulation'].fillna(0.0, inplace=True)
 
-    col_list = list(graph_df)
-    col_list[1], col_list[2] = col_list[2], col_list[1]
-    graph_df = graph_df.loc[:, col_list]
+    graph_df = graph_df[['source', 'target', 'regulation', 'label']]
 
     return graph_df
 

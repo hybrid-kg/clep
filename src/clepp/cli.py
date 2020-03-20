@@ -335,7 +335,7 @@ def generate_network(
 ) -> None:
     """Generate Network for the given data."""
 
-    data_df = pd.read_csv(data, sep='\t')
+    data_df = pd.read_csv(data, sep='\t', index_col=0)
     data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
 
     if method == 'pathway_overlap':
@@ -434,6 +434,8 @@ def kge(
     edgelist_df = pd.read_csv(data, sep='\t', index_col=None, header=None)
     design_df = pd.read_csv(design, sep='\t')
 
+    edgelist_df.columns = ['source', 'target', 'regulation', 'label']
+
     embedding_df = do_kge(
         edgelist=edgelist_df,
         design=design_df,
@@ -497,7 +499,7 @@ def classify(data: str, out: str, model: str, cv: int, metrics: Union[List[str],
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
 
-    results = do_classification(data_df, model, out, cv, metrics, title)
+    results = do_classification(data_df, model, 'grid_search', out, cv, metrics, title)
 
     click.echo(results)
     click.echo(f"Done with {model} classification")
