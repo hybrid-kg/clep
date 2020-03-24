@@ -40,36 +40,35 @@ def do_kge(
     test.to_csv(f'{out}/test.edgelist', sep='\t', index=False, header=False)
 
     # Create triples for training and testing TODO: Add validation once implemented
-    training_triples = TriplesFactory(
-        path=f'{out}/train.edgelist'
-    )
-    testing_triples = TriplesFactory(
-        path=f'{out}/test.edgelist',
-        entity_to_id=training_triples.entity_to_id,
-        relation_to_id=training_triples.relation_to_id
-    )
-
-    # kge_dataset = DataSet(
-    #     training_path=f'{out}/train.edgelist',
-    #     validation_path=f'{out}/validation.edgelist',
-    #     testing_path=f'{out}/test.edgelist'
+    # training_triples = TriplesFactory(
+    #     path=f'{out}/train.edgelist'
     # )
+    # testing_triples = TriplesFactory(
+    #     path=f'{out}/test.edgelist',
+    #     entity_to_id=training_triples.entity_to_id,
+    #     relation_to_id=training_triples.relation_to_id
+    # )
+
+    kge_dataset = DataSet(
+        training_path=f'{out}/train.edgelist',
+        validation_path=f'{out}/validation.edgelist',
+        testing_path=f'{out}/test.edgelist'
+    )
 
     # Run the pipeline with the given model
-    pipeline_result = pipeline(
-        model=model,
-        training_triples_factory=training_triples,
-        testing_triples_factory=testing_triples,
-    )
-
-    # pipeline_result = hpo_pipeline(
+    # pipeline_result = pipeline(
     #     model=model,
-    #     dataset=kge_dataset,
-    #     n_trials=30
+    #     training_triples_factory=training_triples,
+    #     testing_triples_factory=testing_triples,
     # )
 
-    # best_model = pipeline_result.study.best_trial.user_attrs['model']
-    best_model = pipeline_result.model
+    pipeline_result = hpo_pipeline(
+        model=model,
+        dataset=kge_dataset,
+        n_trials=30
+    )
+
+    best_model = pipeline_result.study.best_trial.user_attrs['model']
 
     # Get the embedding as a numpy array
     embedding_values = _model_to_numpy(best_model)
