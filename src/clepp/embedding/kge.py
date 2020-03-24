@@ -74,7 +74,7 @@ def do_kge(
     embedding_values = _model_to_numpy(best_model)
 
     # Create 50 column names
-    embedding_columns = [f'Component_{i}' for i in range(1, 51)]
+    embedding_columns = [f'Component_{i}' for i in range(1, len(embedding_values.shape[1]))]
 
     # Get the nodes of the training triples as index
     node_list = list(best_model.training_triples.entity_to_id.keys())
