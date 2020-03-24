@@ -465,6 +465,12 @@ def kge(
     required=True
 )
 @click.option(
+    '--optimizer',
+    help="Optimizer used for classifier.",
+    type=click.Choice(['grid_search', 'random_search', 'bayesian_search']),
+    required=True
+)
+@click.option(
     '--cv',
     help="Number of cross validation steps",
     type=int,
@@ -487,7 +493,15 @@ def kge(
     default='Boxplot',
     show_default=False,
 )
-def classify(data: str, out: str, model: str, cv: int, metrics: Union[List[str], None], title: str) -> None:
+def classify(
+        data: str,
+        out: str,
+        model: str,
+        optimizer: str,
+        cv: int,
+        metrics: Union[List[str], None],
+        title: str,
+) -> None:
     """Perform machine-learning classification."""
     if not metrics:
         metrics = ['roc_auc', 'accuracy', 'f1_micro', 'f1_macro', 'f1']
@@ -499,7 +513,7 @@ def classify(data: str, out: str, model: str, cv: int, metrics: Union[List[str],
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
 
-    results = do_classification(data_df, model, 'grid_search', out, cv, metrics, title)
+    results = do_classification(data_df, model, optimizer, out, cv, metrics, title)
 
     click.echo(results)
     click.echo(f"Done with {model} classification")

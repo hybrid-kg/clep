@@ -5,20 +5,22 @@
 import json
 import sys
 from collections import defaultdict
-from typing import Dict, List, Any, Callable
+from typing import Dict, List, Any, Callable, Tuple
 from warnings import filterwarnings
 import logging
 
 import click
+from sklearn.model_selection import StratifiedKFold
+from tqdm import tqdm
 import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn import linear_model, svm, ensemble, model_selection, multiclass, metrics, preprocessing
 from sklearn.base import BaseEstimator
 from xgboost import XGBClassifier
+from skopt import BayesSearchCV
 
 from clepp import constants
-
 
 filterwarnings('ignore')
 logger = logging.getLogger(__name__)
@@ -26,55 +28,83 @@ logger.setLevel(logging.WARN)
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
 
 
-def do_classification(data: pd.DataFrame, model_name: str, out_dir: str, cv: int, scoring_metrics: List[str],
-                      title: str, *args) -> Dict[str, Any]:
+def do_classification(
+        data: pd.DataFrame,
+        model_name: str,
+        optimizer: str,
+        out_dir: str,
+        validation_cv: int,
+        scoring_metrics: List[str],
+        title: str,
+        epochs: int = 1,
+        *args
+) -> Dict[str, Any]:
     """Perform classification on embeddings generated from previous step.
 
     :param data: Dataframe containing the embeddings
     :param model_name: model that should be used for cross validation
+    :param optimizer: Optimizer used to optimize the classification
     :param out_dir: Path to the output directory
-    :param cv: Number of cross validation steps
+    :param validation_cv: Number of cross validation steps
     :param scoring_metrics: Scoring metrics tested during cross validation
     :param title: Title of the Boxplot
+    :param epochs: Number of epochs for running the classification
     :arg args: Custom arguments to the estimator model
     :return Dictionary containing the cross validation results
 
     """
     # Get classifier user arguments
-    model = get_classifier(model_name, *args)
+    model, param_grid, optimizer_cv = get_classifier(model_name, *args)
 
     # Separate embeddings from labels in data
-    labels = data['label']
+    labels = data['label'].values
     data = data.drop(columns='label')
-    logger.debug(f"data:\n {data}")
 
-    # Check if we are conducting multiclass classification, if so replace f1 with weighted f1 and remove roc_auc in-case
-    if len(np.unique(labels)) > 2:
-        # Run cross validation over the given model for multiclass classification
-        logger.debug("Doing multiclass classification")
-        cv_results = _do_multiclass_classification(
-            estimator=model,
-            x=data,
-            y=labels,
-            cv=cv,
-            scoring=scoring_metrics,
-            return_estimator=True,
-        )
-    else:
-        # Run cross validation over the given model
-        logger.debug(f"Running binary cross validation")
-        cv_results = model_selection.cross_validate(
-            estimator=model,
-            X=data,
-            y=labels,
-            cv=model_selection.StratifiedKFold(n_splits=cv, shuffle=True),
-            scoring=scoring_metrics,
-            return_estimator=True,
-        )
+    final_results = {}
+
+    # Carry out classification over multiple epochs.
+    for epoch in tqdm(range(epochs), desc='Training epoch #'):
+
+        # if permute:
+        #     np.random.shuffle(labels)
+        logger.debug(f"Epoch {epoch}: ")
+
+        if len(np.unique(labels)) > 2:
+            multi_roc_auc = metrics.make_scorer(multiclass_score_func, metric_func=metrics.roc_auc_score)
+            optimizerCV = get_optimizer(optimizer, model, model_name, optimizer_cv, multi_roc_auc)
+            optimizerCV.fit(data, labels)
+
+            # Run cross validation over the given model for multiclass classification
+            logger.debug("Doing multiclass classification")
+            cv_results = _do_multiclass_classification(
+                estimator=optimizerCV,
+                x=data,
+                y=labels,
+                cv=validation_cv,
+                scoring=scoring_metrics,
+                return_estimator=True,
+            )
+        else:
+            optimizerCV = get_optimizer(optimizer, model, param_grid, optimizer_cv, 'roc_auc')
+            optimizerCV.fit(data, labels)
+
+            # Run cross validation over the given model
+            logger.debug(f"Running binary cross validation")
+            cv_results = model_selection.cross_validate(
+                estimator=optimizerCV,
+                X=data,
+                y=labels,
+                cv=model_selection.StratifiedKFold(n_splits=validation_cv, shuffle=True),
+                scoring=scoring_metrics,
+                return_estimator=True,
+            )
+
+        final_results[f'Epoch {epoch}'] = cv_results
 
     _save_json(cv_results=cv_results, out_dir=out_dir)
 
-    _plot(cv_results=cv_results, title=title, out_dir=out_dir)
+    # TODO: Plot the multi-epoch results
+    # _plot(cv_results=cv_results, title=title, out_dir=out_dir)
 
     return cv_results
 
@@ -103,7 +133,8 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
     logger.debug(f"k_fold Classifier:\n {k_fold}")
 
     # Split the data and the labels
-    for train_indexes, test_indexes in k_fold.split(x, y):
+    for run_num, (train_indexes, test_indexes) in enumerate(k_fold.split(x, y)):
+        logger.debug(f"\nCurrent Run number: {run_num}\n")
         # Make a One-Hot encoding of the classes
         y = preprocessing.label_binarize(y, classes=unique_labels)
 
@@ -135,10 +166,11 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
         logger.debug(f"y_fit:\n {y_fit}")
 
         y_pred = y_fit.predict(x_test)
-        logger.debug(f"y_pred:\n {y_pred}")
+        logger.debug(f"y_pred:\n {y_pred}\n\n")
+        logger.debug(f"y_true:\n {y_test}\n\n")
 
         if return_estimator:
-            cv_results['estimator'].append(clf)
+            cv_results['estimator'].append(clf.estimator)
 
         # For the multiclass metric find the score and add it to cv_results.
         # TODO: Add other Scorers from sklearn
@@ -215,37 +247,100 @@ def _multiclass_metric_evaluator(metric_func: Callable[..., float], n_classes: i
     metric = 0
 
     for label in range(n_classes):
-        # try:
         metric += metric_func(y_test[:, label], y_pred[:, label], **kwargs)
-        # except ValueError as e:
-        #     metric += 0
-        #     warn(f'Error: {e}\n was found, so using the metric is defaulted to 0.')
     metric /= n_classes
 
     return metric
 
 
-def get_classifier(model_name: str, *args) -> BaseEstimator:
+def get_classifier(model_name: str, *args) -> Tuple[BaseEstimator, Dict[str, List[float]], StratifiedKFold]:
     """Retrieve the appropriate classifier from sci-kit learn based on the arguments."""
+    cv = model_selection.StratifiedKFold(n_splits=10, shuffle=True)
+
     if model_name == 'logistic_regression':
-        return linear_model.LogisticRegression(*args, solver='lbfgs')
+        model = linear_model.LogisticRegression(*args, solver='lbfgs')
+
+        c_values = [0.01, 0.1, 0.25, 0.5, 0.8, 0.9, 1, 10]
+        param_grid = dict(C=c_values)
 
     elif model_name == 'elastic_net':
         # Logistic regression with elastic net penalty & equal weightage to l1 and l2
-        return linear_model.LogisticRegression(*args, penalty='elasticnet', l1_ratio=0.5, solver='saga')
+        model = linear_model.LogisticRegression(*args, penalty='elasticnet', solver='saga')
+
+        l1_ratios = [.1, .5, .7, .9, .95, .99, 1]
+        c_values = [0.01, 0.1, 0.25, 0.5, 0.8, 0.9, 1, 10]
+        param_grid = dict(l1_ratio=l1_ratios, C=c_values)
 
     elif model_name == 'svm':
-        return svm.SVC(*args, gamma='scale')
+        model = svm.SVC(*args, gamma='scale')
+
+        c_values = [0.1, 1, 10, 100, 1000]
+        param_grid = dict(C=c_values)
 
     elif model_name == 'random_forest':
-        return ensemble.RandomForestClassifier(*args)
+        model = ensemble.RandomForestClassifier(*args)
+
+        n_estimators = [100, 200, 500, 700]
+        max_features = ["auto", "log2"]
+        param_grid = dict(n_estimators=n_estimators, max_features=max_features)
 
     elif model_name == 'gradient_boost':
-        return XGBClassifier(*args)
+        model = XGBClassifier(*args)
 
-    raise ValueError(
-        f'The entered model "{model_name}", was not found. Please check that you have chosen a valid model.'
-    )
+        param_grid = {
+            'learning_rate': [0.01, 0.05, 0.1],
+            'subsample': [0.5, 0.6, 0.7, 0.8],
+            'max_depth': [6, 7, 8],
+            'min_child_weight': [1]
+        }
+
+    else:
+        raise ValueError(
+            f'The entered model "{model_name}", was not found. Please check that you have chosen a valid model.'
+        )
+
+    return model, param_grid, cv
+
+
+def get_optimizer(
+        optimizer: str,
+        estimator,
+        model,
+        cv: StratifiedKFold,
+        scorer
+):
+    if optimizer == 'grid_search':
+        param_grid = constants.get_param_grid(model)
+        return model_selection.GridSearchCV(estimator=estimator, param_grid=param_grid, cv=cv, scoring=scorer)
+    elif optimizer == 'random_search':
+        param_dist = constants.get_param_dist(model)
+        return model_selection.RandomizedSearchCV(estimator=estimator, param_distributions=param_dist, cv=cv,
+                                                  scoring=scorer)
+    elif optimizer == 'bayesian_search':
+        param_space = constants.get_param_space(model)
+        return BayesSearchCV(estimator=estimator, search_spaces=param_space, cv=cv, scoring=scorer)
+    else:
+        raise ValueError(f'Unknown optimizer, {optimizer}.')
+
+
+def multiclass_score_func(y, y_pred, metric_func, **kwargs):
+    classes = np.unique(y)
+    n_classes = len(classes)
+
+    if n_classes == 2:
+        return metric_func(y, y_pred)
+
+    y = preprocessing.label_binarize(y, classes=classes)
+    y_pred = preprocessing.label_binarize(y_pred, classes=classes)
+
+    metric = 0
+
+    for label in range(n_classes):
+        metric += metric_func(y[:, label], y_pred[:, label], **kwargs)
+
+    metric /= n_classes
+
+    return metric
 
 
 def _save_json(cv_results: Dict[str, Any], out_dir: str) -> None:
