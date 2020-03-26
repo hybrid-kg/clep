@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """Embed patients with the biomedical entities (genes and metabolites) using Knowledge graph embedding."""
-
-from pykeen.pipeline import pipeline
 from pykeen.hpo.hpo import hpo_pipeline
 from pykeen.datasets import DataSet
-from pykeen.triples.triples_factory import TriplesFactory
 from pykeen.models.base import Model
 import pandas as pd
 import numpy as np
@@ -18,7 +15,7 @@ def do_kge(
     design: pd.DataFrame,
     out: str,
     return_patients: Optional[bool] = True,
-    model: Optional[str] = 'TransE',
+    model: Optional[str] = 'RotatE',
     train_size: Optional[float] = 0.8,
     validation_size: Optional[float] = 0.1
 ):
@@ -39,34 +36,13 @@ def do_kge(
     validation.to_csv(f'{out}/validation.edgelist', sep='\t', index=False, header=False)
     test.to_csv(f'{out}/test.edgelist', sep='\t', index=False, header=False)
 
-    # Create triples for training and testing TODO: Add validation once implemented
-    # training_triples = TriplesFactory(
-    #     path=f'{out}/train.edgelist'
-    # )
-    # testing_triples = TriplesFactory(
-    #     path=f'{out}/test.edgelist',
-    #     entity_to_id=training_triples.entity_to_id,
-    #     relation_to_id=training_triples.relation_to_id
-    # )
-
     kge_dataset = DataSet(
         training_path=f'{out}/train.edgelist',
         validation_path=f'{out}/validation.edgelist',
         testing_path=f'{out}/test.edgelist'
     )
 
-    # Run the pipeline with the given model
-    # pipeline_result = pipeline(
-    #     model=model,
-    #     training_triples_factory=training_triples,
-    #     testing_triples_factory=testing_triples,
-    # )
-
-    pipeline_result = hpo_pipeline(
-        model=model,
-        dataset=kge_dataset,
-        n_trials=30
-    )
+    pipeline_result = run_pipeline(kge_dataset, model)
 
     best_model = pipeline_result.study.best_trial.user_attrs['model']
 
@@ -136,3 +112,142 @@ def _model_to_numpy(
         model: Model
 ) -> np.array:
     return model.entity_embeddings.weight.detach().cpu().numpy()
+
+
+def run_pipeline(dataset: DataSet, model: str):
+    """Run HPO."""
+    # Define model
+    model_kwargs = dict(
+        automatic_memory_optimization=True
+    )
+    model_kwargs_ranges = dict(
+        embedding_dim=dict(
+            type='int',
+            low=6,
+            high=8,
+            scale='power_two',
+        )
+    )
+
+    # Define Training Loop
+    training_loop = 'owa'
+
+    # Define optimizer
+    optimizer = 'adam'
+    optimizer_kwargs = dict(
+        weight_decay=0.0
+    )
+    optimizer_kwargs_ranges = dict(
+        lr=dict(
+            type='float',
+            low=0.001,
+            high=0.1,
+            sclae='log',
+        )
+    )
+
+    # Define Loss Fct.
+    loss_function = 'NSSALoss'
+    loss_kwargs = dict()
+    loss_kwargs_ranges = dict(
+        margin=dict(
+            type='float',
+            low=1,
+            high=30,
+            q=2.0,
+        ),
+        adversarial_temperature=dict(
+            type='float',
+            low=0.1,
+            high=1.0,
+            q=0.1,
+        )
+    )
+
+    # Define Regularizer
+    regularizer = 'NoRegularizer'
+
+    # Define Negative Sampler
+    negative_sampler = 'BasicNegativeSampler'
+    negative_sampler_kwargs = dict()
+    negative_sampler_kwargs_ranges = dict(
+        num_negs_per_pos=dict(
+            type='int',
+            low=1,
+            high=100,
+            q=1,
+        )
+    )
+
+    # Define Evaluator
+    evaluator = 'RankBasedEvaluator'
+    evaluator_kwargs = dict(
+        filtered=True,
+    )
+    evaluation_kwargs = dict(
+        batch_size=None  # searches for maximal possible in order to minimize evaluation time
+    )
+
+    # Define Training Arguments
+    training_kwargs = dict(
+        num_epochs=1000,
+        label_smoothing=0.0,
+    )
+    training_kwargs_ranges = dict(
+        batch_size=dict(
+            type='int',
+            low=7,
+            high=9,
+            scale='power_two',
+        )
+    )
+
+    # Define Early Stopper
+    stopper = 'early'
+    stopper_kwargs = dict(
+        frequency=50,
+        patience=2,
+        delta=0.002,
+    )
+
+    # Define Optuna Related Parameters
+    n_trials = 100
+    timeout = 86400
+    metric = 'hits@10'
+    direction = 'maximize'
+    sampler = 'random'
+    pruner = 'nop'
+
+    # Define HPO pipeline
+    hpo_results = hpo_pipeline(
+        dataset=dataset,
+        model=model,
+        model_kwargs=model_kwargs,
+        model_kwargs_ranges=model_kwargs_ranges,
+        loss=loss_function,
+        loss_kwargs=loss_kwargs,
+        loss_kwargs_ranges=loss_kwargs_ranges,
+        regularizer=regularizer,
+        optimizer=optimizer,
+        optimizer_kwargs=optimizer_kwargs,
+        optimizer_kwargs_ranges=optimizer_kwargs_ranges,
+        training_loop=training_loop,
+        training_kwargs=training_kwargs,
+        training_kwargs_ranges=training_kwargs_ranges,
+        negative_sampler=negative_sampler,
+        negative_sampler_kwargs=negative_sampler_kwargs,
+        negative_sampler_kwargs_ranges=negative_sampler_kwargs_ranges,
+        stopper=stopper,
+        stopper_kwargs=stopper_kwargs,
+        evaluator=evaluator,
+        evaluator_kwargs=evaluator_kwargs,
+        evaluation_kwargs=evaluation_kwargs,
+        n_trials=n_trials,
+        timeout=timeout,
+        metric=metric,
+        direction=direction,
+        sampler=sampler,
+        pruner=pruner,
+    )
+
+    return hpo_results
