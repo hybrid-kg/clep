@@ -26,7 +26,7 @@ def do_radical_search(
     :return Dataframe containing the Single Sample scores using radical searching
     """
     # Transpose matrix to get the patients as the rows
-    data = data.transpose()
+    data_copy = data.transpose()
 
     # Give each label an integer to represent the labels during classification
     label_mapping = {
@@ -35,17 +35,17 @@ def do_radical_search(
     }
 
     # Make sure the number of rows of transposed data and design are equal
-    assert len(data) == len(design)
+    assert len(data_copy) == len(design)
 
     # Separate the dataset into controls and samples
-    controls = data[list(design.Target == control)]
+    controls = data_copy[list(design.Target == control)]
 
     # Calculate the empirical cdf for every gene and get the cdf score for the data
     control_ecdf = controls.apply(_ECDF, step=False, extrapolate=True).values
-    cdf_score = _apply_func(data, control_ecdf).fillna(0)
+    cdf_score = _apply_func(data_copy, control_ecdf).fillna(0)
 
     # Create a dataframe initialized with 0's
-    df = pd.DataFrame(0, index=data.index, columns=data.columns)
+    df = pd.DataFrame(0, index=data_copy.index, columns=data_copy.columns)
 
     # Values that are greater than the threshold or lesser than negative threshold are considered as extremes.
     upper_thresh = 1 - (threshold / 100)
@@ -55,6 +55,7 @@ def do_radical_search(
     df = pd.DataFrame(np.where(cdf_score.values < lower_thresh, -1, df.values))
 
     df.columns = data.index
+    df.index = data.columns
 
     # Add labels to the data samples
     label = design['Target'].map(label_mapping)
