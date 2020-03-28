@@ -124,7 +124,7 @@ def run_pipeline(dataset: DataSet, model: str):
         embedding_dim=dict(
             type='int',
             low=6,
-            high=8,
+            high=7,
             scale='power_two',
         )
     )
@@ -174,7 +174,7 @@ def run_pipeline(dataset: DataSet, model: str):
         num_negs_per_pos=dict(
             type='int',
             low=1,
-            high=100,
+            high=10,
             q=1,
         )
     )
