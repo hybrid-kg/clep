@@ -66,7 +66,7 @@ def plot_pathway_overlap(
             intersection = list(set().intersection(pathway_dict[pathway_1], pathway_dict[pathway_2]))
 
             if len(intersection) > (intersection_threshold * len(union)):
-                pathway_overlap_graph.add_edge(pathway_1, pathway_2)
+                pathway_overlap_graph.add_edge(str(pathway_1), str(pathway_2))
 
     return pathway_overlap_graph
 
@@ -79,7 +79,7 @@ def plot_interaction_network(
 
     # Append the source to target mapping to the main data edgelist
     for idx in tqdm(kg_data.index, desc='Plotting interaction network: '):
-        interaction_graph.add_edge(kg_data.iat[idx, 0], kg_data.iat[idx, 2])
+        interaction_graph.add_edge(str(kg_data.iat[idx, 0]), str(kg_data.iat[idx, 2]))
 
     return interaction_graph
 
@@ -110,7 +110,7 @@ def plot_interaction_net_overlap(
 
     for graph_1, graph_2 in tqdm(combinations(graphs, 2), desc='Finding interaction network overlap: '):
         if _get_jaccard_index(graph_1, graph_2) > jaccard_threshold:
-            overlap_graph.add_edge(graph_1.graph['name'], graph_2.graph['name'])
+            overlap_graph.add_edge(str(graph_1.graph['name']), str(graph_2.graph['name']))
 
     return overlap_graph
 
