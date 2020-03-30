@@ -87,7 +87,7 @@ def _weighted_splitter(
     test_size = 1
 
     # Get the unique relations in the network
-    unique_relations = np.unique(edgelist['regulation'])
+    unique_relations = edgelist['relation'].unique()
 
     data = edgelist.copy()
 
@@ -97,7 +97,7 @@ def _weighted_splitter(
         frames = []
         # Random sampling of the data for every type of relation
         for relation in unique_relations:
-            temp = data[data['regulation'] == relation].sample(frac=frac_size)
+            temp = data[data['relation'] == relation].sample(frac=frac_size)
 
             data = data[~data.index.isin(temp.index)]
 

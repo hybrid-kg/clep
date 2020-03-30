@@ -38,9 +38,9 @@ def do_graph_gen(
 
     graph_df = nx.to_pandas_edgelist(final_graph)
 
-    graph_df['regulation'].fillna(0.0, inplace=True)
+    graph_df['relation'].fillna(0.0, inplace=True)
 
-    graph_df = graph_df[['source', 'target', 'regulation', 'label']]
+    graph_df = graph_df[['source', 'target', 'relation', 'label']]
 
     return graph_df
 
@@ -79,7 +79,11 @@ def plot_interaction_network(
 
     # Append the source to target mapping to the main data edgelist
     for idx in tqdm(kg_data.index, desc='Plotting interaction network: '):
-        interaction_graph.add_edge(str(kg_data.iat[idx, 0]), str(kg_data.iat[idx, 2]))
+        interaction_graph.add_edge(
+            str(kg_data.iat[idx, 0]),
+            str(kg_data.iat[idx, 2]),
+            relation=str(kg_data.iat[idx, 1])
+        )
 
     return interaction_graph
 
@@ -157,7 +161,7 @@ def overlay_samples(
             if value == 0:
                 continue
             if gene in information_graph.nodes:
-                overlay_graph.add_edge(patient, gene, regulation=value, label=patient_label_mapping[patient])
+                overlay_graph.add_edge(patient, gene, relation=value, label=patient_label_mapping[patient])
 
     return overlay_graph
 

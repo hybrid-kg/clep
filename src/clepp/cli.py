@@ -436,8 +436,8 @@ def kge(
     edgelist_df = pd.read_csv(data, sep='\t', index_col=None, header=None)
     design_df = pd.read_csv(design, sep='\t')
 
-    edgelist_df.columns = ['source', 'target', 'regulation', 'label']
-    edgelist_df = edgelist_df[['source', 'regulation', 'target', 'label']]
+    edgelist_df.columns = ['source', 'target', 'relation', 'label']
+    edgelist_df = edgelist_df[['source', 'relation', 'target', 'label']]
 
     embedding_df = do_kge(
         edgelist=edgelist_df,
