@@ -291,7 +291,7 @@ def nrl(data: str, kg: str, out: str, method: str) -> None:
     help='The method used to generate the network',
     type=click.Choice(['pathway_overlap', 'interaction_network', 'interaction_network_overlap']),
     required=False,
-    default='Interaction Network',
+    default='interaction_network',
     show_default=True,
 )
 @click.option(
