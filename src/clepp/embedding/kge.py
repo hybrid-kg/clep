@@ -89,7 +89,7 @@ def _weighted_splitter(
     # Get the unique relations in the network
     unique_relations = edgelist['relation'].unique()
 
-    data = edgelist.copy()
+    data = edgelist.drop_duplicates().copy()
 
     split = []
     # Split the data to get training, validation and test samples
