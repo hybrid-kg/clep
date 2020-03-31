@@ -5,11 +5,14 @@
 import json
 import logging
 from typing import List, Union, Optional
+import warnings
 
 import click
 import numpy as np
 import pandas as pd
 from sklearn.metrics import SCORERS
+
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 from clepp.classification import do_classification
 from clepp.embedding import (
