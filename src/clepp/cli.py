@@ -318,6 +318,13 @@ def nrl(data: str, kg: str, out: str, method: str) -> None:
     show_default=True,
 )
 @click.option(
+    '-rs',
+    '--ret_summary',
+    help="Flag to indicate if the edge summary for patients must be created.",
+    is_flag=True,
+    show_default=True,
+)
+@click.option(
     '--jaccard_thr',
     help="Threshold to make edges in Interaction Network Overlap method",
     type=float,
@@ -333,6 +340,7 @@ def generate_network(
         jaccard_thr: float,
         kg: Optional[str] = None,
         gmt: Optional[str] = None,
+        ret_summary: bool = False,
         network_folder: Optional[str] = None,
 ) -> None:
     """Generate Network for the given data."""
@@ -344,21 +352,43 @@ def generate_network(
         assert gmt is not None
         click.echo(f"Generating {method} based network with {data} & {gmt} and outputting it to {out}")
 
-        graph_df = do_graph_gen(data=data_df, gmt=gmt, network_gen_method=method, intersection_threshold=intersect_thr)
+        graph_df = do_graph_gen(
+            data=data_df,
+            gmt=gmt,
+            network_gen_method=method,
+            intersection_threshold=intersect_thr,
+            summary=ret_summary
+        )
 
     elif method == 'interaction_network':
         assert kg is not None
         click.echo(f"Generating {method} based network with {data} & {kg} and outputting it to {out}")
 
-        kg_data_df = pd.read_csv(kg, sep='\t')
+        kg_data_df = pd.read_csv(kg, sep='\t', header=None)
 
-        graph_df = do_graph_gen(data=data_df, kg_data=kg_data_df, network_gen_method=method)
+        graph_df = do_graph_gen(
+            data=data_df,
+            kg_data=kg_data_df,
+            network_gen_method=method,
+            summary=ret_summary
+        )
 
     else:
         assert network_folder is not None
         design = network_folder
 
-        graph_df = do_graph_gen(data=data_df, folder_path=design, network_gen_method=method, jaccard_threshold=jaccard_thr)
+        graph_df = do_graph_gen(
+            data=data_df,
+            folder_path=design,
+            network_gen_method=method,
+            jaccard_threshold=jaccard_thr,
+            summary=ret_summary
+        )
+
+    if ret_summary:
+        graph_df, summary_data = graph_df
+
+        summary_data.to_csv(f'{out}/summary.tsv', sep='\t')
 
     graph_df.to_csv(f'{out}/weighted.edgelist', sep='\t', header=False, index=False)
 

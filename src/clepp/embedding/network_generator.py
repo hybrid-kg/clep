@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Ensemble of methods for network generation."""
-from typing import TextIO, Optional
+from typing import TextIO, Optional, Tuple, Union
 
 import pandas as pd
 import networkx as nx
@@ -10,7 +10,9 @@ from tqdm import tqdm
 from itertools import combinations
 from os import listdir
 from os.path import isfile, join
-from igraph import plot
+# from igraph import plot
+
+from clepp.constants import VALUE_TO_COLNAME
 
 
 def do_graph_gen(
@@ -20,8 +22,9 @@ def do_graph_gen(
         intersection_threshold: Optional[float] = 0.1,
         kg_data: Optional[pd.DataFrame] = None,
         folder_path: Optional[str] = None,
-        jaccard_threshold: Optional[float] = 0.2
-) -> pd.DataFrame:
+        jaccard_threshold: Optional[float] = 0.2,
+        summary: bool = False,
+) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
     information_graph = nx.DiGraph()
 
     if network_gen_method == 'pathway_overlap':
@@ -34,7 +37,10 @@ def do_graph_gen(
     elif network_gen_method == 'interaction_network_overlap':
         information_graph = plot_interaction_net_overlap(folder_path, jaccard_threshold)
 
-    final_graph = overlay_samples(data, information_graph)
+    if summary:
+        final_graph, summary_data = overlay_samples(data, information_graph, summary=True)
+    else:
+        final_graph = overlay_samples(data, information_graph, summary=False)
 
     graph_df = nx.to_pandas_edgelist(final_graph)
 
@@ -42,7 +48,10 @@ def do_graph_gen(
 
     graph_df = graph_df[['source', 'target', 'relation', 'label']]
 
-    return graph_df
+    if summary:
+        return graph_df, summary_data
+    else:
+        return graph_df
 
 
 def plot_pathway_overlap(
@@ -142,8 +151,9 @@ def _get_jaccard_index(
 
 def overlay_samples(
         data: pd.DataFrame,
-        information_graph: nx.DiGraph
-) -> nx.DiGraph:
+        information_graph: nx.DiGraph,
+        summary: bool = False,
+) -> Union[nx.DiGraph, Tuple[nx.DiGraph, pd.DataFrame]]:
     """Overlays the data on the information graph by adding edges between patients and information nodes if pairwise
     value is not 0."""
     patient_label_mapping = {patient: label for patient, label in zip(data.index, data['label'])}
@@ -152,6 +162,8 @@ def overlay_samples(
 
     data_copy = data.drop(columns='label')
     values_data = data_copy.values
+
+    summary_data = pd.DataFrame(0, index=data_copy.index, columns=["positive_relation", "negative_relation"])
 
     for index, value_list in enumerate(tqdm(values_data, desc='Adding patients to the network: ')):
         for column, value in enumerate(value_list):
@@ -162,8 +174,13 @@ def overlay_samples(
                 continue
             if gene in information_graph.nodes:
                 overlay_graph.add_edge(patient, gene, relation=value, label=patient_label_mapping[patient])
+            if summary:
+                summary_data.at[patient, VALUE_TO_COLNAME[value]] += 1
 
-    return overlay_graph
+    if summary:
+        return overlay_graph, summary_data
+    else:
+        return overlay_graph
 
 
 def show_graph(graph: nx.DiGraph):

@@ -24,6 +24,11 @@ METRIC_TO_LABEL = {
     'average_precision': 'Average Precision',
 }
 
+VALUE_TO_COLNAME = {
+    -1: 'negative_relation',
+    1: 'positive_relation'
+}
+
 
 def get_data_dir() -> str:
     """Ensure the appropriate clepp data directory exists for the given module, then returns the file path."""
