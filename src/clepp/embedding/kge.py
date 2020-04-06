@@ -2,6 +2,7 @@
 
 """Embed patients with the biomedical entities (genes and metabolites) using Knowledge graph embedding."""
 from pykeen.hpo.hpo import hpo_pipeline
+from pykeen.pipeline import pipeline
 from pykeen.datasets import DataSet
 from pykeen.models.base import Model
 import pandas as pd
@@ -42,19 +43,19 @@ def do_kge(
         testing_path=f'{out}/test.edgelist'
     )
 
-    pipeline_result = run_pipeline(kge_dataset, model)
+    optimal_params = run_optimization(kge_dataset, model).study.best_params
 
-    best_model = pipeline_result.study.best_trial.user_attrs['model']
+    best_model = run_pipeline(dataset=kge_dataset, model=model, optimal_params=optimal_params).model
 
     # Get the embedding as a numpy array
     embedding_values = _model_to_numpy(best_model)
 
-    # Create 50 column names
-    embedding_columns = [f'Component_{i}' for i in range(1, len(embedding_values.shape[1]))]
+    # Create columns as component names
+    embedding_columns = [f'Component_{i}' for i in range(1, embedding_values.shape[1] + 1)]
 
     # Get the nodes of the training triples as index
-    node_list = list(best_model.training_triples.entity_to_id.keys())
-    embedding_index = sorted(node_list, key=lambda x: best_model.training_triples.entity_to_id[x])
+    node_list = list(best_model.triples_factory.entity_to_id.keys())
+    embedding_index = sorted(node_list, key=lambda x: best_model.triples_factory.entity_to_id[x])
 
     embedding = pd.DataFrame(data=embedding_values, columns=embedding_columns, index=embedding_index)
 
@@ -114,7 +115,7 @@ def _model_to_numpy(
     return model.entity_embeddings.weight.detach().cpu().numpy()
 
 
-def run_pipeline(dataset: DataSet, model: str):
+def run_optimization(dataset: DataSet, model: str):
     """Run HPO."""
     # Define model
     model_kwargs = dict(
@@ -251,3 +252,85 @@ def run_pipeline(dataset: DataSet, model: str):
     )
 
     return hpo_results
+
+
+def run_pipeline(dataset: DataSet, model: str, optimal_params: dict):
+    """Run Pipeline."""
+    # Define model
+    model_kwargs = dict(
+        automatic_memory_optimization=True,
+        embedding_dim=optimal_params['model.embedding_dim']
+    )
+
+    # Define Training Loop
+    training_loop = 'owa'
+
+    # Define optimizer
+    optimizer = 'adam'
+    optimizer_kwargs = dict(
+        weight_decay=0.0,
+        lr=optimal_params['optimizer.lr']
+    )
+
+    # Define Loss Fct.
+    loss_function = 'NSSALoss'
+    loss_kwargs = dict(
+        margin=optimal_params['loss.margin'],
+        adversarial_temperature=optimal_params['loss.adversarial_temperature']
+    )
+
+    # Define Regularizer
+    regularizer = 'NoRegularizer'
+
+    # Define Negative Sampler
+    negative_sampler = 'BasicNegativeSampler'
+    negative_sampler_kwargs = dict(
+        num_negs_per_pos=optimal_params['negative_sampler.num_negs_per_pos']
+    )
+
+    # Define Evaluator
+    evaluator = 'RankBasedEvaluator'
+    evaluator_kwargs = dict(
+        filtered=True,
+    )
+    evaluation_kwargs = dict(
+        batch_size=None  # searches for maximal possible in order to minimize evaluation time
+    )
+
+    # Define Training Arguments
+    training_kwargs = dict(
+        num_epochs=1000,
+        label_smoothing=0.0,
+        batch_size=optimal_params['training.batch_size']
+    )
+
+    # Define Early Stopper
+    stopper = 'early'
+    stopper_kwargs = dict(
+        frequency=50,
+        patience=2,
+        delta=0.002,
+    )
+
+    # Define HPO pipeline
+    pipeline_results = pipeline(
+        dataset=dataset,
+        model=model,
+        model_kwargs=model_kwargs,
+        loss=loss_function,
+        loss_kwargs=loss_kwargs,
+        regularizer=regularizer,
+        optimizer=optimizer,
+        optimizer_kwargs=optimizer_kwargs,
+        training_loop=training_loop,
+        training_kwargs=training_kwargs,
+        negative_sampler=negative_sampler,
+        negative_sampler_kwargs=negative_sampler_kwargs,
+        stopper=stopper,
+        stopper_kwargs=stopper_kwargs,
+        evaluator=evaluator,
+        evaluator_kwargs=evaluator_kwargs,
+        evaluation_kwargs=evaluation_kwargs,
+    )
+
+    return pipeline_results
