@@ -75,7 +75,7 @@ def _ECDF(
 
     :param obs: Observations
     :param side: Defines the shape of the intervals constituting the steps. 'right' correspond to [a, b) intervals
-    and 'left' to (a, b
+    and 'left' to (a, b]
     :param step: Boolean value to indicate if the returned value must be a step function or an continuous based on
     interpolation or extrapolation function
     :param extrapolate: Boolean value to indicate if the continuous must be based on extrapolation
