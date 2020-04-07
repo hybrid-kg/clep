@@ -88,7 +88,7 @@ def _weighted_splitter(
     test_size = 1
 
     # Get the unique relations in the network
-    unique_relations = edgelist['relation'].unique()
+    unique_relations = sorted(edgelist['relation'].unique())
 
     data = edgelist.drop_duplicates().copy()
 
