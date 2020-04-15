@@ -45,24 +45,25 @@ def do_radical_search(
     cdf_score = _apply_func(data_copy, control_ecdf).fillna(0)
 
     # Create a dataframe initialized with 0's
-    df = pd.DataFrame(0, index=data_copy.index, columns=data_copy.columns)
+    output_df = pd.DataFrame(0, index=data_copy.index, columns=data_copy.columns)
 
     # Values that are greater than the threshold or lesser than negative threshold are considered as extremes.
     upper_thresh = 1 - (threshold / 100)
     lower_thresh = (threshold / 100)
 
-    df = pd.DataFrame(np.where(cdf_score.values > upper_thresh, 1, df.values))
-    df = pd.DataFrame(np.where(cdf_score.values < lower_thresh, -1, df.values))
+    output_df = pd.DataFrame(np.where(cdf_score.values > upper_thresh, 1, output_df.values))
+    output_df = pd.DataFrame(np.where(cdf_score.values < lower_thresh, -1, output_df.values))
 
-    df.columns = data.index
-    df.index = data.columns
+    output_df.columns = data.index
+    output_df.index = data.columns
 
     # Add labels to the data samples
     label = design['Target'].map(label_mapping)
     label.reset_index(drop=True, inplace=True)
-    df['label'] = label.values
 
-    return df
+    output_df['label'] = label.values
+
+    return output_df
 
 
 def _ECDF(

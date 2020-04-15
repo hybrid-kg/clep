@@ -2,6 +2,8 @@
 
 """Carry out Z-Score based single sample DE analysis."""
 
+from typing import List
+
 import numpy as np
 import pandas as pd
 
@@ -60,6 +62,16 @@ def do_z_score(
     label = design[design['Target'] != control]['Target'].map(label_mapping)
     label.reset_index(drop=True, inplace=True)
 
-    df['label'] = label.values
+    output_df = df.apply(_bin).copy()
 
-    return df
+    output_df['label'] = label.values
+
+    return output_df
+
+
+def _bin(row: pd.Series) -> List[int]:
+    """Replace values greater than 0 as 1 and lesser than 0 as -1."""
+    return [
+        1 if (val > 0) else (-1 if (val < 0) else 0)
+        for val in row
+    ]

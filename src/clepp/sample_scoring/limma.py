@@ -2,6 +2,7 @@
 
 """Python wrapper for R-based Limma to perform single sample DE analysis."""
 import sys
+from typing import List
 
 import click
 import numpy as np
@@ -63,6 +64,8 @@ def do_limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float, method: str
 
     label = sample_design['Target'].map(label_mapping)
     label.reset_index(drop=True, inplace=True)
+
+    output_df = output_df.apply(_bin).copy()
 
     output_df['label'] = label.values
 
@@ -128,3 +131,11 @@ def _limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float = 0.05,
     output['logFC'].loc[np.abs(output['logFC']) < 1.3] = 0
 
     return output
+
+
+def _bin(row: pd.Series) -> List[int]:
+    """Replace values greater than 0 as 1 and lesser than 0 as -1."""
+    return [
+        1 if (val > 0) else (-1 if (val < 0) else 0)
+        for val in row
+    ]
