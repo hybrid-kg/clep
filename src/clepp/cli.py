@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 from clepp.classification import do_classification
 from clepp.embedding import (
-    do_binning, do_nrl, do_ss_evaluation,
+    do_nrl, do_ss_evaluation,
     do_graph_gen, do_kge)
 from clepp.sample_scoring import (
     do_limma, do_z_score, do_ssgsea, do_radical_search
@@ -203,22 +203,6 @@ def radical_search(data: str, design: str, out: str, control: str, threshold: fl
 @main.group()
 def embedding():
     """List Vectorization methods available."""
-
-
-@embedding.command()
-@data_option
-@output_option
-def binning(data: str, out: str) -> None:
-    """Perform Threshold based Vectorization."""
-    click.echo(f"Starting binning with {data}, and out-putting to {out}/binned.tsv")
-
-    data_df = pd.read_csv(data, sep='\t', index_col=0)
-
-    output = do_binning(data=data_df)
-
-    output.to_csv(f'{out}/binned.tsv', sep='\t')
-
-    click.echo(f"Done with binning for {data}")
 
 
 @embedding.command()
