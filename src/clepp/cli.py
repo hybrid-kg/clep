@@ -535,7 +535,6 @@ def classify(
 
     results = do_classification(data_df, model, optimizer, out, cv, metrics, title)
 
-    click.echo(results)
     click.echo(f"Done with {model} classification")
 
 

@@ -22,7 +22,8 @@ from skopt import BayesSearchCV
 
 from clepp import constants
 
-filterwarnings('ignore')
+filterwarnings("ignore", category=DeprecationWarning)
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
@@ -36,7 +37,7 @@ def do_classification(
         validation_cv: int,
         scoring_metrics: List[str],
         title: str,
-        epochs: int = 1,
+        epochs: int = 1000,
         *args
 ) -> Dict[str, Any]:
     """Perform classification on embeddings generated from previous step.
