@@ -6,7 +6,6 @@ import json
 import sys
 from collections import defaultdict
 from typing import Dict, List, Any, Callable, Tuple
-from warnings import filterwarnings
 import logging
 
 import click
@@ -21,8 +20,6 @@ from xgboost import XGBClassifier
 from skopt import BayesSearchCV
 
 from clepp import constants
-
-filterwarnings("ignore", category=DeprecationWarning)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
@@ -102,12 +99,11 @@ def do_classification(
 
         final_results[f'Epoch {epoch}'] = cv_results
 
-    _save_json(cv_results=cv_results, out_dir=out_dir)
+    _save_json(results=final_results, epochs=epochs, out_dir=out_dir)
 
-    # TODO: Plot the multi-epoch results
-    # _plot(cv_results=cv_results, title=title, out_dir=out_dir)
+    _plot(results=final_results, epochs=epochs, title=title, out_dir=out_dir)
 
-    return cv_results
+    return final_results
 
 
 def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: pd.Series, cv: int, scoring: List[str],
@@ -344,64 +340,82 @@ def multiclass_score_func(y, y_pred, metric_func, **kwargs):
     return metric
 
 
-def _save_json(cv_results: Dict[str, Any], out_dir: str) -> None:
+def _save_json(results: Dict[str, Any], epochs: int, out_dir: str) -> None:
     """Save the cross validation results as a json file."""
-    for key in cv_results.keys():
-        # Check if the result is a numpy array, if yes convert to list
-        if isinstance(cv_results[key], np.ndarray):
-            cv_results[key] = cv_results[key].tolist()
+    for epoch in range(epochs):
+        for key in results[f'Epoch {epoch}'].keys():
+            # Check if the result is a numpy array, if yes convert to list
+            if isinstance(results[f'Epoch {epoch}'][key], np.ndarray):
+                results[f'Epoch {epoch}'][key] = results[f'Epoch {epoch}'][key].tolist()
 
-        # Check if the results are numpy float values, if yes skip it
-        elif isinstance(cv_results[key][0], np.float):
-            continue
+            # Check if the results are numpy float values, if yes skip it
+            elif isinstance(results[f'Epoch {epoch}'][key][0], np.float):
+                continue
 
-        elif isinstance(cv_results[key][0], list):
-            continue
+            elif isinstance(results[f'Epoch {epoch}'][key][0], list):
+                continue
 
-        # Check if the key is an estimator and convert it into a JSON Serializable object.
-        # Also Check if it an estimator wrapper like OneVsRest classifier.
-        else:
-            cv_results[key] = [
-                classifier.get_params()
-                if 'estimator' not in classifier.get_params()
-                else classifier.get_params()['estimator'].get_params()
-                for classifier in cv_results[key]
-            ]
+            # Check if the key is an estimator and convert it into a JSON Serializable object.
+            # Also Check if it an estimator wrapper like OneVsRest classifier.
+            else:
+                results[f'Epoch {epoch}'][key] = [
+                    classifier.get_params()
+                    if 'estimator' not in classifier.get_params()
+                    else classifier.get_params()['estimator'].get_params()
+                    for classifier in results[f'Epoch {epoch}'][key]
+                ]
 
     with open(f'{out_dir}/cross_validation_results.json', 'w') as out:
-        json.dump(cv_results, out, indent=4)
+        json.dump(results, out, indent=4)
 
 
-def _plot(cv_results: Dict[str, Any], title: str, out_dir: str) -> None:
+def _plot(results: Dict[str, Any], epochs: int, title: str, out_dir: str) -> None:
     """Plot the cross validation results as a boxplot."""
     non_metrics = ['estimator', 'fit_time', 'score_time']
 
     # Get only the scoring metrics and remove the fit_time, estimator and score_time.
     scoring_metrics = [
         metric
-        for metric in cv_results
+        for metric in results[f'Epoch 0']
         if metric not in non_metrics
     ]
 
-    metrics_for_plot = [
-        constants.METRIC_TO_LABEL[metric.split('test_')[1]]
-        for metric in scoring_metrics
-    ]
+    # metrics_for_plot = [
+    #     constants.METRIC_TO_LABEL[metric.split('test_')[1]]
+    #     for metric in scoring_metrics
+    # ]
 
     # Get the data from for each scoring metric used from the cross validation results
-    data = [
-        list(cv_results[scores])
-        for scores in scoring_metrics
-    ]
+    # data = [
+    #     np.mean(list(results[f'Epoch {epoch}'][scores]))
+    #     for epoch in range(epochs)
+    #     for scores in scoring_metrics
+    # ]
+
+    data = pd.DataFrame(columns=['epochs', 'metric', 'score'])
+    row = 0
+    for epoch in range(epochs):
+        for metric in scoring_metrics:
+            data.at[row, 'epochs'] = epoch
+            data.at[row, 'metric'] = metric
+            data.at[row, 'score'] = np.mean(list(results[f'Epoch {epoch}'][metric]))
+
+            row += 1
+
+    data = data.astype({'epochs': int, 'metric': str, 'score': float})
 
     # Increase the default font size by a degree of 1.2
     sns.set(font_scale=1.2)
-    sns_plot = sns.boxplot(data=data)
 
-    sns_plot.set(
-        ylabel='Score',
-        title=title,
-        xticklabels=metrics_for_plot,
-    )
+    sns_plot = sns.lineplot(x="epochs", y="score", hue="metric", data=data)
+    sns_plot.set(title=title)
 
-    sns_plot.figure.savefig(f'{out_dir}/boxplot.png')
+    # sns_plot = sns.boxplot(data=data)
+    #
+    # sns_plot.set(
+    #     ylabel='Score',
+    #     title=title,
+    #     xticklabels=metrics_for_plot,
+    # )
+    #
+    sns_plot.figure.savefig(f'{out_dir}/result_plot.png')

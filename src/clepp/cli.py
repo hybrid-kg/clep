@@ -10,6 +10,7 @@ import warnings
 import click
 import numpy as np
 import pandas as pd
+from sklearn.exceptions import UndefinedMetricWarning
 from sklearn.metrics import SCORERS
 
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -523,6 +524,9 @@ def classify(
         title: str,
 ) -> None:
     """Perform machine-learning classification."""
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
+
     if not metrics:
         metrics = ['roc_auc', 'accuracy', 'f1_micro', 'f1_macro', 'f1']
 
