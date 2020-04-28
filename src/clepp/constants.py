@@ -4,7 +4,7 @@
 
 import os
 from scipy.stats import uniform, loguniform
-from skopt.space import Real, Categorical
+from skopt.space import Real, Categorical, Integer
 
 MODULE_NAME = 'clepp'
 DEFAULT_CLEPP_DIR = os.path.join(os.path.expanduser('~'), '.clepp')
@@ -81,18 +81,18 @@ def get_param_dist(model_name):
 
     elif model_name == 'svm':
         kernel = ['linear', 'poly', 'rbf']
-        param_dist = dict(C=loguniform(1e-6, 1e+6), kernel=kernel)
+        param_dist = dict(C=loguniform(1e-3, 1e+3), kernel=kernel)
 
     elif model_name == 'random_forest':
         max_features = ["auto", "log2"]
-        param_dist = dict(n_estimators=uniform(100, 1000), max_features=max_features)
+        param_dist = dict(n_estimators=range(100, 1001), max_features=max_features)
 
     elif model_name == 'gradient_boost':
         param_dist = dict(
             learning_rate=uniform(0, 1),
             subsample=uniform(0.1, 0.9),
-            max_depth=uniform(0, 10),
-            min_child_weight=uniform(0, 25)
+            max_depth=range(0, 11),
+            min_child_weight=range(0, 26)
         )
 
     else:
@@ -112,18 +112,18 @@ def get_param_space(model_name):
 
     elif model_name == 'svm':
         kernel = ['linear', 'poly', 'rbf']
-        param_space = dict(C=Real(1e-6, 1e+6, prior='log-uniform'), kernel=Categorical(kernel))
+        param_space = dict(C=Real(1e-3, 1e+3, prior='log-uniform'), kernel=Categorical(kernel))
 
     elif model_name == 'random_forest':
         max_features = ["auto", "log2"]
-        param_space = dict(n_estimators=Real(100, 1000), max_features=Categorical(max_features))
+        param_space = dict(n_estimators=Integer(100, 1000), max_features=Categorical(max_features))
 
     elif model_name == 'gradient_boost':
         param_space = dict(
             learning_rate=Real(0, 1),
             subsample=Real(0.1, 1.0),
-            max_depth=Real(0, 10),
-            min_child_weight=Real(0, 25)
+            max_depth=Integer(0, 10),
+            min_child_weight=Integer(0, 25)
         )
 
     else:
