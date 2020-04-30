@@ -10,10 +10,10 @@ import warnings
 import click
 import numpy as np
 import pandas as pd
-from sklearn.exceptions import UndefinedMetricWarning
+from sklearn.exceptions import UndefinedMetricWarning, ConvergenceWarning
 from sklearn.metrics import SCORERS
 
-warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)  # Ignore future warning for statsmodel import
 
 from clepp.classification import do_classification
 from clepp.embedding import (
@@ -514,6 +514,14 @@ def kge(
     default='Boxplot',
     show_default=False,
 )
+@click.option(
+    '--episodes',
+    help="Number of episodes the classification must run for repeatability test.",
+    type=int,
+    required=False,
+    default=20,
+    show_default=True,
+)
 def classify(
         data: str,
         out: str,
@@ -522,10 +530,14 @@ def classify(
         cv: int,
         metrics: Union[List[str], None],
         title: str,
+        episodes: int,
 ) -> None:
     """Perform machine-learning classification."""
-    warnings.filterwarnings("ignore", category=DeprecationWarning)
-    warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
+    assert episodes > 0
+    warnings.filterwarnings("ignore", category=DeprecationWarning)  # Ignore deprecation warning from pandas and sklearn
+    warnings.filterwarnings("ignore", category=UndefinedMetricWarning)  # Ignore f1 metric calculation warning
+    warnings.filterwarnings("ignore", category=ConvergenceWarning)  # Ignore sklearn model convergence warning
+    warnings.filterwarnings("ignore", message='The objective has been evaluated at this point before.')  # Ignore bayesian search warning
 
     if not metrics:
         metrics = ['roc_auc', 'accuracy', 'f1_micro', 'f1_macro', 'f1']
@@ -537,7 +549,7 @@ def classify(
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
 
-    results = do_classification(data_df, model, optimizer, out, cv, metrics, title)
+    results = do_classification(data_df, model, optimizer, out, cv, metrics, title, episodes)
 
     click.echo(f"Done with {model} classification")
 

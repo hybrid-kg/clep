@@ -34,7 +34,7 @@ def do_classification(
         validation_cv: int,
         scoring_metrics: List[str],
         title: str,
-        epochs: int = 1000,
+        epochs: int = 20,
         *args
 ) -> Dict[str, Any]:
     """Perform classification on embeddings generated from previous step.
