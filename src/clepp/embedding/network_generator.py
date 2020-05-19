@@ -157,13 +157,14 @@ def overlay_samples(
     """Overlays the data on the information graph by adding edges between patients and information nodes if pairwise
     value is not 0."""
     patient_label_mapping = {patient: label for patient, label in zip(data.index, data['label'])}
+    value_mapping = {0: 'no_change', 1: 'up_reg', -1: 'down_reg'}
 
     overlay_graph = information_graph.copy()
 
     data_copy = data.drop(columns='label')
     values_data = data_copy.values
 
-    summary_data = pd.DataFrame(0, index=data_copy.index, columns=["positive_relation", "negative_relation"])
+    summary_data = pd.DataFrame('no_change', index=data_copy.index, columns=["positive_relation", "negative_relation"])
 
     for index, value_list in enumerate(tqdm(values_data, desc='Adding patients to the network: ')):
         for column, value in enumerate(value_list):
@@ -173,7 +174,7 @@ def overlay_samples(
             if value == 0:
                 continue
             if gene in information_graph.nodes:
-                overlay_graph.add_edge(patient, gene, relation=value, label=patient_label_mapping[patient])
+                overlay_graph.add_edge(patient, gene, relation=value_mapping[value], label=patient_label_mapping[patient])
             if summary:
                 summary_data.at[patient, VALUE_TO_COLNAME[value]] += 1
 
