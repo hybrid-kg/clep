@@ -83,7 +83,7 @@ def do_classification(
                 return_estimator=True,
             )
         else:
-            optimizerCV = get_optimizer(optimizer, model, param_grid, optimizer_cv, 'roc_auc')
+            optimizerCV = get_optimizer(optimizer, model, model_name, optimizer_cv, 'roc_auc')
             optimizerCV.fit(data, labels)
 
             # Run cross validation over the given model

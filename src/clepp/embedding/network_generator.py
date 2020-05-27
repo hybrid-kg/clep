@@ -44,7 +44,7 @@ def do_graph_gen(
 
     graph_df = nx.to_pandas_edgelist(final_graph)
 
-    graph_df['relation'].fillna(0.0, inplace=True)
+    graph_df['relation'].fillna('no_change', inplace=True)
 
     graph_df = graph_df[['source', 'target', 'relation', 'label']]
 
