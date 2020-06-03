@@ -1,3 +1,15 @@
+tests/test.tsv filter=lfs diff=lfs merge=lfs -text
+tests/train.tsv filter=lfs diff=lfs merge=lfs -text
+tests/try_and_error filter=lfs diff=lfs merge=lfs -text
+tests/validation.tsv filter=lfs diff=lfs merge=lfs -text
+tests/Untitled[[:space:]]1.ipynb filter=lfs diff=lfs merge=lfs -text
+tests/kg.tsv filter=lfs diff=lfs merge=lfs -text
+tests/new_summary.tsv filter=lfs diff=lfs merge=lfs -text
+tests/old_summary.tsv filter=lfs diff=lfs merge=lfs -text
+tests/Untitled.ipynb filter=lfs diff=lfs merge=lfs -text
+tests/classify_grid_svm filter=lfs diff=lfs merge=lfs -text
+tests/radical.tsv filter=lfs diff=lfs merge=lfs -text
+tests/testing_16-03 filter=lfs diff=lfs merge=lfs -text
 *.gexf filter=lfs diff=lfs merge=lfs -text
 *.eps filter=lfs diff=lfs merge=lfs -text
 *.edgelist filter=lfs diff=lfs merge=lfs -text
