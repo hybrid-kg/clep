@@ -522,6 +522,12 @@ def kge(
     default=20,
     show_default=True,
 )
+@click.option(
+    '--randomize',
+    help="Randomize sample labels to test the stability of and effectiveness of the machine learning algorithm",
+    is_flag=True,
+    required=False,
+)
 def classify(
         data: str,
         out: str,
@@ -531,6 +537,7 @@ def classify(
         metrics: Union[List[str], None],
         title: str,
         episodes: int,
+        randomize: bool,
 ) -> None:
     """Perform machine-learning classification."""
     assert episodes > 0
@@ -549,7 +556,7 @@ def classify(
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
 
-    results = do_classification(data_df, model, optimizer, out, cv, metrics, title, episodes)
+    results = do_classification(data_df, model, optimizer, out, cv, metrics, title, episodes, randomize)
 
     click.echo(f"Done with {model} classification")
 

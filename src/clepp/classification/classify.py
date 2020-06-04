@@ -35,6 +35,7 @@ def do_classification(
         scoring_metrics: List[str],
         title: str,
         epochs: int = 20,
+        rand_labels: bool = False,
         *args
 ) -> Dict[str, Any]:
     """Perform classification on embeddings generated from previous step.
@@ -47,6 +48,7 @@ def do_classification(
     :param scoring_metrics: Scoring metrics tested during cross validation
     :param title: Title of the Boxplot
     :param epochs: Number of epochs for running the classification
+    :param rand_labels: Boolean variable to indicate if labels must be randomized to check for ML stability
     :arg args: Custom arguments to the estimator model
     :return Dictionary containing the cross validation results
 
@@ -63,8 +65,9 @@ def do_classification(
     # Carry out classification over multiple epochs.
     for epoch in tqdm(range(epochs), desc='Training epoch #'):
 
-        # if permute:
-        #     np.random.shuffle(labels)
+        if rand_labels:
+            np.random.shuffle(labels)
+
         logger.debug(f"Epoch {epoch}: ")
 
         if len(np.unique(labels)) > 2:
