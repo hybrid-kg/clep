@@ -164,7 +164,7 @@ def overlay_samples(
     data_copy = data.drop(columns='label')
     values_data = data_copy.values
 
-    summary_data = pd.DataFrame('no_change', index=data_copy.index, columns=["positive_relation", "negative_relation"])
+    summary_data = pd.DataFrame(0, index=data_copy.index, columns=["positive_relation", "negative_relation"])
 
     for index, value_list in enumerate(tqdm(values_data, desc='Adding patients to the network: ')):
         for column, value in enumerate(value_list):
