@@ -376,49 +376,28 @@ def _plot(results: Dict[str, Any], epochs: int, title: str, out_dir: str) -> Non
     """Plot the cross validation results as a boxplot."""
     non_metrics = ['estimator', 'fit_time', 'score_time']
 
-    # Get only the scoring metrics and remove the fit_time, estimator and score_time.
     scoring_metrics = [
         metric
         for metric in results[f'Epoch 0']
         if metric not in non_metrics
     ]
 
-    # metrics_for_plot = [
-    #     constants.METRIC_TO_LABEL[metric.split('test_')[1]]
-    #     for metric in scoring_metrics
-    # ]
-
-    # Get the data from for each scoring metric used from the cross validation results
-    # data = [
-    #     np.mean(list(results[f'Epoch {epoch}'][scores]))
-    #     for epoch in range(epochs)
-    #     for scores in scoring_metrics
-    # ]
-
     data = pd.DataFrame(columns=['epochs', 'metric', 'score'])
     row = 0
     for epoch in range(epochs):
         for metric in scoring_metrics:
-            data.at[row, 'epochs'] = epoch
-            data.at[row, 'metric'] = metric
-            data.at[row, 'score'] = np.mean(list(results[f'Epoch {epoch}'][metric]))
+            for value in list(results[f'Epoch {epoch}'][metric]):
+                data.at[row, 'epochs'] = epoch
+                data.at[row, 'metric'] = metric
+                data.at[row, 'score'] = value
 
-            row += 1
+                row += 1
 
     data = data.astype({'epochs': int, 'metric': str, 'score': float})
 
-    # Increase the default font size by a degree of 1.2
-    sns.set(font_scale=1.2)
+    sns.set(font_scale=1.2, rc={'figure.figsize': (10, 8)})
 
-    sns_plot = sns.lineplot(x="epochs", y="score", hue="metric", data=data)
+    sns_plot = sns.boxplot(x="epochs", y="score", hue="metric", data=data)
     sns_plot.set(title=title)
 
-    # sns_plot = sns.boxplot(data=data)
-    #
-    # sns_plot.set(
-    #     ylabel='Score',
-    #     title=title,
-    #     xticklabels=metrics_for_plot,
-    # )
-    #
     sns_plot.figure.savefig(f'{out_dir}/result_plot.png')
