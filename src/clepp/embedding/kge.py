@@ -3,7 +3,8 @@
 """Embed patients with the biomedical entities (genes and metabolites) using Knowledge graph embedding."""
 from pykeen.hpo.hpo import hpo_pipeline
 from pykeen.pipeline import pipeline
-from pykeen.datasets import DataSet
+from pykeen.triples import TriplesFactory
+# from pykeen.datasets import DataSet
 from pykeen.models.base import Model
 import pandas as pd
 import numpy as np
@@ -37,15 +38,36 @@ def do_kge(
     validation.to_csv(f'{out}/validation.edgelist', sep='\t', index=False, header=False)
     test.to_csv(f'{out}/test.edgelist', sep='\t', index=False, header=False)
 
-    kge_dataset = DataSet(
-        training_path=f'{out}/train.edgelist',
-        validation_path=f'{out}/validation.edgelist',
-        testing_path=f'{out}/test.edgelist'
+    # kge_dataset = DataSet(
+    #     training_path=f'{out}/train.edgelist',
+    #     validation_path=f'{out}/validation.edgelist',
+    #     testing_path=f'{out}/test.edgelist'
+    # )
+
+    create_inverse_triples = False  # In a second HPO configuration, this can be set to true
+    training_factory = TriplesFactory(
+        path='/Users/mali/PycharmProjects/POEM_develop/data/daniel/train.tsv',
+        create_inverse_triples=create_inverse_triples,
+    )
+    validation_factory = TriplesFactory(
+        path='/Users/mali/PycharmProjects/POEM_develop/data/daniel/validation.tsv',
+        create_inverse_triples=create_inverse_triples,
+    )
+    testing_factory = TriplesFactory(
+        path='/Users/mali/PycharmProjects/POEM_develop/data/daniel/test.tsv',
+        create_inverse_triples=create_inverse_triples,
     )
 
-    optimal_params = run_optimization(kge_dataset, model).study.best_params
+    optimal_params = run_optimization(
+        dataset=(training_factory, validation_factory, testing_factory),
+        model=model
+    ).study.best_params
 
-    best_model = run_pipeline(dataset=kge_dataset, model=model, optimal_params=optimal_params).model
+    best_model = run_pipeline(
+        dataset=(training_factory, validation_factory, testing_factory),
+        model=model,
+        optimal_params=optimal_params
+    ).model
 
     # Get the embedding as a numpy array
     embedding_values = _model_to_numpy(best_model)
@@ -115,8 +137,9 @@ def _model_to_numpy(
     return model.entity_embeddings.weight.detach().cpu().numpy()
 
 
-def run_optimization(dataset: DataSet, model: str):
+def run_optimization(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFactory], model: str):
     """Run HPO."""
+    training_factory, testing_factory, validation_factory = dataset
     # Define model
     model_kwargs = dict(
         automatic_memory_optimization=True
@@ -221,7 +244,10 @@ def run_optimization(dataset: DataSet, model: str):
 
     # Define HPO pipeline
     hpo_results = hpo_pipeline(
-        dataset=dataset,
+        dataset=None,
+        training_triples_factory=training_factory,
+        testing_triples_factory=testing_factory,
+        validation_triples_factory=validation_factory,
         model=model,
         model_kwargs=model_kwargs,
         model_kwargs_ranges=model_kwargs_ranges,
@@ -254,8 +280,9 @@ def run_optimization(dataset: DataSet, model: str):
     return hpo_results
 
 
-def run_pipeline(dataset: DataSet, model: str, optimal_params: dict):
+def run_pipeline(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFactory], model: str, optimal_params: dict):
     """Run Pipeline."""
+    training_factory, testing_factory, validation_factory = dataset
     # Define model
     model_kwargs = dict(
         automatic_memory_optimization=True,
@@ -314,7 +341,10 @@ def run_pipeline(dataset: DataSet, model: str, optimal_params: dict):
 
     # Define HPO pipeline
     pipeline_results = pipeline(
-        dataset=dataset,
+        dataset=None,
+        training_triples_factory=training_factory,
+        testing_triples_factory=testing_factory,
+        validation_triples_factory=validation_factory,
         model=model,
         model_kwargs=model_kwargs,
         loss=loss_function,
