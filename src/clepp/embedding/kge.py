@@ -46,15 +46,15 @@ def do_kge(
 
     create_inverse_triples = False  # In a second HPO configuration, this can be set to true
     training_factory = TriplesFactory(
-        path='/Users/mali/PycharmProjects/POEM_develop/data/daniel/train.tsv',
+        path=f'{out}/train.edgelist',
         create_inverse_triples=create_inverse_triples,
     )
     validation_factory = TriplesFactory(
-        path='/Users/mali/PycharmProjects/POEM_develop/data/daniel/validation.tsv',
+        path=f'{out}/validation.edgelist',
         create_inverse_triples=create_inverse_triples,
     )
     testing_factory = TriplesFactory(
-        path='/Users/mali/PycharmProjects/POEM_develop/data/daniel/test.tsv',
+        path=f'{out}/test.edgelist',
         create_inverse_triples=create_inverse_triples,
     )
 
