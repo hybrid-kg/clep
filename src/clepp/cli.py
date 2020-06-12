@@ -422,7 +422,7 @@ def generate_network(
         'UnstructuredModel'
     ]),
     required=False,
-    default='TransE',
+    default='RotatE',
     show_default=True,
 )
 @click.option(
@@ -446,7 +446,7 @@ def kge(
     design: str,
     out: str,
     all_nodes: Optional[bool] = False,
-    model: Optional[str] = 'TransE',
+    model: Optional[str] = 'RotatE',
     train_size: Optional[float] = 0.8,
     validation_size: Optional[float] = 0.1
 ) -> None:
