@@ -3,6 +3,7 @@
 """This module contains all the constants used in CLEPP package."""
 
 import os
+
 from scipy.stats import uniform, loguniform
 from skopt.space import Real, Categorical, Integer
 
@@ -42,7 +43,8 @@ def get_param_grid(model_name):
         param_grid = dict(C=c_values)
 
     elif model_name == 'elastic_net':
-        l1_ratios = [.1, .5, .7, .9, .95, .99, 1]
+        # Logistic regression with elastic net penalty & equal weightage to l1 and l2
+        l1_ratios = [0.1, 0.2, 0.3, .5, .7, .9, .95, .99, 1]
         c_values = [0.01, 0.1, 0.25, 0.5, 0.8, 0.9, 1, 10]
         param_grid = dict(l1_ratio=l1_ratios, C=c_values)
 
@@ -52,16 +54,19 @@ def get_param_grid(model_name):
         param_grid = dict(C=c_values, kernel=kernel)
 
     elif model_name == 'random_forest':
-        n_estimators = [100, 200, 500, 700]
+        n_estimators = [10, 20, 40, 50, 70, 100, 200, 400]  # default=100
         max_features = ["auto", "log2"]
         param_grid = dict(n_estimators=n_estimators, max_features=max_features)
 
     elif model_name == 'gradient_boost':
+
+        # parameters from https://www.analyticsvidhya.com/blog/2016/03/
+        # complete-guide-parameter-tuning-xgboost-with-codes-python/
         param_grid = {
-            'learning_rate': [0.01, 0.05, 0.1],
-            'subsample': [0.5, 0.6, 0.7, 0.8],
-            'max_depth': [6, 7, 8],
-            'min_child_weight': [1]
+            'learning_rate': [0.01, 0.05, 0.1],  # typical value is 1
+            'subsample': [0.5, 0.7, 0.8, 1],  # typical values | default is 1
+            'max_depth': [3, 6, 8, 10],  # Default is 6 we include a broader range
+            'min_child_weight': [1]  # Default
         }
 
     else:

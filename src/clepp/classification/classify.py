@@ -3,23 +3,22 @@
 """Wrap machine-learning classifiers for clepp."""
 
 import json
+import logging
 import sys
 from collections import defaultdict
 from typing import Dict, List, Any, Callable, Tuple
-import logging
 
 import click
-from sklearn.model_selection import StratifiedKFold
-from tqdm import tqdm
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from clepp import constants
 from sklearn import linear_model, svm, ensemble, model_selection, multiclass, metrics, preprocessing
 from sklearn.base import BaseEstimator
-from xgboost import XGBClassifier
+from sklearn.model_selection import StratifiedKFold
 from skopt import BayesSearchCV
-
-from clepp import constants
+from tqdm import tqdm
+from xgboost import XGBClassifier
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
@@ -54,6 +53,8 @@ def do_classification(
 
     """
     # Get classifier user arguments
+    # TODO: param_grid is not used (I think you use the one from constants.py) so you should remove the parameters
+    # TODO: you set in get_classifier out.
     model, param_grid, optimizer_cv = get_classifier(model_name, *args)
 
     # Separate embeddings from labels in data
@@ -267,7 +268,7 @@ def get_classifier(model_name: str, *args) -> Tuple[BaseEstimator, Dict[str, Lis
         # Logistic regression with elastic net penalty & equal weightage to l1 and l2
         model = linear_model.LogisticRegression(*args, penalty='elasticnet', solver='saga')
 
-        l1_ratios = [.1, .5, .7, .9, .95, .99, 1]
+        l1_ratios = [0.1, 0.2, 0.3, .5, .7, .9, .95, .99, 1]
         c_values = [0.01, 0.1, 0.25, 0.5, 0.8, 0.9, 1, 10]
         param_grid = dict(l1_ratio=l1_ratios, C=c_values)
 
@@ -280,18 +281,20 @@ def get_classifier(model_name: str, *args) -> Tuple[BaseEstimator, Dict[str, Lis
     elif model_name == 'random_forest':
         model = ensemble.RandomForestClassifier(*args)
 
-        n_estimators = [100, 200, 500, 700]
+        n_estimators = [10, 20, 40, 50, 70, 100, 200, 400]  # default=100
         max_features = ["auto", "log2"]
         param_grid = dict(n_estimators=n_estimators, max_features=max_features)
 
     elif model_name == 'gradient_boost':
         model = XGBClassifier(*args)
 
+        # parameters from https://www.analyticsvidhya.com/blog/2016/03/
+        # complete-guide-parameter-tuning-xgboost-with-codes-python/
         param_grid = {
-            'learning_rate': [0.01, 0.05, 0.1],
-            'subsample': [0.5, 0.6, 0.7, 0.8],
-            'max_depth': [6, 7, 8],
-            'min_child_weight': [1]
+            'learning_rate': [0.01, 0.05, 0.1],  # typical value is 1
+            'subsample': [0.5, 0.7, 0.8, 1],  # typical values | default is 1
+            'max_depth': [3, 6, 8, 10],  # Default is 6 we include a broader range
+            'min_child_weight': [1]  # Default
         }
 
     else:
