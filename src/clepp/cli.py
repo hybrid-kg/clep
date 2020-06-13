@@ -504,28 +504,6 @@ def kge(
     required=False,
     multiple=True,
 )
-@click.option(
-    '--title',
-    help="Title of the box plot (if not provided a title will be 'Boxplot')",
-    type=str,
-    required=False,
-    default='Boxplot',
-    show_default=False,
-)
-@click.option(
-    '--episodes',
-    help="Number of episodes the classification must run for repeatability test.",
-    type=int,
-    required=False,
-    default=20,
-    show_default=True,
-)
-@click.option(
-    '--randomize',
-    help="Randomize sample labels to test the stability of and effectiveness of the machine learning algorithm",
-    is_flag=True,
-    required=False,
-)
 def classify(
         data: str,
         out: str,
@@ -533,12 +511,8 @@ def classify(
         optimizer: str,
         cv: int,
         metrics: Union[List[str], None],
-        title: str,
-        episodes: int,
-        randomize: bool,
 ) -> None:
     """Perform machine-learning classification."""
-    assert episodes > 0
     warnings.filterwarnings("ignore", category=DeprecationWarning)  # Ignore deprecation warning from pandas and sklearn
     warnings.filterwarnings("ignore", category=UndefinedMetricWarning)  # Ignore f1 metric calculation warning
     warnings.filterwarnings("ignore", category=ConvergenceWarning)  # Ignore sklearn model convergence warning
@@ -548,13 +522,11 @@ def classify(
         metrics = ['roc_auc', 'accuracy', 'f1_micro', 'f1_macro', 'f1']
 
     click.echo(
-        f"Starting {model} classification with {data} and out-putting to results to {out}/cross_validation_results.json"
-        f" & the plot to {out}/boxplot.png"
-    )
+        f"Starting {model} classification with {data} and out-putting to results to {out}/cross_validation_results.json")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
 
-    results = do_classification(data_df, model, optimizer, out, cv, metrics, title, episodes, randomize)
+    results = do_classification(data_df, model, optimizer, out, cv, metrics)
 
     click.echo(f"Done with {model} classification")
 

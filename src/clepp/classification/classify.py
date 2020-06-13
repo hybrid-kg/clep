@@ -11,13 +11,11 @@ from typing import Dict, List, Any, Callable, Tuple
 import click
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from clepp import constants
 from sklearn import linear_model, svm, ensemble, model_selection, multiclass, metrics, preprocessing
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import StratifiedKFold
 from skopt import BayesSearchCV
-from tqdm import tqdm
 from xgboost import XGBClassifier
 
 logger = logging.getLogger(__name__)
@@ -32,9 +30,6 @@ def do_classification(
         out_dir: str,
         validation_cv: int,
         scoring_metrics: List[str],
-        title: str,
-        epochs: int = 20,
-        rand_labels: bool = False,
         *args
 ) -> Dict[str, Any]:
     """Perform classification on embeddings generated from previous step.
@@ -46,68 +41,50 @@ def do_classification(
     :param validation_cv: Number of cross validation steps
     :param scoring_metrics: Scoring metrics tested during cross validation
     :param title: Title of the Boxplot
-    :param epochs: Number of epochs for running the classification
-    :param rand_labels: Boolean variable to indicate if labels must be randomized to check for ML stability
     :arg args: Custom arguments to the estimator model
     :return Dictionary containing the cross validation results
 
     """
     # Get classifier user arguments
-    # TODO: param_grid is not used (I think you use the one from constants.py) so you should remove the parameters
-    # TODO: you set in get_classifier out.
-    model, param_grid, optimizer_cv = get_classifier(model_name, *args)
+    model, optimizer_cv = get_classifier(model_name, *args)
 
     # Separate embeddings from labels in data
     labels = data['label'].values
     data = data.drop(columns='label')
 
-    final_results = {}
+    if len(np.unique(labels)) > 2:
+        multi_roc_auc = metrics.make_scorer(multiclass_score_func, metric_func=metrics.roc_auc_score)
+        optimizerCV = get_optimizer(optimizer, model, model_name, optimizer_cv, multi_roc_auc)
+        optimizerCV.fit(data, labels)
 
-    # Carry out classification over multiple epochs.
-    for epoch in tqdm(range(epochs), desc='Training epoch #'):
+        # Run cross validation over the given model for multiclass classification
+        logger.debug("Doing multiclass classification")
+        cv_results = _do_multiclass_classification(
+            estimator=optimizerCV,
+            x=data,
+            y=labels,
+            cv=validation_cv,
+            scoring=scoring_metrics,
+            return_estimator=True,
+        )
+    else:
+        optimizerCV = get_optimizer(optimizer, model, model_name, optimizer_cv, 'roc_auc')
+        optimizerCV.fit(data, labels)
 
-        if rand_labels:
-            np.random.shuffle(labels)
+        # Run cross validation over the given model
+        logger.debug(f"Running binary cross validation")
+        cv_results = model_selection.cross_validate(
+            estimator=optimizerCV,
+            X=data,
+            y=labels,
+            cv=model_selection.StratifiedKFold(n_splits=validation_cv, shuffle=True),
+            scoring=scoring_metrics,
+            return_estimator=True,
+        )
 
-        logger.debug(f"Epoch {epoch}: ")
+    _save_json(results=cv_results, out_dir=out_dir)
 
-        if len(np.unique(labels)) > 2:
-            multi_roc_auc = metrics.make_scorer(multiclass_score_func, metric_func=metrics.roc_auc_score)
-            optimizerCV = get_optimizer(optimizer, model, model_name, optimizer_cv, multi_roc_auc)
-            optimizerCV.fit(data, labels)
-
-            # Run cross validation over the given model for multiclass classification
-            logger.debug("Doing multiclass classification")
-            cv_results = _do_multiclass_classification(
-                estimator=optimizerCV,
-                x=data,
-                y=labels,
-                cv=validation_cv,
-                scoring=scoring_metrics,
-                return_estimator=True,
-            )
-        else:
-            optimizerCV = get_optimizer(optimizer, model, model_name, optimizer_cv, 'roc_auc')
-            optimizerCV.fit(data, labels)
-
-            # Run cross validation over the given model
-            logger.debug(f"Running binary cross validation")
-            cv_results = model_selection.cross_validate(
-                estimator=optimizerCV,
-                X=data,
-                y=labels,
-                cv=model_selection.StratifiedKFold(n_splits=validation_cv, shuffle=True),
-                scoring=scoring_metrics,
-                return_estimator=True,
-            )
-
-        final_results[f'Epoch {epoch}'] = cv_results
-
-    _save_json(results=final_results, epochs=epochs, out_dir=out_dir)
-
-    _plot(results=final_results, epochs=epochs, title=title, out_dir=out_dir)
-
-    return final_results
+    return cv_results
 
 
 def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: pd.Series, cv: int, scoring: List[str],
@@ -254,55 +231,32 @@ def _multiclass_metric_evaluator(metric_func: Callable[..., float], n_classes: i
     return metric
 
 
-def get_classifier(model_name: str, *args) -> Tuple[BaseEstimator, Dict[str, List[float]], StratifiedKFold]:
+def get_classifier(model_name: str, *args) -> Tuple[BaseEstimator, StratifiedKFold]:
     """Retrieve the appropriate classifier from sci-kit learn based on the arguments."""
     cv = model_selection.StratifiedKFold(n_splits=10, shuffle=True)
 
     if model_name == 'logistic_regression':
         model = linear_model.LogisticRegression(*args, solver='lbfgs')
 
-        c_values = [0.01, 0.1, 0.25, 0.5, 0.8, 0.9, 1, 10]
-        param_grid = dict(C=c_values)
-
     elif model_name == 'elastic_net':
         # Logistic regression with elastic net penalty & equal weightage to l1 and l2
         model = linear_model.LogisticRegression(*args, penalty='elasticnet', solver='saga')
 
-        l1_ratios = [0.1, 0.2, 0.3, .5, .7, .9, .95, .99, 1]
-        c_values = [0.01, 0.1, 0.25, 0.5, 0.8, 0.9, 1, 10]
-        param_grid = dict(l1_ratio=l1_ratios, C=c_values)
-
     elif model_name == 'svm':
         model = svm.SVC(*args, gamma='scale')
-
-        c_values = [0.1, 1, 10, 100, 1000]
-        param_grid = dict(C=c_values)
 
     elif model_name == 'random_forest':
         model = ensemble.RandomForestClassifier(*args)
 
-        n_estimators = [10, 20, 40, 50, 70, 100, 200, 400]  # default=100
-        max_features = ["auto", "log2"]
-        param_grid = dict(n_estimators=n_estimators, max_features=max_features)
-
     elif model_name == 'gradient_boost':
         model = XGBClassifier(*args)
-
-        # parameters from https://www.analyticsvidhya.com/blog/2016/03/
-        # complete-guide-parameter-tuning-xgboost-with-codes-python/
-        param_grid = {
-            'learning_rate': [0.01, 0.05, 0.1],  # typical value is 1
-            'subsample': [0.5, 0.7, 0.8, 1],  # typical values | default is 1
-            'max_depth': [3, 6, 8, 10],  # Default is 6 we include a broader range
-            'min_child_weight': [1]  # Default
-        }
 
     else:
         raise ValueError(
             f'The entered model "{model_name}", was not found. Please check that you have chosen a valid model.'
         )
 
-    return model, param_grid, cv
+    return model, cv
 
 
 def get_optimizer(
@@ -346,61 +300,29 @@ def multiclass_score_func(y, y_pred, metric_func, **kwargs):
     return metric
 
 
-def _save_json(results: Dict[str, Any], epochs: int, out_dir: str) -> None:
+def _save_json(results: Dict[str, Any], out_dir: str) -> None:
     """Save the cross validation results as a json file."""
-    for epoch in range(epochs):
-        for key in results[f'Epoch {epoch}'].keys():
-            # Check if the result is a numpy array, if yes convert to list
-            if isinstance(results[f'Epoch {epoch}'][key], np.ndarray):
-                results[f'Epoch {epoch}'][key] = results[f'Epoch {epoch}'][key].tolist()
+    for key in results.keys():
+        # Check if the result is a numpy array, if yes convert to list
+        if isinstance(results[key], np.ndarray):
+            results[key] = results[key].tolist()
 
-            # Check if the results are numpy float values, if yes skip it
-            elif isinstance(results[f'Epoch {epoch}'][key][0], np.float):
-                continue
+        # Check if the results are numpy float values, if yes skip it
+        elif isinstance(results[key][0], np.float):
+            continue
 
-            elif isinstance(results[f'Epoch {epoch}'][key][0], list):
-                continue
+        elif isinstance(results[key][0], list):
+            continue
 
-            # Check if the key is an estimator and convert it into a JSON Serializable object.
-            # Also Check if it an estimator wrapper like OneVsRest classifier.
-            else:
-                results[f'Epoch {epoch}'][key] = [
-                    classifier.get_params()
-                    if 'estimator' not in classifier.get_params()
-                    else classifier.get_params()['estimator'].get_params()
-                    for classifier in results[f'Epoch {epoch}'][key]
-                ]
+        # Check if the key is an estimator and convert it into a JSON Serializable object.
+        # Also Check if it an estimator wrapper like OneVsRest classifier.
+        else:
+            results[key] = [
+                classifier.get_params()
+                if 'estimator' not in classifier.get_params()
+                else classifier.get_params()['estimator'].get_params()
+                for classifier in results[key]
+            ]
 
     with open(f'{out_dir}/cross_validation_results.json', 'w') as out:
         json.dump(results, out, indent=4)
-
-
-def _plot(results: Dict[str, Any], epochs: int, title: str, out_dir: str) -> None:
-    """Plot the cross validation results as a boxplot."""
-    non_metrics = ['estimator', 'fit_time', 'score_time']
-
-    scoring_metrics = [
-        metric
-        for metric in results[f'Epoch 0']
-        if metric not in non_metrics
-    ]
-
-    data = pd.DataFrame(columns=['epochs', 'metric', 'score'])
-    row = 0
-    for epoch in range(epochs):
-        for metric in scoring_metrics:
-            for value in list(results[f'Epoch {epoch}'][metric]):
-                data.at[row, 'epochs'] = epoch
-                data.at[row, 'metric'] = metric
-                data.at[row, 'score'] = value
-
-                row += 1
-
-    data = data.astype({'epochs': int, 'metric': str, 'score': float})
-
-    sns.set(font_scale=1.2, rc={'figure.figsize': (10, 8)})
-
-    sns_plot = sns.boxplot(x="epochs", y="score", hue="metric", data=data)
-    sns_plot.set(title=title)
-
-    sns_plot.figure.savefig(f'{out_dir}/result_plot.png')
