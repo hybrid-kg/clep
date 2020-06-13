@@ -60,13 +60,15 @@ def do_kge(
 
     optimal_params = run_optimization(
         dataset=(training_factory, validation_factory, testing_factory),
-        model=model
+        model=model,
+        out_dir=out
     ).study.best_params
 
     best_model = run_pipeline(
         dataset=(training_factory, validation_factory, testing_factory),
         model=model,
-        optimal_params=optimal_params
+        optimal_params=optimal_params,
+        out_dir=out
     ).model
 
     # Get the embedding as a numpy array
@@ -137,7 +139,7 @@ def _model_to_numpy(
     return model.entity_embeddings.weight.detach().cpu().numpy()
 
 
-def run_optimization(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFactory], model: str):
+def run_optimization(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFactory], model: str, out_dir: str):
     """Run HPO."""
     training_factory, testing_factory, validation_factory = dataset
     # Define model
@@ -277,10 +279,17 @@ def run_optimization(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFacto
         pruner=pruner,
     )
 
+    hpo_results.save_to_directory(f'{out_dir}/pykeen_results_optim')
+
     return hpo_results
 
 
-def run_pipeline(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFactory], model: str, optimal_params: dict):
+def run_pipeline(
+        dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFactory],
+        model: str,
+        optimal_params: dict,
+        out_dir: str
+):
     """Run Pipeline."""
     training_factory, testing_factory, validation_factory = dataset
     # Define model
@@ -362,5 +371,7 @@ def run_pipeline(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFactory],
         evaluator_kwargs=evaluator_kwargs,
         evaluation_kwargs=evaluation_kwargs,
     )
+
+    pipeline_results.save_to_directory(f'{out_dir}/pykeen_results_final')
 
     return pipeline_results
