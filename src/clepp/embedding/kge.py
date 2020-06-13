@@ -16,8 +16,8 @@ def do_kge(
     edgelist: pd.DataFrame,
     design: pd.DataFrame,
     out: str,
+    model: str,
     return_patients: Optional[bool] = True,
-    model: Optional[str] = 'RotatE',
     train_size: Optional[float] = 0.8,
     validation_size: Optional[float] = 0.1
 ):

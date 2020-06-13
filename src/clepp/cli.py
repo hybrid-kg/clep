@@ -421,9 +421,7 @@ def generate_network(
         'TuckER',
         'UnstructuredModel'
     ]),
-    required=False,
-    default='RotatE',
-    show_default=True,
+    required=True,
 )
 @click.option(
     '--train_size',
@@ -445,8 +443,8 @@ def kge(
     data: str,
     design: str,
     out: str,
+    model: str,
     all_nodes: Optional[bool] = False,
-    model: Optional[str] = 'RotatE',
     train_size: Optional[float] = 0.8,
     validation_size: Optional[float] = 0.1
 ) -> None:
