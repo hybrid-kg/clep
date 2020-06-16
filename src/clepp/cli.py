@@ -503,6 +503,12 @@ def kge(
     required=False,
     multiple=True,
 )
+@click.option(
+    '--randomize',
+    help="Randomize sample labels to test the stability of and effectiveness of the machine learning algorithm",
+    is_flag=True,
+    required=False,
+)
 def classify(
         data: str,
         out: str,
@@ -510,6 +516,7 @@ def classify(
         optimizer: str,
         cv: int,
         metrics: Union[List[str], None],
+        randomize: bool,
 ) -> None:
     """Perform machine-learning classification."""
     warnings.filterwarnings("ignore", category=DeprecationWarning)  # Ignore deprecation warning from pandas and sklearn
@@ -525,7 +532,7 @@ def classify(
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
 
-    results = do_classification(data_df, model, optimizer, out, cv, metrics)
+    _ = do_classification(data_df, model, optimizer, out, cv, metrics, randomize)
 
     click.echo(f"Done with {model} classification")
 

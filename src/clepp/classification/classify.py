@@ -30,6 +30,7 @@ def do_classification(
         out_dir: str,
         validation_cv: int,
         scoring_metrics: List[str],
+        rand_labels: bool,
         *args
 ) -> Dict[str, Any]:
     """Perform classification on embeddings generated from previous step.
@@ -40,7 +41,7 @@ def do_classification(
     :param out_dir: Path to the output directory
     :param validation_cv: Number of cross validation steps
     :param scoring_metrics: Scoring metrics tested during cross validation
-    :param title: Title of the Boxplot
+    :param rand_labels: Boolean variable to indicate if labels must be randomized to check for ML stability
     :arg args: Custom arguments to the estimator model
     :return Dictionary containing the cross validation results
 
@@ -51,6 +52,9 @@ def do_classification(
     # Separate embeddings from labels in data
     labels = data['label'].values
     data = data.drop(columns='label')
+
+    if rand_labels:
+        np.random.shuffle(labels)
 
     if len(np.unique(labels)) > 2:
         multi_roc_auc = metrics.make_scorer(multiclass_score_func, metric_func=metrics.roc_auc_score)
