@@ -372,6 +372,7 @@ def run_pipeline(
         evaluation_kwargs=evaluation_kwargs,
     )
 
-    pipeline_results.save_to_directory(f'{out_dir}/pykeen_results_final')
+    # TODO: Save replicates once pytorch fixes the issue #37703
+    pipeline_results.save_to_directory(f'{out_dir}/pykeen_results_final', save_replicates=False)
 
     return pipeline_results
