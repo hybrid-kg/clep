@@ -107,7 +107,6 @@ def limma(data: str, design: str, out: str, alpha: float, method: str, control: 
 @data_option
 @design_option
 @output_option
-@control_option
 @click.option(
     '--threshold',
     help="Threshold for choosing patients that are 'extreme' w.r.t. the controls.\nIf the z_score of a gene is "
@@ -117,7 +116,7 @@ def limma(data: str, design: str, out: str, alpha: float, method: str, control: 
     default=2.0,
     show_default=True,
 )
-def z_score(data: str, design: str, out: str, control: str, threshold: float) -> None:
+def z_score(data: str, design: str, out: str, threshold: float) -> None:
     """Perform Single Sample Z_Score based differential gene expression for all samples wrt the controls."""
     click.echo(
         f"Starting Z-Score Based Single Sample Scoring with {data} & {design} files and "
@@ -127,7 +126,7 @@ def z_score(data: str, design: str, out: str, control: str, threshold: float) ->
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     design_df = pd.read_csv(design, sep='\t', index_col=0)
 
-    output = do_z_score(data=data_df, design=design_df, control=control, threshold=threshold)
+    output = do_z_score(data=data_df, design=design_df, threshold=threshold)
     output.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
     click.echo(f"Done with Z-Score calculation for {data}")
