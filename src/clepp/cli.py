@@ -6,6 +6,7 @@ import json
 import logging
 from typing import List, Union, Optional
 import warnings
+import pickle
 
 import click
 import numpy as np
@@ -373,9 +374,12 @@ def generate_network(
         )
 
     if ret_summary:
-        graph_df, summary_data = graph_df
+        graph_df, summary_data, linked_genes = graph_df
 
         summary_data.to_csv(f'{out}/summary.tsv', sep='\t')
+
+        with open(f'{out}/linked_genes.pkl', 'wb') as pickle_file:
+            pickle.dump(linked_genes, pickle_file)
 
     graph_df.to_csv(f'{out}/weighted.edgelist', sep='\t', header=False, index=False)
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Ensemble of methods for network generation."""
-from typing import TextIO, Optional, Tuple, Union
+from typing import TextIO, Optional, Tuple, Union, Set
 
 import pandas as pd
 import networkx as nx
@@ -24,7 +24,7 @@ def do_graph_gen(
         folder_path: Optional[str] = None,
         jaccard_threshold: Optional[float] = 0.2,
         summary: bool = False,
-) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
+) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame, Set]]:
     information_graph = nx.DiGraph()
 
     if network_gen_method == 'pathway_overlap':
@@ -38,7 +38,7 @@ def do_graph_gen(
         information_graph = plot_interaction_net_overlap(folder_path, jaccard_threshold)
 
     if summary:
-        final_graph, summary_data = overlay_samples(data, information_graph, summary=True)
+        final_graph, summary_data, linked_genes = overlay_samples(data, information_graph, summary=True)
     else:
         final_graph = overlay_samples(data, information_graph, summary=False)
 
@@ -49,7 +49,7 @@ def do_graph_gen(
     graph_df = graph_df[['source', 'target', 'relation', 'label']]
 
     if summary:
-        return graph_df, summary_data
+        return graph_df, summary_data, linked_genes
     else:
         return graph_df
 
@@ -153,7 +153,7 @@ def overlay_samples(
         data: pd.DataFrame,
         information_graph: nx.DiGraph,
         summary: bool = False,
-) -> Union[nx.DiGraph, Tuple[nx.DiGraph, pd.DataFrame]]:
+) -> Union[nx.DiGraph, Tuple[nx.DiGraph, pd.DataFrame, Set]]:
     """Overlays the data on the information graph by adding edges between patients and information nodes if pairwise
     value is not 0."""
     patient_label_mapping = {patient: label for patient, label in zip(data.index, data['label'])}
@@ -165,11 +165,14 @@ def overlay_samples(
     values_data = data_copy.values
 
     summary_data = pd.DataFrame(0, index=data_copy.index, columns=["positive_relation", "negative_relation"])
+    linked_genes = set()
 
     for index, value_list in enumerate(tqdm(values_data, desc='Adding patients to the network: ')):
         for column, value in enumerate(value_list):
             patient = data_copy.index[index]
             gene = data_copy.columns[column]
+
+            linked_genes.add(gene)
 
             if value == 0:
                 continue
@@ -179,7 +182,7 @@ def overlay_samples(
                 summary_data.at[patient, VALUE_TO_COLNAME[value]] += 1
 
     if summary:
-        return overlay_graph, summary_data
+        return overlay_graph, summary_data, linked_genes
     else:
         return overlay_graph
 
