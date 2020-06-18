@@ -175,10 +175,11 @@ def overlay_samples(
             if value == 0:
                 continue
             if gene in information_graph.nodes:
-                overlay_graph.add_edge(patient, gene, relation=value_mapping[value], label=patient_label_mapping[patient])
+                linked_genes.add(gene)
+                overlay_graph.add_edge(patient, gene, relation=value_mapping[value],
+                                       label=patient_label_mapping[patient])
             if summary:
                 summary_data.at[patient, VALUE_TO_COLNAME[value]] += 1
-                linked_genes.add(gene)
 
     if summary:
         return overlay_graph, summary_data, linked_genes
