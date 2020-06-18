@@ -6,9 +6,9 @@ from typing import Callable, Optional, List
 
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
 from scipy.interpolate import interp1d
 from statsmodels.distributions.empirical_distribution import ECDF
+from tqdm import tqdm
 
 
 def do_radical_search(

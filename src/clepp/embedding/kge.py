@@ -1,25 +1,24 @@
 # -*- coding: utf-8 -*-
 
 """Embed patients with the biomedical entities (genes and metabolites) using Knowledge graph embedding."""
+from typing import Tuple, Optional
+
+import numpy as np
+import pandas as pd
 from pykeen.hpo.hpo import hpo_pipeline
+from pykeen.models.base import Model
 from pykeen.pipeline import pipeline
 from pykeen.triples import TriplesFactory
-# from pykeen.datasets import DataSet
-from pykeen.models.base import Model
-import pandas as pd
-import numpy as np
-
-from typing import Tuple, Optional
 
 
 def do_kge(
-    edgelist: pd.DataFrame,
-    design: pd.DataFrame,
-    out: str,
-    model: str,
-    return_patients: Optional[bool] = True,
-    train_size: Optional[float] = 0.8,
-    validation_size: Optional[float] = 0.1
+        edgelist: pd.DataFrame,
+        design: pd.DataFrame,
+        out: str,
+        model: str,
+        return_patients: Optional[bool] = True,
+        train_size: Optional[float] = 0.8,
+        validation_size: Optional[float] = 0.1
 ):
     unique_nodes = edgelist[~edgelist['label'].isna()].drop_duplicates('source')
 

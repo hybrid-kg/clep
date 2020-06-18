@@ -4,9 +4,9 @@
 
 import json
 import logging
-from typing import List, Union, Optional
-import warnings
 import pickle
+import warnings
+from typing import List, Union, Optional
 
 import click
 import numpy as np
