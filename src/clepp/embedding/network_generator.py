@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 
 """Ensemble of methods for network generation."""
-from typing import TextIO, Optional, Tuple, Union, Set
-
-import pandas as pd
-import networkx as nx
-import matplotlib.pyplot as plt
-from tqdm import tqdm
 from itertools import combinations
 from os import listdir
 from os.path import isfile, join
-# from igraph import plot
+from typing import TextIO, Optional, Tuple, Union, Set
 
+import matplotlib.pyplot as plt
+import networkx as nx
+import pandas as pd
 from clepp.constants import VALUE_TO_COLNAME
+from tqdm import tqdm
 
 
 def do_graph_gen(
@@ -196,7 +194,7 @@ def show_graph(graph: nx.DiGraph):
         node[0]
         for node in graph.nodes(data='color') if node[1] is not None
     ]
-    nx.draw_networkx_nodes(graph, pos, nodelist=info_nodes,  node_color='b', **options)
+    nx.draw_networkx_nodes(graph, pos, nodelist=info_nodes, node_color='b', **options)
 
     data_nodes = [
         node[0]
