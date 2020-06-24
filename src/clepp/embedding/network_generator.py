@@ -5,6 +5,7 @@ from itertools import combinations
 from os import listdir
 from os.path import isfile, join
 from typing import TextIO, Optional, Tuple, Union, Set
+import warnings
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -30,6 +31,19 @@ def do_graph_gen(
             information_graph = plot_pathway_overlap(geneset, intersection_threshold)
 
     elif network_gen_method == 'interaction_network':
+        interaction_graph = nx.from_pandas_edgelist(
+            df=kg_data,
+            source=kg_data.columns[0],
+            target=kg_data.columns[2],
+            edge_attr=kg_data.columns[1]
+        )
+
+        if nx.number_connected_components(interaction_graph) > 1:
+            warnings.warn(f'The number of connected components in the graph is greater than 1. '
+                          f'There are {nx.number_connected_components(interaction_graph)} connected components of size'
+                          f', {[len(c) for c in sorted(nx.connected_components(interaction_graph), key=len, reverse = True)]}'
+                          f' respectively.')
+
         information_graph = plot_interaction_network(kg_data)
 
     elif network_gen_method == 'interaction_network_overlap':
@@ -82,15 +96,14 @@ def plot_interaction_network(
         kg_data: pd.DataFrame
 ) -> nx.DiGraph:
     """Plots a knowledge graph based on the interaction data."""
-    interaction_graph = nx.DiGraph()
-
     # Append the source to target mapping to the main data edgelist
-    for idx in tqdm(kg_data.index, desc='Plotting interaction network: '):
-        interaction_graph.add_edge(
-            str(kg_data.iat[idx, 0]),
-            str(kg_data.iat[idx, 2]),
-            relation=str(kg_data.iat[idx, 1])
-        )
+    interaction_graph = nx.from_pandas_edgelist(
+        df=kg_data,
+        source=kg_data.columns[0],
+        target=kg_data.columns[2],
+        edge_attr=kg_data.columns[1],
+        create_using=nx.DiGraph
+    )
 
     return interaction_graph
 
