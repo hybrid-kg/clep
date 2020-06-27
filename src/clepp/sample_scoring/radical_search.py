@@ -12,21 +12,19 @@ from tqdm import tqdm
 
 
 def do_radical_search(
-        data: pd.DataFrame,
-        design: pd.DataFrame,
-        control: str = 'Control',
-        threshold: float = 2.5,
+    data: pd.DataFrame,
+    design: pd.DataFrame,
+    threshold: float = 2.5,
 ) -> pd.DataFrame:
     """Finds the samples with extreme feature values based on the control population.
 
     :param data: Dataframe containing the gene expression values
     :param design: Dataframe containing the design table for the data
-    :param control: label used for representing the control in the design table of the data
     :param threshold: Threshold for choosing patients that are "extreme" w.r.t. the controls.
     :return Dataframe containing the Single Sample scores using radical searching
     """
     # Transpose matrix to get the patients as the rows
-    data_copy = data.transpose()
+    data_transpose = data.transpose()
 
     # Give each label an integer to represent the labels during classification
     label_mapping = {
@@ -35,24 +33,40 @@ def do_radical_search(
     }
 
     # Make sure the number of rows of transposed data and design are equal
-    assert len(data_copy) == len(design)
-
-    # Separate the dataset into controls and samples
-    controls = data_copy[list(design.Target == control)]
+    assert len(data_transpose) == len(design), 'Data doesnt match the design matrix'
 
     # Calculate the empirical cdf for every gene and get the cdf score for the data
-    control_ecdf = controls.apply(_ECDF, step=False, extrapolate=True).values
-    cdf_score = _apply_func(data_copy, control_ecdf).fillna(0)
+    feature_to_ecdf = {
+        feature: _get_ecdf(data_transpose[feature])
+        for feature in data_transpose
+        if len(data_transpose[feature].unique()) > 1  # Check not all values are the same
+    }
 
-    # Create a dataframe initialized with 0's
-    output_df = pd.DataFrame(0, index=data_copy.index, columns=data_copy.columns)
+    # Create a dataframe initialized with 0's [patients x features]
+    output_df = pd.DataFrame(0, index=data_transpose.index, columns=data_transpose.columns)
 
     # Values that are greater than the threshold or lesser than negative threshold are considered as extremes.
     upper_thresh = 1 - (threshold / 100)
     lower_thresh = (threshold / 100)
 
-    output_df = pd.DataFrame(np.where(cdf_score.values > upper_thresh, 1, output_df.values))
-    output_df = pd.DataFrame(np.where(cdf_score.values < lower_thresh, -1, output_df.values))
+    # Iterate over patients and check if any of its features is significant
+    for patient_index, features in data_transpose.iterrows():
+
+        # Iterate over patient features
+        for feature, value in features.items():
+
+            # Skip if feature has no calculated eCDF
+            if feature not in feature_to_ecdf:
+                continue
+
+            # Calculate position of the patient in the distribution of the feature
+            patient_position_in_distribution = float(feature_to_ecdf[feature]([value])[0])
+
+            if patient_position_in_distribution <= lower_thresh:
+                output_df[feature][patient_index] = -1
+
+            if patient_position_in_distribution > upper_thresh:
+                output_df[feature][patient_index] = 1
 
     output_df.columns = data.index
     output_df.index = data.columns
@@ -63,14 +77,19 @@ def do_radical_search(
 
     output_df['label'] = label.values
 
+    output_df.to_csv('output.csv')
+
+    # TODO: @Vinay Summary of edges created for each feature
+    # [feature, total +1, total -1]
+
     return output_df
 
 
-def _ECDF(
-        obs: np.array,
-        side: Optional[str] = 'right',
-        step: Optional[bool] = True,
-        extrapolate: Optional[bool] = False
+def _get_ecdf(
+    obs: np.array,
+    side: Optional[str] = 'right',
+    step: Optional[bool] = True,
+    extrapolate: Optional[bool] = False
 ) -> Callable:
     """Calculate the Empirical CDF of an array and return it as a function.
 
@@ -82,7 +101,6 @@ def _ECDF(
     :param extrapolate: Boolean value to indicate if the continuous must be based on extrapolation
     :return: Empirical CDF as a function
     """
-
     if step:
         return ECDF(x=obs, side=side)
     else:
@@ -100,8 +118,8 @@ def _ECDF(
 
 
 def _apply_func(
-        df: pd.DataFrame,
-        func_list: List[Callable]
+    df: pd.DataFrame,
+    func_list: List[Callable]
 ) -> pd.DataFrame:
     """Apply functions from the list (in order) on the respective column.
 
