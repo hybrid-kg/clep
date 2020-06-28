@@ -5,13 +5,15 @@ from itertools import combinations
 from os import listdir
 from os.path import isfile, join
 from typing import TextIO, Optional, Tuple, Union, Set
-import warnings
+import logging
 
 import matplotlib.pyplot as plt
 import networkx as nx
 import pandas as pd
 from clepp.constants import VALUE_TO_COLNAME
 from tqdm import tqdm
+
+logger = logging.getLogger(__name__)
 
 
 def do_graph_gen(
@@ -39,10 +41,10 @@ def do_graph_gen(
         )
 
         if nx.number_connected_components(interaction_graph) > 1:
-            warnings.warn(f'The number of connected components in the graph is greater than 1. '
-                          f'There are {nx.number_connected_components(interaction_graph)} connected components of size'
-                          f', {[len(c) for c in sorted(nx.connected_components(interaction_graph), key=len, reverse = True)]}'
-                          f' respectively.')
+            logger.warning(f'The number of connected components in the graph is greater than 1. '
+                           f'There are {nx.number_connected_components(interaction_graph)} connected components of size'
+                           f', {[len(c) for c in sorted(nx.connected_components(interaction_graph), key=len, reverse=True)]}'
+                           f' respectively.')
 
         information_graph = plot_interaction_network(kg_data)
 
