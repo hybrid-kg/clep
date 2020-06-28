@@ -205,7 +205,7 @@ def radical_search(data: str, design: str, out: str, threshold: float, ret_summa
     output.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
     if ret_summary:
-        output.to_csv(f'{out}/radical_summary.tsv', sep='\t')
+        summary.to_csv(f'{out}/radical_summary.tsv', sep='\t')
 
     click.echo(f"Done with Radical-Score calculation for {data}")
 
