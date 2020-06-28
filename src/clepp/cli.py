@@ -171,7 +171,6 @@ def ssgsea(data: str, design: str, out: str, gs: str) -> None:
 @data_option
 @design_option
 @output_option
-@control_option
 @click.option(
     '--threshold',
     help="Percentage of samples considered as 'extreme' on either side of the distribution",
@@ -187,7 +186,7 @@ def ssgsea(data: str, design: str, out: str, gs: str) -> None:
     is_flag=True,
     show_default=True,
 )
-def radical_search(data: str, design: str, out: str, control: str, threshold: float, ret_summary: bool) -> None:
+def radical_search(data: str, design: str, out: str, threshold: float, ret_summary: bool) -> None:
     """Search for samples that are extremes as compared to the samples."""
 
     assert 0 < threshold <= 100
@@ -202,7 +201,7 @@ def radical_search(data: str, design: str, out: str, control: str, threshold: fl
 
     data_df.fillna(0, inplace=True)
 
-    output, summary = do_radical_search(data=data_df, design=design_df, control=control, threshold=threshold)
+    output, summary = do_radical_search(data=data_df, design=design_df, threshold=threshold)
     output.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
     if ret_summary:
