@@ -2,7 +2,7 @@
 
 """Carry out Radical search to identify extreme samples in the dataset and give them a single sample score."""
 
-from typing import Callable, Optional, List
+from typing import Callable, Optional, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -15,7 +15,7 @@ def do_radical_search(
     data: pd.DataFrame,
     design: pd.DataFrame,
     threshold: float = 2.5,
-) -> pd.DataFrame:
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Finds the samples with extreme feature values based on the control population.
 
     :param data: Dataframe containing the gene expression values
