@@ -180,7 +180,14 @@ def ssgsea(data: str, design: str, out: str, gs: str) -> None:
     default=2.5,
     show_default=True,
 )
-def radical_search(data: str, design: str, out: str, control: str, threshold: float) -> None:
+@click.option(
+    '-rs',
+    '--ret_summary',
+    help="Flag to indicate if the edge summary for patients must be created.",
+    is_flag=True,
+    show_default=True,
+)
+def radical_search(data: str, design: str, out: str, control: str, threshold: float, ret_summary: bool) -> None:
     """Search for samples that are extremes as compared to the samples."""
 
     assert 0 < threshold <= 100
@@ -195,8 +202,11 @@ def radical_search(data: str, design: str, out: str, control: str, threshold: fl
 
     data_df.fillna(0, inplace=True)
 
-    output = do_radical_search(data=data_df, design=design_df, control=control, threshold=threshold)
+    output, summary = do_radical_search(data=data_df, design=design_df, control=control, threshold=threshold)
     output.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
+
+    if ret_summary:
+        output.to_csv(f'{out}/radical_summary.tsv', sep='\t')
 
     click.echo(f"Done with Radical-Score calculation for {data}")
 

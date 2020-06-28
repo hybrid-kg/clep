@@ -71,18 +71,15 @@ def do_radical_search(
     output_df.columns = data.index
     output_df.index = data.columns
 
+    summary_df = output_df.apply(pd.Series.value_counts)
+
     # Add labels to the data samples
     label = design['Target'].map(label_mapping)
     label.reset_index(drop=True, inplace=True)
 
     output_df['label'] = label.values
 
-    output_df.to_csv('output.csv')
-
-    # TODO: @Vinay Summary of edges created for each feature
-    # [feature, total +1, total -1]
-
-    return output_df
+    return output_df, summary_df
 
 
 def _get_ecdf(
