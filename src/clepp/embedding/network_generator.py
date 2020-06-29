@@ -195,6 +195,11 @@ def overlay_samples(
                 summary_data.at[patient, VALUE_TO_COLNAME[value]] += 1
 
     if summary:
+        non_conn_pats = summary_data[(summary_data['positive_relation'] == 0) & (summary_data['negative_relation'] == 0)]
+
+        if len(non_conn_pats) > 0:
+            logger.warning(f'{len(non_conn_pats)} samples is/are not connected to any genes.')
+
         return overlay_graph, summary_data, linked_genes
     else:
         return overlay_graph
