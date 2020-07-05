@@ -98,14 +98,15 @@ def plot_interaction_network(
         kg_data: pd.DataFrame
 ) -> nx.DiGraph:
     """Plots a knowledge graph based on the interaction data."""
+    interaction_graph = nx.DiGraph()
+
     # Append the source to target mapping to the main data edgelist
-    interaction_graph = nx.from_pandas_edgelist(
-        df=kg_data,
-        source=kg_data.columns[0],
-        target=kg_data.columns[2],
-        edge_attr=kg_data.columns[1],
-        create_using=nx.DiGraph
-    )
+    for idx in tqdm(kg_data.index, desc='Plotting interaction network: '):
+        interaction_graph.add_edge(
+            str(kg_data.iat[idx, 0]),
+            str(kg_data.iat[idx, 2]),
+            relation=str(kg_data.iat[idx, 1])
+        )
 
     return interaction_graph
 
