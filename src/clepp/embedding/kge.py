@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Embed patients with the biomedical entities (genes and metabolites) using Knowledge graph embedding."""
+import os
 from typing import Tuple, Optional
 
 import numpy as np
@@ -36,12 +37,6 @@ def do_kge(
     train.to_csv(f'{out}/train.edgelist', sep='\t', index=False, header=False)
     validation.to_csv(f'{out}/validation.edgelist', sep='\t', index=False, header=False)
     test.to_csv(f'{out}/test.edgelist', sep='\t', index=False, header=False)
-
-    # kge_dataset = DataSet(
-    #     training_path=f'{out}/train.edgelist',
-    #     validation_path=f'{out}/validation.edgelist',
-    #     testing_path=f'{out}/test.edgelist'
-    # )
 
     create_inverse_triples = False  # In a second HPO configuration, this can be set to true
     training_factory = TriplesFactory(
@@ -278,7 +273,11 @@ def run_optimization(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFacto
         pruner=pruner,
     )
 
-    hpo_results.save_to_directory(f'{out_dir}/pykeen_results_optim')
+    optimization_dir = os.path.join(out_dir, 'pykeen_results_optim')
+    if not os.path.isdir(optimization_dir):
+        os.makedirs(optimization_dir)
+
+    hpo_results.save_to_directory(optimization_dir)
 
     return hpo_results
 
@@ -371,7 +370,11 @@ def run_pipeline(
         evaluation_kwargs=evaluation_kwargs,
     )
 
+    best_pipeline_dir = os.path.join(out_dir, 'pykeen_results_final')
+    if not os.path.isdir(best_pipeline_dir):
+        os.makedirs(best_pipeline_dir)
+
     # TODO: Save replicates once pytorch fixes the issue #37703
-    pipeline_results.save_to_directory(f'{out_dir}/pykeen_results_final', save_replicates=False)
+    pipeline_results.save_to_directory(best_pipeline_dir, save_replicates=False)
 
     return pipeline_results
