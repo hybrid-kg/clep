@@ -432,6 +432,7 @@ def kge(
     validation_size: Optional[float] = 0.1
 ) -> None:
     """Perform knowledge graph embedding."""
+    click.echo(f"Running {model} based KGE on {data} & outputting it to {out}")
     edgelist_df = pd.read_csv(data, sep='\t', index_col=None, header=None)
     design_df = pd.read_csv(design, sep='\t')
 
@@ -449,6 +450,7 @@ def kge(
     )
 
     embedding_df.to_csv(f'{out}/embedding.tsv', sep='\t')
+    click.echo(f"Finished running {model} based KGE")
 
 
 @main.command()
