@@ -18,8 +18,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)  # Ignore future warni
 
 from clepp.classification import do_classification
 from clepp.embedding import (
-    do_nrl, do_ss_evaluation,
-    do_graph_gen, do_kge)
+    do_ss_evaluation, do_graph_gen, do_kge)
 from clepp.sample_scoring import (
     do_limma, do_z_score, do_ssgsea, do_radical_search
 )
@@ -247,35 +246,6 @@ def evaluate(data: str, label: str) -> None:
     click.echo('===============Evaluation Results===============')
     click.echo(json.dumps(result, indent=4, sort_keys=True).replace('{', ' ').replace('}', ' '))
     click.echo('================================================')
-
-
-@embedding.command()
-@data_option
-@click.option(
-    '--kg',
-    help="Path to the Knowledge Graph file in tsv format",
-    type=click.Path(file_okay=True, dir_okay=False, exists=True),
-    required=True,
-)
-@output_option
-@click.option(
-    '--method',
-    help='The NRL method to train the model',
-    type=click.Choice(['DeepWalk', 'node2vec', 'LINE']),
-    required=True,
-)
-def nrl(data: str, kg: str, out: str, method: str) -> None:
-    """Perform network representation learning."""
-    click.echo(f"Starting {method} based NRL with {data} & {kg} and outputting it to {out}")
-
-    data_df = pd.read_csv(data, sep='\t')
-    data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
-
-    kg_data_df = pd.read_csv(kg, sep='\t')
-
-    do_nrl(data_df, kg_data_df, out, method)
-
-    click.echo(f"Done with NRL")
 
 
 @embedding.command()
