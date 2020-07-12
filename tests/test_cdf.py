@@ -6,7 +6,6 @@ import os
 import unittest
 
 import pandas as pd
-
 from clepp.sample_scoring.radical_search import do_radical_search
 
 TEST_FOLDER = os.path.dirname(os.path.realpath(__file__))
