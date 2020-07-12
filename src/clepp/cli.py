@@ -188,7 +188,7 @@ def ssgsea(data: str, design: str, out: str, gs: str) -> None:
     show_default=True,
 )
 @click.option(
-    '-cb'
+    '-cb',
     '--control_based',
     help="Run Radical Searching where the scoring is based on the control population instead of entire dataset",
     is_flag=True,
