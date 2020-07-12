@@ -171,6 +171,7 @@ def ssgsea(data: str, design: str, out: str, gs: str) -> None:
 @data_option
 @design_option
 @output_option
+@control_option
 @click.option(
     '--threshold',
     help="Percentage of samples considered as 'extreme' on either side of the distribution",
@@ -186,7 +187,22 @@ def ssgsea(data: str, design: str, out: str, gs: str) -> None:
     is_flag=True,
     show_default=True,
 )
-def radical_search(data: str, design: str, out: str, threshold: float, ret_summary: bool) -> None:
+@click.option(
+    '-cb'
+    '--control_based',
+    help="Run Radical Searching where the scoring is based on the control population instead of entire dataset",
+    is_flag=True,
+    required=False,
+)
+def radical_search(
+        data: str,
+        design: str,
+        out: str,
+        control: str,
+        threshold: float,
+        ret_summary: bool,
+        control_based: bool
+) -> None:
     """Search for samples that are extremes as compared to the samples."""
 
     assert 0 < threshold <= 100
@@ -201,7 +217,13 @@ def radical_search(data: str, design: str, out: str, threshold: float, ret_summa
 
     data_df.fillna(0, inplace=True)
 
-    output, summary = do_radical_search(data=data_df, design=design_df, threshold=threshold)
+    output, summary = do_radical_search(
+        data=data_df,
+        design=design_df,
+        threshold=threshold,
+        control=control,
+        control_based=control_based
+    )
     output.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
     if ret_summary:
@@ -423,13 +445,13 @@ def generate_network(
     show_default=True,
 )
 def kge(
-    data: str,
-    design: str,
-    out: str,
-    model: str,
-    all_nodes: Optional[bool] = False,
-    train_size: Optional[float] = 0.8,
-    validation_size: Optional[float] = 0.1
+        data: str,
+        design: str,
+        out: str,
+        model: str,
+        all_nodes: Optional[bool] = False,
+        train_size: Optional[float] = 0.8,
+        validation_size: Optional[float] = 0.1
 ) -> None:
     """Perform knowledge graph embedding."""
     click.echo(f"Running {model} based KGE on {data} & outputting it to {out}")
@@ -505,10 +527,12 @@ def classify(
         randomize: bool,
 ) -> None:
     """Perform machine-learning classification."""
-    warnings.filterwarnings("ignore", category=DeprecationWarning)  # Ignore deprecation warning from pandas and sklearn
+    warnings.filterwarnings("ignore",
+                            category=DeprecationWarning)  # Ignore deprecation warning from pandas and sklearn
     warnings.filterwarnings("ignore", category=UndefinedMetricWarning)  # Ignore f1 metric calculation warning
     warnings.filterwarnings("ignore", category=ConvergenceWarning)  # Ignore sklearn model convergence warning
-    warnings.filterwarnings("ignore", message='The objective has been evaluated at this point before.')  # Ignore bayesian search warning
+    warnings.filterwarnings("ignore",
+                            message='The objective has been evaluated at this point before.')  # Ignore bayesian search warning
 
     if not metrics:
         metrics = ['roc_auc', 'accuracy', 'f1_micro', 'f1_macro', 'f1']
