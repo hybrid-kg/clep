@@ -374,7 +374,6 @@ def run_pipeline(
     if not os.path.isdir(best_pipeline_dir):
         os.makedirs(best_pipeline_dir)
 
-    # TODO: Save replicates once pytorch fixes the issue #37703
-    pipeline_results.save_to_directory(best_pipeline_dir, save_replicates=False)
+    pipeline_results.save_to_directory(best_pipeline_dir, save_replicates=True)
 
     return pipeline_results
