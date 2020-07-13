@@ -7,6 +7,9 @@ stages:
   - lint
   - docs
   - test
+env:
+  global:
+    - RPY2_CFFI_MODE=ABI
 jobs:
   include:
     # lint stage
