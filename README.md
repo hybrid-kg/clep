@@ -54,26 +54,26 @@ The following commands can be used directly use from your terminal:
 1. **Radical Searching**
 The following command finds the extreme samples with extreme feature values based on the control population.
 
-.. code-block:: sh
 
-    $ python3 -m clepp sample-scoring radical-search --data <DATA_FILE> --design <DESIGN_FILE> --out <OUTPUT_DIR>
+```
+$ python3 -m clepp sample-scoring radical-search --data <DATA_FILE> --design <DESIGN_FILE> --out <OUTPUT_DIR>
+```
 
 2. **Graph Generation**
 The following command generates the patient-gene network based on the method chosen (pathway_overlap
 , Interaction_network, Interaction_Network_Overlap).
 
-.. code-block:: sh
-
-    $ python3 -m clepp embedding generate-network --data <PROCESSED_DATA_FILE> --method [pathway_overlap
-    |interaction_network|interaction_network_overlap] --out <OUTPUT_DIR>
+```
+$ python3 -m clepp embedding generate-network --data <PROCESSED_DATA_FILE> --method [pathway_overlap|interaction_network|interaction_network_overlap] --out <OUTPUT_DIR>
+```
 
 
 3. **Knowledge Graph Embedding**
 The following command generates the embedding of the network passed to it.
 
-.. code-block:: sh
-
-    $ python3 -m clepp embedding --data <NETWORK_FILE> --design <DESIGN_FILE> --model <PYKEEN_MODEL> --out <OUTPUT_DIR>
+```
+$ python3 -m clepp embedding --data <NETWORK_FILE> --design <DESIGN_FILE> --model <PYKEEN_MODEL> --out <OUTPUT_DIR>
+```
 
 
 Formats for Data and Design Matrices:
