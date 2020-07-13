@@ -38,6 +38,7 @@ def get_data_dir() -> str:
 
 
 def get_param_grid(model_name):
+    """Get the parameter grid for each machine learning model for grid search."""
     if model_name == 'logistic_regression':
         c_values = [0.01, 0.1, 0.25, 0.5, 0.8, 0.9, 1, 10]
         param_grid = dict(C=c_values)
@@ -78,6 +79,7 @@ def get_param_grid(model_name):
 
 
 def get_param_dist(model_name):
+    """Get the parameter distribution for each machine learning model for random search."""
     if model_name == 'logistic_regression':
         param_dist = dict(C=loguniform(1e-6, 1e+6))
 
@@ -109,6 +111,7 @@ def get_param_dist(model_name):
 
 
 def get_param_space(model_name):
+    """Get the parameter space for each machine learning model for bayesian search."""
     if model_name == 'logistic_regression':
         param_space = dict(C=Real(1e-6, 1e+6, prior='log-uniform'))
 

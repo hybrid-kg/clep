@@ -7,11 +7,11 @@ from os.path import isfile, join
 from typing import TextIO, Optional, Tuple, Union, Set
 import logging
 
-import matplotlib.pyplot as plt
 import networkx as nx
 import pandas as pd
-from clepp.constants import VALUE_TO_COLNAME
 from tqdm import tqdm
+
+from clepp.constants import VALUE_TO_COLNAME
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +26,18 @@ def do_graph_gen(
         jaccard_threshold: Optional[float] = 0.2,
         summary: bool = False,
 ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame, Set]]:
+    """Generate patient-feature network given the data using a certain network generation method.
+
+    :param data: Dataframe containing the patient-feature scores
+    :param network_gen_method: Method to generate the patient-feature network
+    :param gmt: Optional field for the path to the gmt file containing the pathway data
+    :param intersection_threshold: Threshold to make edges in Pathway Overlap method
+    :param kg_data: Optional field for the knowledge graph in edgelist format stored in a pandas dataframe
+    :param folder_path: Optional field for the path to a folder containing multiple knowledge graphs
+    :param jaccard_threshold: Threshold to make edges in Interaction Network Overlap method
+    :param summary: Flag to indicate if the summary of the patient-feature network must be returned
+    :return Dataframe containing patient-feature network, and optionally the summary of the patient-feature network
+    """
     information_graph = nx.DiGraph()
 
     if network_gen_method == 'pathway_overlap':
@@ -72,7 +84,7 @@ def plot_pathway_overlap(
         geneset: TextIO,
         intersection_threshold: float = 0.1
 ) -> nx.DiGraph:
-    """Plots the overlap/intersection between pathways as a graph based on shared genes."""
+    """Plot the overlap/intersection between pathways as a graph based on shared genes."""
     pathway_dict = {
         line.strip().split("\t")[0]: line.strip().split("\t")[2:]
         for line in geneset.readlines()
@@ -97,7 +109,7 @@ def plot_pathway_overlap(
 def plot_interaction_network(
         kg_data: pd.DataFrame
 ) -> nx.DiGraph:
-    """Plots a knowledge graph based on the interaction data."""
+    """Plot a knowledge graph based on the interaction data."""
     interaction_graph = nx.DiGraph()
 
     # Append the source to target mapping to the main data edgelist
@@ -115,7 +127,7 @@ def plot_interaction_net_overlap(
         folder_path: str,
         jaccard_threshold: float = 0.2
 ) -> nx.DiGraph:
-    """Plots the overlap/intersection between interaction networks as a graph based on shared nodes."""
+    """Plot the overlap/intersection between interaction networks as a graph based on shared nodes."""
     graphs = []
     files = [
         f
@@ -146,7 +158,7 @@ def _get_jaccard_index(
         graph_1: nx.DiGraph,
         graph_2: nx.DiGraph
 ) -> float:
-    """Calculates the jaccard index between 2 graphs based on pairwise (edges) jaccard index."""
+    """Calculate the jaccard index between 2 graphs based on pairwise (edges) jaccard index."""
     j = 0
     iterations = 0
     for v in graph_1:
@@ -168,8 +180,7 @@ def overlay_samples(
         information_graph: nx.DiGraph,
         summary: bool = False,
 ) -> Union[nx.DiGraph, Tuple[nx.DiGraph, pd.DataFrame, Set]]:
-    """Overlays the data on the information graph by adding edges between patients and information nodes if pairwise
-    value is not 0."""
+    """Overlay the data onto the information graph by adding edges between patients and information nodes."""
     patient_label_mapping = {patient: label for patient, label in zip(data.index, data['label'])}
     value_mapping = {0: 'no_change', 1: 'up_reg', -1: 'down_reg'}
 
@@ -204,35 +215,3 @@ def overlay_samples(
         return overlay_graph, summary_data, linked_genes
     else:
         return overlay_graph
-
-
-def show_graph(graph: nx.DiGraph):
-    options = {'font_color': 'g', 'font_size': 17, 'font_weight': 'bold'}
-
-    pos = nx.spring_layout(graph)
-
-    info_nodes = [
-        node[0]
-        for node in graph.nodes(data='color') if node[1] is not None
-    ]
-    nx.draw_networkx_nodes(graph, pos, nodelist=info_nodes, node_color='b', **options)
-
-    data_nodes = [
-        node[0]
-        for node in graph.nodes(data='color') if node[1] is None
-    ]
-    nx.draw_networkx_nodes(graph, pos, nodelist=data_nodes, node_color='r', **options)
-
-    nx.draw_networkx_edges(graph, pos, **options)
-
-    pos_higher = {}
-    y_off = 0.005
-    x_off = -0.15
-
-    for k, v in pos.items():
-        pos_higher[k] = (v[0] - x_off if v[0] < 0 else v[0] + x_off, v[1] + y_off)
-    nx.draw_networkx_labels(graph, pos_higher, **options)
-
-    plt.tight_layout()
-    plt.tick_params(axis='y', length=8)
-    plt.show()

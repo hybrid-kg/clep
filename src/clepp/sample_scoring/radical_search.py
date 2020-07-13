@@ -18,11 +18,11 @@ def do_radical_search(
         control: str,
         control_based: bool
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Finds the samples with extreme feature values based on the control population.
+    """Identify the samples with extreme feature values either based on the entire dataset or control population.
 
     :param data: Dataframe containing the gene expression values
     :param design: Dataframe containing the design table for the data
-    :param threshold: Threshold for choosing patients that are "extreme" w.r.t. the controls.
+    :param threshold: Threshold for choosing patients that are "extreme" w.r.t. the controls
     :param control: label used for representing the control in the design table of the data
     :param control_based: The scoring is based on the control population instead of entire dataset
     :return Dataframe containing the Single Sample scores using radical searching

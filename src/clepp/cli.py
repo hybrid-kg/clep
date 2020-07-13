@@ -14,8 +14,6 @@ import pandas as pd
 from sklearn.exceptions import UndefinedMetricWarning, ConvergenceWarning
 from sklearn.metrics import SCORERS
 
-warnings.filterwarnings("ignore", category=FutureWarning)  # Ignore future warning for statsmodel import
-
 from clepp.classification import do_classification
 from clepp.embedding import (
     do_ss_evaluation, do_graph_gen, do_kge)
@@ -204,7 +202,6 @@ def radical_search(
         control_based: bool
 ) -> None:
     """Search for samples that are extremes as compared to the samples."""
-
     assert 0 < threshold <= 100
 
     click.echo(
@@ -334,7 +331,6 @@ def generate_network(
         network_folder: Optional[str] = None,
 ) -> None:
     """Generate Network for the given data."""
-
     data_df = pd.read_csv(data, sep='\t', index_col=0)
     data_df.rename(columns={'Unnamed: 0': 'patients'}, inplace=True)
 
@@ -385,7 +381,7 @@ def generate_network(
 
     graph_df.to_csv(f'{out}/weighted.edgelist', sep='\t', header=False, index=False)
 
-    click.echo(f"Done with network generation")
+    click.echo("Done with network generation")
 
 
 @embedding.command()
@@ -527,12 +523,8 @@ def classify(
         randomize: bool,
 ) -> None:
     """Perform machine-learning classification."""
-    warnings.filterwarnings("ignore",
-                            category=DeprecationWarning)  # Ignore deprecation warning from pandas and sklearn
-    warnings.filterwarnings("ignore", category=UndefinedMetricWarning)  # Ignore f1 metric calculation warning
-    warnings.filterwarnings("ignore", category=ConvergenceWarning)  # Ignore sklearn model convergence warning
-    warnings.filterwarnings("ignore",
-                            message='The objective has been evaluated at this point before.')  # Ignore bayesian search warning
+    # Ignore bayesian search warning. Waiting for a fix (https://github.com/scikit-optimize/scikit-optimize/issues/302)
+    warnings.filterwarnings("ignore", message='The objective has been evaluated at this point before.')
 
     if not metrics:
         metrics = ['roc_auc', 'accuracy', 'f1_micro', 'f1_macro', 'f1']

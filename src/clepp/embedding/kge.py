@@ -20,7 +20,18 @@ def do_kge(
         return_patients: Optional[bool] = True,
         train_size: Optional[float] = 0.8,
         validation_size: Optional[float] = 0.1
-):
+) -> pd.DataFrame:
+    """Carry out KGE on the given data.
+
+    :param edgelist: Dataframe containing the patient-feature graph in edgelist format
+    :param design: Dataframe containing the design table for the data
+    :param out: Output folder for the results
+    :param model: Name of the KGE model from PyKEEN
+    :param return_patients: Flag to indicate if the final data should contain only patients or even the features
+    :param train_size: Size of the training data for KGE ranging from 0 - 1
+    :param validation_size: Size of the validation data for KGE ranging from 0 - 1. It must be lower than training size
+    :return Dataframe containing the embedding from the KGE
+    """
     unique_nodes = edgelist[~edgelist['label'].isna()].drop_duplicates('source')
 
     label_mapping = {patient: label for patient, label in zip(unique_nodes['source'], unique_nodes['label'])}
@@ -130,6 +141,7 @@ def _weighted_splitter(
 def _model_to_numpy(
         model: Model
 ) -> np.array:
+    """Retrieve embedding from the models as a numpy array."""
     return model.entity_embeddings.weight.detach().cpu().numpy()
 
 

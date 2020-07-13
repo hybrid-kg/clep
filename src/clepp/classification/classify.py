@@ -11,12 +11,13 @@ from typing import Dict, List, Any, Callable, Tuple
 import click
 import numpy as np
 import pandas as pd
-from clepp import constants
 from sklearn import linear_model, svm, ensemble, model_selection, multiclass, metrics, preprocessing
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import StratifiedKFold
 from skopt import BayesSearchCV
 from xgboost import XGBClassifier
+
+from clepp import constants
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)
@@ -26,7 +27,7 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s - %(message)s
 def do_classification(
         data: pd.DataFrame,
         model_name: str,
-        optimizer: str,
+        optimizer_name: str,
         out_dir: str,
         validation_cv: int,
         scoring_metrics: List[str],
@@ -37,7 +38,7 @@ def do_classification(
 
     :param data: Dataframe containing the embeddings
     :param model_name: model that should be used for cross validation
-    :param optimizer: Optimizer used to optimize the classification
+    :param optimizer_name: Optimizer used to optimize the classification
     :param out_dir: Path to the output directory
     :param validation_cv: Number of cross validation steps
     :param scoring_metrics: Scoring metrics tested during cross validation
@@ -58,13 +59,13 @@ def do_classification(
 
     if len(np.unique(labels)) > 2:
         multi_roc_auc = metrics.make_scorer(multiclass_score_func, metric_func=metrics.roc_auc_score)
-        optimizerCV = get_optimizer(optimizer, model, model_name, optimizer_cv, multi_roc_auc)
-        optimizerCV.fit(data, labels)
+        optimizer = get_optimizer(optimizer_name, model, model_name, optimizer_cv, multi_roc_auc)
+        optimizer.fit(data, labels)
 
         # Run cross validation over the given model for multiclass classification
         logger.debug("Doing multiclass classification")
         cv_results = _do_multiclass_classification(
-            estimator=optimizerCV,
+            estimator=optimizer,
             x=data,
             y=labels,
             cv=validation_cv,
@@ -72,13 +73,13 @@ def do_classification(
             return_estimator=True,
         )
     else:
-        optimizerCV = get_optimizer(optimizer, model, model_name, optimizer_cv, 'roc_auc')
-        optimizerCV.fit(data, labels)
+        optimizer = get_optimizer(optimizer_name, model, model_name, optimizer_cv, 'roc_auc')
+        optimizer.fit(data, labels)
 
         # Run cross validation over the given model
-        logger.debug(f"Running binary cross validation")
+        logger.debug("Running binary cross validation")
         cv_results = model_selection.cross_validate(
-            estimator=optimizerCV,
+            estimator=optimizer,
             X=data,
             y=labels,
             cv=model_selection.StratifiedKFold(n_splits=validation_cv, shuffle=True),
@@ -155,7 +156,6 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
             cv_results['estimator'].append(clf.estimator)
 
         # For the multiclass metric find the score and add it to cv_results.
-        # TODO: Add other Scorers from sklearn
         for metric in scoring:
             if metric == 'roc_auc':
                 roc_auc = _multiclass_metric_evaluator(
@@ -270,6 +270,7 @@ def get_optimizer(
         cv: StratifiedKFold,
         scorer
 ):
+    """Retrieve the appropriate optimizer from sci-kit learn based on the arguments."""
     if optimizer == 'grid_search':
         param_grid = constants.get_param_grid(model)
         return model_selection.GridSearchCV(estimator=estimator, param_grid=param_grid, cv=cv, scoring=scorer)
@@ -285,6 +286,7 @@ def get_optimizer(
 
 
 def multiclass_score_func(y, y_pred, metric_func, **kwargs):
+    """Calculate the multiclass metric score of any sklearn metric."""
     classes = np.unique(y)
     n_classes = len(classes)
 
