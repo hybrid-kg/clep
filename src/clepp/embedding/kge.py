@@ -103,12 +103,12 @@ def _weighted_splitter(
         train_size: Optional[float] = 0.8,
         validation_size: Optional[float] = 0.1
 ) -> Tuple[pd.DataFrame, ...]:
-    """ Split the given edgelist into training, validation and testing sets on the basis of the ratio of relations
+    """Split the given edgelist into training, validation and testing sets on the basis of the ratio of relations.
 
     :param edgelist: Edgelist in the form of (Source, Relation, Target)
     :param train_size: Size of the training data
     :param validation_size: Size of the training data
-    :return:
+    :return: Tuple containing the train, validation & test splits
     """
     # Validation size is the size of the percentage of the remaining data (i.e. If required validation size is 10% of
     # the original data & training size is 80% then the new validation size is 50% of the data without the training
