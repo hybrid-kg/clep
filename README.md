@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">
-  Clinical Embeddings for Patient Prediction (CLEPP)
+  Clinical Embeddings for Patients (CLEP)
   <img src="https://travis-ci.org/clepp/clepp.svg?branch=master" />
 </h1>
 
@@ -12,39 +12,19 @@ CLEPP is workflow containing several methods for generating patient embeddings f
 Installation:
 -------------
 
-The most recent code can be installed from the source on [GitHub](https://github.com/clepp/clepp) with:
+The most recent code can be installed from the source on [GitHub](https://github.com/clep/clep) with:
 
 ```
-    $ python3 -m pip install git+https://github.com/clepp/clepp.git
+    $ python3 -m pip install git+https://github.com/clep/clep.git
 ```
 
-For developers, the repository can be cloned from [GitHub](https://github.com/clepp/clepp) and installed in editable mode with:
+For developers, the repository can be cloned from [GitHub](https://github.com/clep/clep) and installed in editable mode with:
 
 ```
-    $ git clone https://github.com/clepp/clepp.git
+    $ git clone https://github.com/clep/clep.git
     $ cd clepp
     $ python3 -m pip install -e .
 ```
-
-Requirements:
---------------
-`clepp` requires the following libraries:
-
-    click==7.0
-    pandas==0.25.0
-    numpy==1.17.0
-    rpy2==3.1.0
-    statsmodels==0.10.1
-    scikit-learn==0.21.3
-    seaborn==0.9.0
-    gseapy==0.9.15
-    cffi==1.12.3
-    bionev@git+https://github.com/seffnet/BioNEV.git@2192ad7
-    python-igraph==0.8.0
-    pycairo==1.19.1
-    xgboost==1.0.2
-    tqdm==4.43.0
-    pykeen
 
 
 Command Line Interface:
