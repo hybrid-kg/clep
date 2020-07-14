@@ -17,9 +17,9 @@ extensions = [
 templates_path = ['_templates']
 source_suffix = '.rst'
 master_doc = 'index'
-project = 'CLEPP'
-copyright = '2019-2020, Vinay Bharadhwaj, Daniel Domingo-Fernández and Charles Hoyt'
-author = 'Vinay Bharadhwaj, Daniel Domingo-Fernández and Charles Hoyt'
+project = 'CLEP'
+copyright = '2019-2020, Vinay Bharadhwaj, Daniel Domingo-Fernández and Charles Tapley Hoyt'
+author = 'Vinay Bharadhwaj, Daniel Domingo-Fernández and Charles Tapley Hoyt'
 
 release = '0.0.1-dev'
 
@@ -43,14 +43,14 @@ html_static_path = []
 htmlhelp_basename = 'cleppdoc'
 latex_elements = {}
 latex_documents = [
-    (master_doc, 'clepp.tex', 'CLEPP Documentation',
-     'Vinay Bharadhwaj, Daniel Domingo-Fernández and Charles Hoyt', 'manual'),
+    (master_doc, 'clepp.tex', 'CLEP Documentation',
+     'Vinay Bharadhwaj, Daniel Domingo-Fernández and Charles Tapley Hoyt', 'manual'),
 ]
 man_pages = [
-    (master_doc, 'clepp', 'CLEPP Documentation', [author], 1)
+    (master_doc, 'clepp', 'CLEP Documentation', [author], 1)
 ]
 texinfo_documents = [
-    (master_doc, 'clepp', 'CLEPP Documentation', author, 'CLEPP'),
+    (master_doc, 'clepp', 'CLEP Documentation', author, 'CLEPP'),
 ]
 
 # Example configuration for intersphinx: refer to the Python standard library.
@@ -60,6 +60,8 @@ intersphinx_mapping = {
 
 autodoc_member_order = 'bysource'
 autoclass_content = 'both'
+
+autodoc_mock_imports = ["r2py"]
 
 if os.environ.get('READTHEDOCS'):
     tags.add('readthedocs')
