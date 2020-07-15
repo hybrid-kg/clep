@@ -48,7 +48,7 @@ def do_classification(
 
     """
     # Get classifier user arguments
-    model, optimizer_cv = get_classifier(model_name, *args)
+    model, optimizer_cv = get_classifier(model_name=model_name, cv_opt=validation_cv, *args)
 
     # Separate embeddings from labels in data
     labels = data['label'].values
@@ -235,9 +235,9 @@ def _multiclass_metric_evaluator(metric_func: Callable[..., float], n_classes: i
     return metric
 
 
-def get_classifier(model_name: str, *args) -> Tuple[BaseEstimator, StratifiedKFold]:
+def get_classifier(model_name: str, cv_opt: int, *args) -> Tuple[BaseEstimator, StratifiedKFold]:
     """Retrieve the appropriate classifier from sci-kit learn based on the arguments."""
-    cv = model_selection.StratifiedKFold(n_splits=10, shuffle=True)
+    cv = model_selection.StratifiedKFold(n_splits=cv_opt, shuffle=True)
 
     if model_name == 'logistic_regression':
         model = linear_model.LogisticRegression(*args, solver='lbfgs')

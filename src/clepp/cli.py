@@ -497,7 +497,7 @@ def kge(
     help="Number of cross validation steps",
     type=int,
     required=False,
-    default=10,
+    default=5,
     show_default=True,
 )
 @click.option(
