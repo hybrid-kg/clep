@@ -4,7 +4,7 @@
 
 <h1 align="center">
   Clinical Embeddings for Patients (CLEP)
-  <img src="https://travis-ci.org/clepp/clepp.svg?branch=master" />
+  <img src="https://travis-ci.com/clepp/clep-dev.svg?token=rBPVN4HCkHSUyy66qGmX&branch=kge_implementation" />
 </h1>
 
 CLEPP is workflow containing several methods for generating patient embeddings from *-omics* data.
