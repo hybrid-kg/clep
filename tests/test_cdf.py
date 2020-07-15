@@ -27,6 +27,8 @@ class TestCdf(unittest.TestCase):
             design=df_labels,
             data=df_data,
             threshold=2.5,
+            control='Control',
+            control_based=False
         )
 
         """Test dummy protein (normally distributed)"""
@@ -81,6 +83,8 @@ class TestCdf(unittest.TestCase):
             design=df_labels,
             data=df_data,
             threshold=4,
+            control='Control',
+            control_based=False
         )
 
         """Test dummy protein (normally distributed)"""
