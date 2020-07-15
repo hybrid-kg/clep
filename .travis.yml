@@ -12,8 +12,10 @@ env:
     - RPY2_CFFI_MODE=ABI
 addons:
   apt:
+    sources:
+      - sourceline: 'deb https://cloud.r-project.org/bin/linux/ubuntu xenial-cran35/'
     packages:
-    - r-base
+      - r-base
 jobs:
   include:
     # lint stage
