@@ -70,7 +70,7 @@ class TestCdf(unittest.TestCase):
 
         self.assertEqual(
             list(negative_extreme.index),
-            ['patient1', 'patient2'],
+            [],
         )
 
     def test_cdf_2(self):
