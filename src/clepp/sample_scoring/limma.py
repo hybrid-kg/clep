@@ -7,6 +7,7 @@ from typing import List
 import click
 import numpy as np
 import pandas as pd
+import readline
 import rpy2.robjects as ro
 from rpy2.rinterface_lib.embedded import RRuntimeError
 from rpy2.robjects import pandas2ri, Formula

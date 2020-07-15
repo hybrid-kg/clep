@@ -10,6 +10,12 @@ stages:
 env:
   global:
     - RPY2_CFFI_MODE=ABI
+addons:
+  apt:
+    sources:
+    - r-packages-precise
+    packages:
+    - r-base
 jobs:
   include:
     # lint stage
