@@ -23,7 +23,7 @@ class TestCdf(unittest.TestCase):
         df_data = pd.read_csv(DUMMY_DATA, sep='\t', index_col=0)
         df_labels = pd.read_csv(DUMMY_LABELS)
 
-        output = do_radical_search(
+        output, _ = do_radical_search(
             design=df_labels,
             data=df_data,
             threshold=2.5,
@@ -79,7 +79,7 @@ class TestCdf(unittest.TestCase):
         df_data = pd.read_csv(DUMMY_DATA, sep='\t', index_col=0)
         df_labels = pd.read_csv(DUMMY_LABELS)
 
-        output = do_radical_search(
+        output, _ = do_radical_search(
             design=df_labels,
             data=df_data,
             threshold=4,
