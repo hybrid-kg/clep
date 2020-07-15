@@ -191,6 +191,7 @@ def overlay_samples(
 
     summary_data = pd.DataFrame(0, index=data_copy.index, columns=["positive_relation", "negative_relation"])
     linked_genes = set()
+    edges_to_remove = []
 
     for index, value_list in enumerate(tqdm(values_data, desc='Adding patients to the network: ')):
         for column, value in enumerate(value_list):
@@ -200,11 +201,19 @@ def overlay_samples(
             if value == 0:
                 continue
             if gene in information_graph.nodes:
+                if overlay_graph.has_edge(patient, gene):
+                    if overlay_graph.get_edge_data(patient, gene)['relation'] != value_mapping[value]:
+                        edges_to_remove.append((patient, gene))
                 linked_genes.add(gene)
                 overlay_graph.add_edge(patient, gene, relation=value_mapping[value],
                                        label=patient_label_mapping[patient])
             if summary:
                 summary_data.at[patient, VALUE_TO_COLNAME[value]] += 1
+
+    # Remove patient-gene triples that have conflicting duplicates in the data
+    for patient, gene in edges_to_remove:
+        logger.warning(f"{patient}-{gene} triple is being discarded due to conflicting data")
+        overlay_graph.remove_edge(patient, gene)
 
     if summary:
         non_conn_pats = summary_data[(summary_data['positive_relation'] == 0) & (summary_data['negative_relation'] == 0)]
