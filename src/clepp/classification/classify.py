@@ -45,7 +45,6 @@ def do_classification(
     :param rand_labels: Boolean variable to indicate if labels must be randomized to check for ML stability
     :arg args: Custom arguments to the estimator model
     :return Dictionary containing the cross validation results
-
     """
     # Get classifier user arguments
     model, optimizer_cv = get_classifier(model_name=model_name, cv_opt=validation_cv, *args)
