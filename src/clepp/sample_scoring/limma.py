@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 """Python wrapper for R-based Limma to perform single sample DE analysis."""
-import readline
 import sys
 from typing import List
 
