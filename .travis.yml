@@ -13,7 +13,7 @@ env:
 addons:
   apt:
     sources:
-      - sourceline: 'deb https://cloud.r-project.org/bin/linux/ubuntu xenial-cran35/'
+      - r-packages-trusty
     packages:
       - r-base
 jobs:
