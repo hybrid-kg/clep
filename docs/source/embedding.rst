@@ -1,10 +1,10 @@
 Embedding
 =========
-.. automodule:: clepp.sample.embedding.binning
+.. automodule:: clepp.embedding.network_generator
    :members:
 
-.. automodule:: clepp.sample.embedding.evaluate
+.. automodule:: clepp.embedding.evaluate
    :members:
 
-.. automodule:: clepp.sample.embedding.nrl
+.. automodule:: clepp.embedding.kge
    :members:

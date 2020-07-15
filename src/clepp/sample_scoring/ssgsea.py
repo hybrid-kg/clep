@@ -24,7 +24,6 @@ def do_ssgsea(
     :param max_size: Maximum allowed number of genes from gene set also the data set
     :param min_size: Minimum allowed number of genes from gene set also the data set
     :return: ssGSEA results in respective directory
-
     """
     single_sample_gsea = ssgsea(
         data=filtered_expression_data,

@@ -25,7 +25,7 @@ def do_radical_search(
     :param threshold: Threshold for choosing patients that are "extreme" w.r.t. the controls
     :param control: label used for representing the control in the design table of the data
     :param control_based: The scoring is based on the control population instead of entire dataset
-    :return Dataframe containing the Single Sample scores using radical searching
+    :return: Dataframe containing the Single Sample scores using radical searching
     """
     # Transpose matrix to get the patients as the rows
     data_transpose = data.transpose()
@@ -108,9 +108,9 @@ def _get_ecdf(
 
     :param obs: Observations
     :param side: Defines the shape of the intervals constituting the steps. 'right' correspond to [a, b) intervals
-    and 'left' to (a, b]
+        and 'left' to (a, b]
     :param step: Boolean value to indicate if the returned value must be a step function or an continuous based on
-    interpolation or extrapolation function
+        interpolation or extrapolation function
     :param extrapolate: Boolean value to indicate if the continuous must be based on extrapolation
     :return: Empirical CDF as a function
     """

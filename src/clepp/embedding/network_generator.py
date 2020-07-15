@@ -36,7 +36,7 @@ def do_graph_gen(
     :param folder_path: Optional field for the path to a folder containing multiple knowledge graphs
     :param jaccard_threshold: Threshold to make edges in Interaction Network Overlap method
     :param summary: Flag to indicate if the summary of the patient-feature network must be returned
-    :return Dataframe containing patient-feature network, and optionally the summary of the patient-feature network
+    :return: Dataframe containing patient-feature network, and optionally the summary of the patient-feature network
     """
     information_graph = nx.DiGraph()
 

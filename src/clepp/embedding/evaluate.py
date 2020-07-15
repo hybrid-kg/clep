@@ -15,7 +15,6 @@ def do_ss_evaluation(data: List[pd.DataFrame], labels: List[str]) -> Dict[str, D
     :param data: list of files on which evaluations needs to be conducted
     :param labels: list of labels for each file to indicate what the file is
     :return: Dictionary of evaluation results for each file with the corresponding file label
-
     """
     if not all(isinstance(df, pd.DataFrame) for df in data):
         raise TypeError('Make sure every argument, except the labels, is a Pandas DataFrame')

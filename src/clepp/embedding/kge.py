@@ -30,7 +30,7 @@ def do_kge(
     :param return_patients: Flag to indicate if the final data should contain only patients or even the features
     :param train_size: Size of the training data for KGE ranging from 0 - 1
     :param validation_size: Size of the validation data for KGE ranging from 0 - 1. It must be lower than training size
-    :return Dataframe containing the embedding from the KGE
+    :return: Dataframe containing the embedding from the KGE
     """
     unique_nodes = edgelist[~edgelist['label'].isna()].drop_duplicates('source')
 

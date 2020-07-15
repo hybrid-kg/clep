@@ -20,8 +20,7 @@ def do_z_score(
     :param design: Dataframe containing the design table for the data
     :param control: label used for representing the control in the design table of the data
     :param threshold: Threshold for choosing patients that are "extreme" w.r.t. the controls.
-    :return Dataframe containing the Single Sample scores using Z_Scores
-
+    :return: Dataframe containing the Single Sample scores using Z_Scores
     """
     # Check if the control variable is as per the R Naming standards
     assert control[0].isalpha(), "Please pass the control indicator contains atleast 1 alphabet."

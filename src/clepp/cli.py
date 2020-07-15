@@ -11,7 +11,6 @@ from typing import List, Union, Optional
 import click
 import numpy as np
 import pandas as pd
-from sklearn.exceptions import UndefinedMetricWarning, ConvergenceWarning
 from sklearn.metrics import SCORERS
 
 from clepp.classification import do_classification
