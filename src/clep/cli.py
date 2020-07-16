@@ -500,6 +500,7 @@ def kge(
     show_default=True,
 )
 @click.option(
+    '-m',
     '--metrics',
     help="Metrics that should be tested during cross validation (comma separated)",
     type=click.Choice(list(SCORERS.keys())),
@@ -533,7 +534,7 @@ def classify(
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
 
-    _ = do_classification(data_df, model, optimizer, out, cv, metrics, randomize)
+    _ = do_classification(data_df, model, optimizer, out, cv, list(metrics), randomize)
 
     click.echo(f"Done with {model} classification")
 
