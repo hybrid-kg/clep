@@ -1,4 +1,4 @@
 Constants
 =========
-.. automodule:: clepp.constants
+.. automodule:: clep.constants
    :members:

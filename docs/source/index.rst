@@ -1,6 +1,6 @@
 CLEP
 =====
-.. automodule:: clepp
+.. automodule:: clep
 
 .. toctree::
    :maxdepth: 2
