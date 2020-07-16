@@ -15,10 +15,11 @@
 * [Input data](#input-data-formats)
 * [Usage](#usage)
 * [Issues](#issues)
+* [Acknowledgements](#acknowledgements)
 * [Disclaimer](#disclaimer)
 
 ## General info
-CLEP is a framework containing several methods for generating patient embeddings from *-omics* data.
+CLEP is a framework that contains novel methods for generating patient representations from any patient level data and its corresponding prior knowledge encoded in a knowledge graph. The framework is depicted in the graphic below
 
 <p align="center">
   <img src="docs/source/framework.jpg">
@@ -41,7 +42,7 @@ $ python3 -m pip install -e .
 ```
 
 ## Documentation
-Read the [official docs](#documentation) for more information.
+Read the [official docs](https://clep.readthedocs.io/en/latest/) for more information.
 
 ## Input data formats
 
@@ -110,6 +111,11 @@ $ python3 -m clep classify --data <NETWORK_FILE> --model elastic_net --optimizer
 
 ## Issues
 If you have difficulties using CLEP, please open an issue at our [GitHub](https://github.com/clepp/clep) repository.
+
+
+## Acknowledgements
+### Graphics
+The CLEP logo and framework graphic was designed by Carina Steinborn.
 
 ## Disclaimer
 CLEP is a scientific software that has been developed in an academic capacity, and thus comes with no warranty or guarantee of maintenance, support, or back-up of data.
