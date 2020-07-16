@@ -5,7 +5,7 @@
 """
 Installation
 ------------
-1. ``clepp`` can be installed with the following commmands:
+1. ``clep`` can be installed with the following commmands:
 
 .. code-block:: sh
 
@@ -19,7 +19,7 @@ Installation
 
 .. code-block:: sh
 
-    cd clepp
+    cd clep
 
 .. code-block:: sh
 

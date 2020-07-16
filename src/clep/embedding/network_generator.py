@@ -11,7 +11,7 @@ import networkx as nx
 import pandas as pd
 from tqdm import tqdm
 
-from clepp.constants import VALUE_TO_COLNAME
+from clep.constants import VALUE_TO_COLNAME
 
 logger = logging.getLogger(__name__)
 

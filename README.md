@@ -3,8 +3,9 @@
 </p>
 
 <h1 align="center">
-  Clinical Embeddings for Patients (CLEP)
-  <img src="https://travis-ci.com/clepp/clep-dev.svg?token=rBPVN4HCkHSUyy66qGmX&branch=kge_implementation" />
+  CLEP: A Hybrid Framework for Generating Patient Representations
+  <br/>
+  <img src="https://travis-ci.com/CLEP/clep-dev.svg?token=rBPVN4HCkHSUyy66qGmX&branch=kge_implementation" />
 </h1>
 
 CLEPP is workflow containing several methods for generating patient embeddings from *-omics* data.
@@ -97,4 +98,4 @@ Please note that node ids must be unique, even if they belong to different subne
 
 Disclaimer
 ----------
-CLEPP is a scientific software that has been developed in an academic capacity, and thus comes with no warranty or guarantee of maintenance, support, or back-up of data.
+CLEP is a scientific software that has been developed in an academic capacity, and thus comes with no warranty or guarantee of maintenance, support, or back-up of data.

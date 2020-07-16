@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
-"""This module contains all the constants used in CLEPP package."""
+"""This module contains all the constants used in CLEP package."""
 
 import os
 
 from scipy.stats import uniform, loguniform
 from skopt.space import Real, Categorical, Integer
 
-MODULE_NAME = 'clepp'
-DEFAULT_CLEPP_DIR = os.path.join(os.path.expanduser('~'), '.clepp')
-CLEPP_DIR = os.environ.get('CLEPP_DIRECTORY', DEFAULT_CLEPP_DIR)
+MODULE_NAME = 'clep'
+DEFAULT_CLEP_DIR = os.path.join(os.path.expanduser('~'), '.clep')
+CLEP_DIR = os.environ.get('CLEP_DIRECTORY', DEFAULT_CLEP_DIR)
 
 METRIC_TO_LABEL = {
     'f1_weighted': '$F_1$ Weighted',
@@ -32,9 +32,9 @@ VALUE_TO_COLNAME = {
 
 
 def get_data_dir() -> str:
-    """Ensure the appropriate clepp data directory exists for the given module, then returns the file path."""
-    os.makedirs(CLEPP_DIR, exist_ok=True)
-    return CLEPP_DIR
+    """Ensure the appropriate clep data directory exists for the given module, then returns the file path."""
+    os.makedirs(CLEP_DIR, exist_ok=True)
+    return CLEP_DIR
 
 
 def get_param_grid(model_name):

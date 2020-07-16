@@ -1,6 +1,6 @@
 Example
 =======
-This README will walk you through a simple usage of CLEPP.
+This README will walk you through a simple usage of CLEP.
 
 Alternatively [run.sh](run.sh) can be executed to run the example for you
 

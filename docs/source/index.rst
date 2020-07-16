@@ -1,4 +1,4 @@
-CLEPP
+CLEP
 =====
 .. automodule:: clepp
 

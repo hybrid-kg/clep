@@ -13,19 +13,19 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import SCORERS
 
-from clepp.classification import do_classification
-from clepp.embedding import (
+from clep.classification import do_classification
+from clep.embedding import (
     do_ss_evaluation, do_graph_gen, do_kge)
-from clepp.sample_scoring import (
+from clep.sample_scoring import (
     do_limma, do_z_score, do_ssgsea, do_radical_search
 )
 
 logger = logging.getLogger(__name__)
 
 
-@click.group(help='clepp')
+@click.group(help='clep')
 def main():
-    """Run clepp."""
+    """Run clep."""
     logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
 
 

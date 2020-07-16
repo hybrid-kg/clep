@@ -43,14 +43,14 @@ html_static_path = []
 htmlhelp_basename = 'cleppdoc'
 latex_elements = {}
 latex_documents = [
-    (master_doc, 'clepp.tex', 'CLEP Documentation',
+    (master_doc, 'clep.tex', 'CLEP Documentation',
      'Vinay Bharadhwaj, Daniel Domingo-Fernández and Charles Tapley Hoyt', 'manual'),
 ]
 man_pages = [
-    (master_doc, 'clepp', 'CLEP Documentation', [author], 1)
+    (master_doc, 'clep', 'CLEP Documentation', [author], 1)
 ]
 texinfo_documents = [
-    (master_doc, 'clepp', 'CLEP Documentation', author, 'CLEPP'),
+    (master_doc, 'clep', 'CLEP Documentation', author, 'CLEP'),
 ]
 
 # Example configuration for intersphinx: refer to the Python standard library.

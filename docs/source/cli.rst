@@ -1,6 +1,6 @@
 Command Line Interface
 ======================
-CLEPP commands.
+CLEP commands.
 
 .. click:: clepp.cli:main
    :prog: clepp

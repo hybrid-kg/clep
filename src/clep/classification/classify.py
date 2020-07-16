@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Wrap machine-learning classifiers for clepp."""
+"""Wrap machine-learning classifiers for clep."""
 
 import json
 import logging
@@ -17,7 +17,7 @@ from sklearn.model_selection import StratifiedKFold
 from skopt import BayesSearchCV
 from xgboost import XGBClassifier
 
-from clepp import constants
+from clep import constants
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARN)

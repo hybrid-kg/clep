@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""clepp main."""
+"""clep main."""
 
 from .cli import main
 

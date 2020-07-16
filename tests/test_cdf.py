@@ -7,7 +7,7 @@ import unittest
 
 import pandas as pd
 
-from clepp.sample_scoring.radical_search import do_radical_search
+from clep.sample_scoring.radical_search import do_radical_search
 
 TEST_FOLDER = os.path.dirname(os.path.realpath(__file__))
 DUMMY_DATA = os.path.join(TEST_FOLDER, 'resources', 'dummy_exp.tsv')
