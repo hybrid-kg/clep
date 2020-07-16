@@ -5,97 +5,111 @@
 <h1 align="center">
   CLEP: A Hybrid Framework for Generating Patient Representations
   <br/>
-  <img src="https://travis-ci.com/CLEP/clep-dev.svg?token=rBPVN4HCkHSUyy66qGmX&branch=kge_implementation" />
+  <img src="https://travis-ci.com/clepp/clep-dev.svg?token=rBPVN4HCkHSUyy66qGmX&branch=kge_implementation" />
 </h1>
 
-CLEPP is workflow containing several methods for generating patient embeddings from *-omics* data.
+## Table of contents
+* [General info](#general-info)
+* [Installation](#installation)
+* [Documentation](#documentation)
+* [Input data](#input-data-formats)
+* [Usage](#usage)
+* [Issues](#issues)
+* [Disclaimer](#disclaimer)
 
-Installation:
--------------
+## General info
+CLEP is a framework containing several methods for generating patient embeddings from *-omics* data.
 
-The most recent code can be installed from the source on [GitHub](https://github.com/clep/clep) with:
+<p align="center">
+  <img src="docs/source/framework.jpg">
+</p>
+
+## Installation
+
+The most recent code can be installed from the source on [GitHub](https://github.com/clepp/clep) with:
 
 ```
-    $ python3 -m pip install git+https://github.com/clep/clep.git
+$ python3 -m pip install git+https://github.com/clepp/clep.git
 ```
 
-For developers, the repository can be cloned from [GitHub](https://github.com/clep/clep) and installed in editable mode with:
+For developers, the repository can be cloned from [GitHub](https://github.com/clepp/clep) and installed in editable mode with:
 
 ```
-    $ git clone https://github.com/clep/clep.git
-    $ cd clepp
-    $ python3 -m pip install -e .
+$ git clone https://github.com/clepp/clep.git
+$ cd clep
+$ python3 -m pip install -e .
 ```
 
+## Documentation
+Read the [official docs](#documentation) for more information.
 
-Command Line Interface:
------------------------
-The following commands can be used directly use from your terminal:
+## Input data formats
 
+### Data
+
+| Symbol | Sample_1 | Sample_2 | Sample_3 |
+| ------ | -------- | -------- | -------- |
+| HGNC_ID_1 | 0.354 | 2.568 | 1.564 |
+| HGNC_ID_2 | 1.255 | 1.232 | 0.26452 |
+| HGNC_ID_3 | 3.256 | 1.5 | 1.5462 |
+
+**Note:** The data must be in a tab separated file format.
+
+### Design
+
+| FileName | Target |
+| -------- | ------ |
+| Sample_1 | Abnormal |
+| Sample_2 | Abnormal |
+| Sample_3 | Control |
+
+**Note:** The data must be in a tab separated file format.
+
+
+### Knowledge graph
+The graph format CLEP can handle is a modified version of the Edge List Format. Which looks as follows:
+
+| Source | Relation | Target |
+| ------ | -------- | ------ |
+| HGNC_ID_1 | association | HGNC_ID_2
+| HGNC_ID_2 | decreases | HGNC_ID_3
+| HGNC_ID_3 | increases | HGNC_ID_1
+    
+**Note:** The data must be in a tab separated file format & if your knowledge graph does not have relations between the source and the target, just populate the relation column with "No Relation".
+
+
+## Usage
+**Note:** These are very basic commands for clep, and the detailed options for each command can be found in the [documentation](#documentation)
 1. **Radical Searching**
 The following command finds the extreme samples with extreme feature values based on the control population.
 
-
 ```
-$ python3 -m clepp sample-scoring radical-search --data <DATA_FILE> --design <DESIGN_FILE> --out <OUTPUT_DIR>
+$ python3 -m clep sample-scoring radical-search --data <DATA_FILE> --design <DESIGN_FILE> --control Control --threshold 2.5 -cb -rs --out <OUTPUT_DIR>
 ```
 
 2. **Graph Generation**
-The following command generates the patient-gene network based on the method chosen (pathway_overlap
-, Interaction_network, Interaction_Network_Overlap).
+The following command generates the patient-gene network based on the method chosen (Interaction_network).
 
 ```
-$ python3 -m clepp embedding generate-network --data <PROCESSED_DATA_FILE> --method [pathway_overlap|interaction_network|interaction_network_overlap] --out <OUTPUT_DIR>
+$ python3 -m clep embedding generate-network --data <PROCESSED_DATA_FILE> --method interaction_network  -rs --out <OUTPUT_DIR>
 ```
-
 
 3. **Knowledge Graph Embedding**
 The following command generates the embedding of the network passed to it.
 
 ```
-$ python3 -m clepp embedding --data <NETWORK_FILE> --design <DESIGN_FILE> --model <PYKEEN_MODEL> --out <OUTPUT_DIR>
+$ python3 -m clep embedding kge --data <NETWORK_FILE> --design <DESIGN_FILE> --model RotatE --train_size 0.8 --validation_size 0.1 --out <OUTPUT_DIR>
 ```
 
+4. **Classification**
+The following command carries out classification on the given data file for a chosen model (Elastic Net) using a chosen optimizer (Grid Search).
 
-Formats for Data and Design Matrices:
--------------------------------------
-Data:
+```
+$ python3 -m clep classify --data <NETWORK_FILE> --model elastic_net --optimizer grid_search --cv 5 --out <OUTPUT_DIR>
+```
 
-| genes | Sample_1 | ... | Sample_n |
-| ----- | -------- | --- | -------- |
-| HGNC ID | float | ... | float |
+## Issues
+If you have difficulties using CLEP, please open an issue at our [GitHub](https://github.com/clepp/clep) repository.
 
-Design:
-
-| FileName | Target |
-| -------- | ------ |
-| sample expression array file name | annotation of sample |
-
-
-Network file format
------------------
-The graph format CLEPP can handle is a modified version of the Edge List Format. Which looks as follows:
-
-    source1 edgeweight1 target1 source_label
-    source2 edgeweight2 target2 source_label
-    source3 edgeweight3 target3 source_label
-
-A toy example with three subnetworks:
-
-    1 0.00 2 0
-    0 0.88 2 1
-    3 1.00 4 1
-    5 0.52 7 2
-    7 0.52 8 2
-    6 0.52 8 2
-    0 1.00 3 1
-    2 1.00 4 0
-    1 1.00 7 0
-    4 1.00 6 1
-    4 1.00 8 0
-    
-Please note that node ids must be unique, even if they belong to different subnetworks. By default, ProphTools will use node identifiers, not labels (second column in txt file) as IDs for nodes. Optionally, you can use the ``--labels_as_ids`` parameter to use labels instead. Please note that in this case labels must be unique per node.
-
-Disclaimer
-----------
+## Disclaimer
 CLEP is a scientific software that has been developed in an academic capacity, and thus comes with no warranty or guarantee of maintenance, support, or back-up of data.
