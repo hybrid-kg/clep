@@ -162,7 +162,7 @@ def run_optimization(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFacto
     )
 
     # Define Training Loop
-    training_loop = 'owa'
+    training_loop = 'slcwa'
 
     # Define optimizer
     optimizer = 'adam'
@@ -309,7 +309,7 @@ def run_pipeline(
     )
 
     # Define Training Loop
-    training_loop = 'owa'
+    training_loop = 'slcwa'
 
     # Define optimizer
     optimizer = 'adam'
