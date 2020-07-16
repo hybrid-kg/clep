@@ -2,5 +2,5 @@ Command Line Interface
 ======================
 CLEP commands.
 
-.. click:: clepp.cli:main
-   :prog: clepp
+.. click:: clep.cli:main
+   :prog: clep

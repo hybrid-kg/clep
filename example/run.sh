@@ -27,10 +27,10 @@ rm *.CEL
 python3 sample_scoring.py make-exp
 
 # limma sample_scoring
-clepp sample_scoring limma --data exp.txt --design targets.txt --out limma.txt
+clep sample_scoring limma --data exp.txt --design targets.txt --out limma.txt
 # Z_Score sample_scoring
-clepp sample_scoring z-score --data exp.txt --design targets.txt --out z_score.txt
+clep sample_scoring z-score --data exp.txt --design targets.txt --out z_score.txt
 # limma data's threshold based embedding
-clepp embedding thresh2vec --data limma.txt --out thresh_limma.txt
+clep embedding thresh2vec --data limma.txt --out thresh_limma.txt
 # Z-Score data's threshold based embedding
-clepp embedding thresh2vec --data z_score.txt --out thresh_z_score.txt
+clep embedding thresh2vec --data z_score.txt --out thresh_z_score.txt

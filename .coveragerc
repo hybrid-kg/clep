@@ -1,16 +1,16 @@
 [run]
 branch = True
-source = clepp
+source = clep
 omit =
-    src/clepp/__main__.py
-    src/clepp/cli.py
+    src/clep/__main__.py
+    src/clep/cli.py
     tests/*
     docs/*
 
 [paths]
 source =
-    src/clepp
-    .tox/*/lib/python*/site-packages/clepp
+    src/clep
+    .tox/*/lib/python*/site-packages/clep
 
 [report]
 show_missing = True

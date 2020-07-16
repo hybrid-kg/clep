@@ -1,10 +1,10 @@
 Embedding
 =========
-.. automodule:: clepp.embedding.network_generator
+.. automodule:: clep.embedding.network_generator
    :members:
 
-.. automodule:: clepp.embedding.evaluate
+.. automodule:: clep.embedding.evaluate
    :members:
 
-.. automodule:: clepp.embedding.kge
+.. automodule:: clep.embedding.kge
    :members:
