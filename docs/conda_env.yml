@@ -1,0 +1,15 @@
+name: rpy2-environment
+channels:
+  - r
+
+dependencies:
+  - python=3.7
+  - sphinx_rtd_theme
+  - jinja2
+  - numpy
+  - pandas
+  - r
+  - r-ggplot2
+  - r-dplyr
+  - pip:
+    - sphinx

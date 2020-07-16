@@ -1,6 +1,8 @@
 # See: https://docs.readthedocs.io/en/latest/yaml-config.html
 build:
     image: latest
+conda:
+    file: docs/conda_env.yml
 python:
   version: 3.7
   pip_install: true
