@@ -6,6 +6,7 @@
   CLEP: A Hybrid Framework for Generating Patient Representations
   <br/>
   <img src="https://travis-ci.com/clepp/clep.svg?branch=master" />
+  <img src='https://readthedocs.org/projects/clep/badge/?version=latest' alt='Documentation Status' />
 </h1>
 
 ## Table of contents
