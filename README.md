@@ -5,7 +5,7 @@
 <h1 align="center">
   CLEP: A Hybrid Framework for Generating Patient Representations
   <br/>
-  <img src="https://travis-ci.com/clepp/clep-dev.svg?token=rBPVN4HCkHSUyy66qGmX&branch=kge_implementation" />
+  <img src="https://travis-ci.com/clepp/clep.svg?branch=master" />
 </h1>
 
 ## Table of contents
