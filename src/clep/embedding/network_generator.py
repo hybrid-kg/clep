@@ -198,12 +198,22 @@ def overlay_samples(
             patient = data_copy.index[index]
             gene = data_copy.columns[column]
 
+            # Avoid mangled duplicates from pandas
+            if "." in gene:
+                if gene.split(".")[0] in data_copy.columns:
+                    gene = gene.split(".")[0]
+
+            # Ignore features with score of 0
             if value == 0:
                 continue
+
+            # Skip if gene is not in the knowledge graph
             if gene in information_graph.nodes:
                 if overlay_graph.has_edge(patient, gene):
                     if overlay_graph.get_edge_data(patient, gene)['relation'] != value_mapping[value]:
-                        edges_to_remove.append((patient, gene))
+                        if (patient, gene) not in edges_to_remove:
+                            edges_to_remove.append((patient, gene))
+                    continue
                 linked_genes.add(gene)
                 overlay_graph.add_edge(patient, gene, relation=value_mapping[value],
                                        label=patient_label_mapping[patient])
