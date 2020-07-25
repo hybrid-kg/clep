@@ -2,13 +2,13 @@
 
 """Embed patients with the biomedical entities (genes and metabolites) using Knowledge graph embedding."""
 import os
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict
 
 import numpy as np
 import pandas as pd
 from pykeen.hpo.hpo import hpo_pipeline
 from pykeen.models.base import Model
-from pykeen.pipeline import pipeline
+from pykeen.pipeline import pipeline_from_path
 from pykeen.triples import TriplesFactory
 
 
@@ -16,7 +16,7 @@ def do_kge(
         edgelist: pd.DataFrame,
         design: pd.DataFrame,
         out: str,
-        model: str,
+        model_config: Dict,
         return_patients: Optional[bool] = True,
         train_size: Optional[float] = 0.8,
         validation_size: Optional[float] = 0.1
@@ -26,7 +26,7 @@ def do_kge(
     :param edgelist: Dataframe containing the patient-feature graph in edgelist format
     :param design: Dataframe containing the design table for the data
     :param out: Output folder for the results
-    :param model: Name of the KGE model from PyKEEN
+    :param model_config: Configuration file for the KGE models, in JSON format.
     :param return_patients: Flag to indicate if the final data should contain only patients or even the features
     :param train_size: Size of the training data for KGE ranging from 0 - 1
     :param validation_size: Size of the validation data for KGE ranging from 0 - 1. It must be lower than training size
@@ -63,16 +63,14 @@ def do_kge(
         create_inverse_triples=create_inverse_triples,
     )
 
-    optimal_params = run_optimization(
+    run_optimization(
         dataset=(training_factory, validation_factory, testing_factory),
-        model=model,
+        model_config=model_config,
         out_dir=out
-    ).study.best_params
+    )
 
     best_model = run_pipeline(
         dataset=(training_factory, validation_factory, testing_factory),
-        model=model,
-        optimal_params=optimal_params,
         out_dir=out
     ).model
 
@@ -145,110 +143,9 @@ def _model_to_numpy(
     return model.entity_embeddings.weight.detach().cpu().numpy()
 
 
-def run_optimization(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFactory], model: str, out_dir: str):
+def run_optimization(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFactory], model_config: Dict, out_dir: str):
     """Run HPO."""
     training_factory, testing_factory, validation_factory = dataset
-    # Define model
-    model_kwargs = dict(
-        automatic_memory_optimization=True
-    )
-    model_kwargs_ranges = dict(
-        embedding_dim=dict(
-            type='int',
-            low=6,
-            high=7,
-            scale='power_two',
-        )
-    )
-
-    # Define Training Loop
-    training_loop = 'slcwa'
-
-    # Define optimizer
-    optimizer = 'adam'
-    optimizer_kwargs = dict(
-        weight_decay=0.0
-    )
-    optimizer_kwargs_ranges = dict(
-        lr=dict(
-            type='float',
-            low=0.001,
-            high=0.1,
-            sclae='log',
-        )
-    )
-
-    # Define Loss Fct.
-    loss_function = 'NSSALoss'
-    loss_kwargs = dict()
-    loss_kwargs_ranges = dict(
-        margin=dict(
-            type='float',
-            low=1,
-            high=30,
-            q=2.0,
-        ),
-        adversarial_temperature=dict(
-            type='float',
-            low=0.1,
-            high=1.0,
-            q=0.1,
-        )
-    )
-
-    # Define Regularizer
-    regularizer = 'NoRegularizer'
-
-    # Define Negative Sampler
-    negative_sampler = 'BasicNegativeSampler'
-    negative_sampler_kwargs = dict()
-    negative_sampler_kwargs_ranges = dict(
-        num_negs_per_pos=dict(
-            type='int',
-            low=1,
-            high=10,
-            q=1,
-        )
-    )
-
-    # Define Evaluator
-    evaluator = 'RankBasedEvaluator'
-    evaluator_kwargs = dict(
-        filtered=True,
-    )
-    evaluation_kwargs = dict(
-        batch_size=None  # searches for maximal possible in order to minimize evaluation time
-    )
-
-    # Define Training Arguments
-    training_kwargs = dict(
-        num_epochs=1000,
-        label_smoothing=0.0,
-    )
-    training_kwargs_ranges = dict(
-        batch_size=dict(
-            type='int',
-            low=7,
-            high=9,
-            scale='power_two',
-        )
-    )
-
-    # Define Early Stopper
-    stopper = 'early'
-    stopper_kwargs = dict(
-        frequency=50,
-        patience=2,
-        delta=0.002,
-    )
-
-    # Define Optuna Related Parameters
-    n_trials = 100
-    timeout = 86400
-    metric = 'hits@10'
-    direction = 'maximize'
-    sampler = 'random'
-    pruner = 'nop'
 
     # Define HPO pipeline
     hpo_results = hpo_pipeline(
@@ -256,33 +153,33 @@ def run_optimization(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFacto
         training_triples_factory=training_factory,
         testing_triples_factory=testing_factory,
         validation_triples_factory=validation_factory,
-        model=model,
-        model_kwargs=model_kwargs,
-        model_kwargs_ranges=model_kwargs_ranges,
-        loss=loss_function,
-        loss_kwargs=loss_kwargs,
-        loss_kwargs_ranges=loss_kwargs_ranges,
-        regularizer=regularizer,
-        optimizer=optimizer,
-        optimizer_kwargs=optimizer_kwargs,
-        optimizer_kwargs_ranges=optimizer_kwargs_ranges,
-        training_loop=training_loop,
-        training_kwargs=training_kwargs,
-        training_kwargs_ranges=training_kwargs_ranges,
-        negative_sampler=negative_sampler,
-        negative_sampler_kwargs=negative_sampler_kwargs,
-        negative_sampler_kwargs_ranges=negative_sampler_kwargs_ranges,
-        stopper=stopper,
-        stopper_kwargs=stopper_kwargs,
-        evaluator=evaluator,
-        evaluator_kwargs=evaluator_kwargs,
-        evaluation_kwargs=evaluation_kwargs,
-        n_trials=n_trials,
-        timeout=timeout,
-        metric=metric,
-        direction=direction,
-        sampler=sampler,
-        pruner=pruner,
+        model=model_config["model"],
+        model_kwargs=model_config["model_kwargs"],
+        model_kwargs_ranges=model_config["model_kwargs_ranges"],
+        loss=model_config["loss_function"],
+        loss_kwargs=model_config["loss_kwargs"],
+        loss_kwargs_ranges=model_config["loss_kwargs_ranges"],
+        regularizer=model_config["regularizer"],
+        optimizer=model_config["optimizer"],
+        optimizer_kwargs=model_config["optimizer_kwargs"],
+        optimizer_kwargs_ranges=model_config["optimizer_kwargs_ranges"],
+        training_loop=model_config["training_loop"],
+        training_kwargs=model_config["training_kwargs"],
+        training_kwargs_ranges=model_config["training_kwargs_ranges"],
+        negative_sampler=model_config["negative_sampler"],
+        negative_sampler_kwargs=model_config["negative_sampler_kwargs"],
+        negative_sampler_kwargs_ranges=model_config["negative_sampler_kwargs_ranges"],
+        stopper=model_config["stopper"],
+        stopper_kwargs=model_config["stopper_kwargs"],
+        evaluator=model_config["evaluator"],
+        evaluator_kwargs=model_config["evaluator_kwargs"],
+        evaluation_kwargs=model_config["evaluation_kwargs"],
+        n_trials=model_config["n_trials"],
+        timeout=model_config["timeout"],
+        metric=model_config["metric"],
+        direction=model_config["direction"],
+        sampler=model_config["sampler"],
+        pruner=model_config["pruner"],
     )
 
     optimization_dir = os.path.join(out_dir, 'pykeen_results_optim')
@@ -291,95 +188,22 @@ def run_optimization(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFacto
 
     hpo_results.save_to_directory(optimization_dir)
 
-    return hpo_results
+    return None
 
 
 def run_pipeline(
         dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFactory],
-        model: str,
-        optimal_params: dict,
         out_dir: str
 ):
     """Run Pipeline."""
     training_factory, testing_factory, validation_factory = dataset
-    # Define model
-    model_kwargs = dict(
-        automatic_memory_optimization=True,
-        embedding_dim=optimal_params['model.embedding_dim']
-    )
 
-    # Define Training Loop
-    training_loop = 'slcwa'
-
-    # Define optimizer
-    optimizer = 'adam'
-    optimizer_kwargs = dict(
-        weight_decay=0.0,
-        lr=optimal_params['optimizer.lr']
-    )
-
-    # Define Loss Fct.
-    loss_function = 'NSSALoss'
-    loss_kwargs = dict(
-        margin=optimal_params['loss.margin'],
-        adversarial_temperature=optimal_params['loss.adversarial_temperature']
-    )
-
-    # Define Regularizer
-    regularizer = 'NoRegularizer'
-
-    # Define Negative Sampler
-    negative_sampler = 'BasicNegativeSampler'
-    negative_sampler_kwargs = dict(
-        num_negs_per_pos=optimal_params['negative_sampler.num_negs_per_pos']
-    )
-
-    # Define Evaluator
-    evaluator = 'RankBasedEvaluator'
-    evaluator_kwargs = dict(
-        filtered=True,
-    )
-    evaluation_kwargs = dict(
-        batch_size=None  # searches for maximal possible in order to minimize evaluation time
-    )
-
-    # Define Training Arguments
-    training_kwargs = dict(
-        num_epochs=1000,
-        label_smoothing=0.0,
-        batch_size=optimal_params['training.batch_size']
-    )
-
-    # Define Early Stopper
-    stopper = 'early'
-    stopper_kwargs = dict(
-        frequency=50,
-        patience=2,
-        delta=0.002,
-    )
-
-    # Define HPO pipeline
-    pipeline_results = pipeline(
-        dataset=None,
+    config_path = os.path.join(out_dir, 'pykeen_results_optim', 'best_pipeline', 'pipeline_config.json')
+    pipeline_results = pipeline_from_path(
+        path=config_path,
         training_triples_factory=training_factory,
         testing_triples_factory=testing_factory,
         validation_triples_factory=validation_factory,
-        model=model,
-        model_kwargs=model_kwargs,
-        loss=loss_function,
-        loss_kwargs=loss_kwargs,
-        regularizer=regularizer,
-        optimizer=optimizer,
-        optimizer_kwargs=optimizer_kwargs,
-        training_loop=training_loop,
-        training_kwargs=training_kwargs,
-        negative_sampler=negative_sampler,
-        negative_sampler_kwargs=negative_sampler_kwargs,
-        stopper=stopper,
-        stopper_kwargs=stopper_kwargs,
-        evaluator=evaluator,
-        evaluator_kwargs=evaluator_kwargs,
-        evaluation_kwargs=evaluation_kwargs,
     )
 
     best_pipeline_dir = os.path.join(out_dir, 'pykeen_results_final')

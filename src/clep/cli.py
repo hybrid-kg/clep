@@ -394,33 +394,10 @@ def generate_network(
     show_default=True,
 )
 @click.option(
-    '--model',
-    help='The model used for knowledge graph embedding',
-    type=click.Choice([
-        'ComplEx',
-        'ComplExLiteral',
-        'ConvE',
-        'ConvKB',
-        'DistMult',
-        'DistMultLiteral',
-        'ERMLP',
-        'ERMLPE',
-        'HolE',
-        'KG2E',
-        'NTN',
-        'ProjE',
-        'RESCAL',
-        'RGCN',
-        'RotatE',
-        'SimplE',
-        'StructuredEmbedding',
-        'TransD',
-        'TransE',
-        'TransH',
-        'TransR',
-        'TuckER',
-        'UnstructuredModel'
-    ]),
+    '-m',
+    '--model_config',
+    help='The configuration file for the model used for knowledge graph embedding in JSON format',
+    type=click.Path(file_okay=True, dir_okay=False, exists=True),
     required=True,
 )
 @click.option(
@@ -443,13 +420,17 @@ def kge(
         data: str,
         design: str,
         out: str,
-        model: str,
+        model_config: str,
         all_nodes: Optional[bool] = False,
         train_size: Optional[float] = 0.8,
         validation_size: Optional[float] = 0.1
 ) -> None:
     """Perform knowledge graph embedding."""
-    click.echo(f"Running {model} based KGE on {data} & outputting it to {out}")
+    with open(model_config, 'r') as config_file:
+        config = json.load(config_file)
+
+    click.echo(f"Running {config['model']} based KGE on {data} & outputting it to {out}")
+
     edgelist_df = pd.read_csv(data, sep='\t', index_col=None, header=None)
     design_df = pd.read_csv(design, sep='\t')
 
@@ -461,13 +442,13 @@ def kge(
         design=design_df,
         out=out,
         return_patients=(not all_nodes),
-        model=model,
+        model_config=config,
         train_size=train_size,
         validation_size=validation_size
     )
 
     embedding_df.to_csv(f'{out}/embedding.tsv', sep='\t')
-    click.echo(f"Finished running {model} based KGE")
+    click.echo(f"Finished running {config['model']} based KGE")
 
 
 @main.command()
