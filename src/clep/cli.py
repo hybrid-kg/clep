@@ -23,7 +23,7 @@ from clep.sample_scoring import (
 logger = logging.getLogger(__name__)
 
 
-@click.group(help='clep')
+@click.group()
 def main():
     """Run clep."""
     logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
