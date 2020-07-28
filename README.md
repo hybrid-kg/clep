@@ -86,28 +86,28 @@ The graph format CLEP can handle is a modified version of the Edge List Format. 
 The following command finds the extreme samples with extreme feature values based on the control population.
 
 ```
-$ python3 -m clep sample-scoring radical-search --data <DATA_FILE> --design <DESIGN_FILE> --control Control --threshold 2.5 -cb -rs --out <OUTPUT_DIR>
+$ python3 -m clep sample-scoring radical-search --data <DATA_FILE> --design <DESIGN_FILE> --control Control --threshold 2.5 --control_based --ret_summary --out <OUTPUT_DIR>
 ```
 
 2. **Graph Generation**
 The following command generates the patient-gene network based on the method chosen (Interaction_network).
 
 ```
-$ python3 -m clep embedding generate-network --data <PROCESSED_DATA_FILE> --method interaction_network  -rs --out <OUTPUT_DIR>
+$ python3 -m clep embedding generate-network --data <SCORED_DATA_FILE> --method interaction_network --ret_summary --out <OUTPUT_DIR>
 ```
 
 3. **Knowledge Graph Embedding**
 The following command generates the embedding of the network passed to it.
 
 ```
-$ python3 -m clep embedding kge --data <NETWORK_FILE> --design <DESIGN_FILE> --model RotatE --train_size 0.8 --validation_size 0.1 --out <OUTPUT_DIR>
+$ python3 -m clep embedding kge --data <NETWORK_FILE> --design <DESIGN_FILE> --model_config <MODEL_CONFIG.json> --train_size 0.8 --validation_size 0.1 --out <OUTPUT_DIR>
 ```
 
 4. **Classification**
 The following command carries out classification on the given data file for a chosen model (Elastic Net) using a chosen optimizer (Grid Search).
 
 ```
-$ python3 -m clep classify --data <NETWORK_FILE> --model elastic_net --optimizer grid_search --cv 5 --out <OUTPUT_DIR>
+$ python3 -m clep classify --data <EMBEDDING_FILE> --model elastic_net --optimizer grid_search --out <OUTPUT_DIR>
 ```
 
 ## Issues
