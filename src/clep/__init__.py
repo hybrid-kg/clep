@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-"""A Python package for generating CLinical Embeddings for Patient Prediction."""
+"""A Python package for generating Hybrid Data- and Knowledge- Driven Patient Representations.."""
 
 """
 Installation
 ------------
-1. ``clep`` can be installed with the following commmands:
+1. ``clep`` can be installed with the following commands:
 
 .. code-block:: sh
 
