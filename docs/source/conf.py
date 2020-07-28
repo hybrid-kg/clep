@@ -41,6 +41,8 @@ todo_include_todos = True
 html_theme = 'sphinx_rtd_theme'
 html_static_path = []
 htmlhelp_basename = 'cleppdoc'
+html_logo = 'docs_logo.png'
+html_favicon = 'favicon.ico'
 latex_elements = {}
 latex_documents = [
     (master_doc, 'clep.tex', 'CLEP Documentation',
