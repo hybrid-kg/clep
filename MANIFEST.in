@@ -8,6 +8,7 @@ recursive-include docs/source *.jpg
 recursive-include docs *.yml
 include docs/Makefile
 include config/config.ini
+include *.md
 
 global-exclude *.py[cod] __pycache__ *.so *.dylib .DS_Store *.gpickle
 
@@ -20,5 +21,6 @@ recursive-exclude example *.md
 recursive-exclude example *.py
 recursive-exclude example *.sh
 recursive-exclude notebooks *.ipynb
+recursive-include docs *.ico
 exclude example
 exclude notebooks
