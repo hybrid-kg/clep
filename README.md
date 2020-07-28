@@ -5,7 +5,7 @@
 <h1 align="center">
   CLEP: A Hybrid Framework for Generating Patient Representations
   <br/>
-  <img src="https://travis-ci.com/clepp/clep.svg?branch=master" />
+  <img src="https://travis-ci.com/hybrid-kg/clep.svg?branch=master" />
   <img src='https://readthedocs.org/projects/clep/badge/?version=latest' alt='Documentation Status' />
 </h1>
 
@@ -28,16 +28,16 @@ CLEP is a framework that contains novel methods for generating patient represent
 
 ## Installation
 
-The most recent code can be installed from the source on [GitHub](https://github.com/clepp/clep) with:
+The most recent code can be installed from the source on [GitHub](https://github.com/hybrid-kg/clep) with:
 
 ```
-$ python3 -m pip install git+https://github.com/clepp/clep.git
+$ python3 -m pip install git+https://github.com/hybrid-kg/clep.git
 ```
 
-For developers, the repository can be cloned from [GitHub](https://github.com/clepp/clep) and installed in editable mode with:
+For developers, the repository can be cloned from [GitHub](https://github.com/hybrid-kg/clep) and installed in editable mode with:
 
 ```
-$ git clone https://github.com/clepp/clep.git
+$ git clone https://github.com/hybrid-kg/clep.git
 $ cd clep
 $ python3 -m pip install -e .
 ```
@@ -111,7 +111,7 @@ $ python3 -m clep classify --data <NETWORK_FILE> --model elastic_net --optimizer
 ```
 
 ## Issues
-If you have difficulties using CLEP, please open an issue at our [GitHub](https://github.com/clepp/clep) repository.
+If you have difficulties using CLEP, please open an issue at our [GitHub](https://github.com/hybrid-kg/clep) repository.
 
 
 ## Acknowledgements
