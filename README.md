@@ -5,9 +5,15 @@
 <h1 align="center">
   CLEP: A Hybrid Framework for Generating Patient Representations
   <br/>
-  <img src="https://travis-ci.com/hybrid-kg/clep.svg?branch=master" />
-  <img src='https://readthedocs.org/projects/clep/badge/?version=latest' alt='Documentation Status' />
-  <a href="https://zenodo.org/badge/latestdoi/209278408"><img src="https://zenodo.org/badge/209278408.svg" alt="DOI"></a>
+  <a href='https://travis-ci.com/github/hybrid-kg'>
+     <img src="https://travis-ci.com/hybrid-kg/clep.svg?branch=master" />
+  </a>
+  <a href='https://clep.readthedocs.io/en/latest/?badge=latest'>
+    <img src='https://readthedocs.org/projects/clep/badge/?version=latest' alt='Documentation Status' />
+  </a>
+  <a href="https://zenodo.org/badge/latestdoi/209278408">
+    <img src="https://zenodo.org/badge/209278408.svg" alt="DOI">
+  </a>
 </h1>
 
 ## Table of contents
@@ -51,7 +57,7 @@ $ cd clep
 $ pip install -e .
 ```
 
-## Documentation
+## Documentation [![Documentation Status](https://readthedocs.org/projects/clep/badge/?version=latest)](https://clep.readthedocs.io/en/latest/?badge=latest)
 
 Read the [official docs](https://clep.readthedocs.io/en/latest/) for more information.
 
