@@ -1,5 +1,9 @@
 .. _intro:
 
+.. _GitHub: https://github.com/hybrid-kg/clep.git
+
+.. _bioconductor: https://bioconductor.org/packages/release/bioc/html/limma.html
+
 Welcome to CLEP's documentation!
 ===================================
 **Release notes** : https://github.com/hybrid-kg/clep/releases
@@ -29,7 +33,8 @@ classification models.
 
 General info
 -------------
-CLEP is a framework that contains novel methods for generating patient representations from any patient level data and its corresponding prior knowledge encoded in a knowledge graph. The framework is depicted in the graphic below
+CLEP is a framework that contains novel methods for generating patient representations from any patient level data and
+its corresponding prior knowledge encoded in a knowledge graph. The framework is depicted in the graphic below
 
 .. image:: ./framework.jpg
     :align: center
@@ -52,7 +57,7 @@ You may instead want to use the development version from Github, by running
 
    $ python3 -m pip install git+https://github.com/hybrid-kg/clep.git
 
-For contributors, the repository can be cloned from [GitHub](https://github.com/hybrid-kg/clep.git) and installed in editable mode using:
+For contributors, the repository can be cloned from `GitHub`_ and installed in editable mode using:
 
 .. code:: shell
 
@@ -73,7 +78,7 @@ Mandatory
 - Pandas
 - Matplotlib
 - rpy2 (for limma)
-- Limma package from [bioconductor](https://bioconductor.org/packages/release/bioc/html/limma.html)
+- Limma package from `bioconductor`_
 
 
 For API information to use this library, see the :ref:`dev-guide`.
@@ -81,7 +86,7 @@ For API information to use this library, see the :ref:`dev-guide`.
 Issues
 -------
 
-If you have difficulties using CLEP, please open an issue at our [GitHub](https://github.com/hybrid-kg/clep.git) repository.
+If you have difficulties using CLEP, please open an issue at our `GitHub`_ repository.
 
 Acknowledgements
 -----------------
