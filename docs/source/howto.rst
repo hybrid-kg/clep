@@ -238,3 +238,29 @@ The format of the input file for classification should look like,
 
 
 For more information on the command line interface, please refer :ref:`cli`.
+
+
+Programmatic Access
+---------------------
+CLEP implements an API through which developers can utilise each module available in the CLEP framework. An example
+for the usage of the API functions in shown below.
+
+.. code:: python
+
+   import os
+   import pandas as pd
+   from clep.classification import do_classification
+
+   model = "elastic_net" # Classification Model
+   optimizer = "grid_search" # Optimization function for the classification model
+   out = os.getcwd() # Output directory
+   cv = 10 # Number of cross-validation folds
+   metrics = ['roc_auc', 'accuracy', 'f1_micro', 'f1_macro', 'f1'] # Metrics to be analysed in cross-validation
+   randomize = False # If the labels in the data must be permuted
+
+   data_df = pd.read_table(data, index_col=0)
+
+   results = do_classification(data_df, model, optimizer, out, cv, metrics, randomize)
+
+
+For more information on the available API functions, please refer :ref:`dev-guide`.
