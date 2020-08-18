@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">
-  CLEP: A Hybrid Framework for Generating Patient Representations
+  CLEP: A Hybrid Data- and Knowledge- Driven Framework for Generating Patient Representations
   <br/>
   <a href='https://travis-ci.com/github/hybrid-kg'>
      <img src="https://travis-ci.com/hybrid-kg/clep.svg?branch=master" />
