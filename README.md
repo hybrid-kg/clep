@@ -25,6 +25,7 @@
 * [Usage](#usage)
 * [Issues](#issues)
 * [Acknowledgements](#acknowledgements)
+* [Citation](#citation)
 * [Disclaimer](#disclaimer)
 
 ## General info
@@ -136,7 +137,17 @@ If you have difficulties using CLEP, please open an issue at our [GitHub](https:
 
 ## Acknowledgements
 
+### Citation
+
+If you have found CLEP useful in your work, please consider citing:
+
+[**CLEP: A Hybrid Data- and Knowledge- Driven Framework for Generating Patient Representations**](https://doi.org/10.1101/2020.08.20.259226
+).<br />
+Bharadhwaj, V. S., Ali, M., Birkenbihl, C., Mubeen, S., Lehmann, J., Hofmann-Apitius, M., Hoyt, C. T., & Domingo-Fernandez, D. (2020).<br />
+*bioRxiv*, 2020.08.20.259226. 
+
 ### Graphics
+
 The CLEP logo and framework graphic was designed by Carina Steinborn.
 
 ## Disclaimer
