@@ -14,6 +14,13 @@
   <a href="https://zenodo.org/badge/latestdoi/209278408">
     <img src="https://zenodo.org/badge/209278408.svg" alt="DOI">
   </a>
+  <a href="https://pypi.org/project/clep/">
+    <img src="https://img.shields.io/pypi/v/clep" alt="CLEP on PyPI">
+  </a>
+  <img src="https://img.shields.io/pypi/pyversions/clep" alt="CLEP Python versions">
+  <a href="https://github.com/hybrid-kg/clep/blob/master/LICENSE">
+    <img src="https://img.shields.io/pypi/l/clep" alt="CLEP Software License">
+  </a>
 </h1>
 
 ## Table of Contents
@@ -58,7 +65,7 @@ $ cd clep
 $ pip install -e .
 ```
 
-## Documentation [![Documentation Status](https://readthedocs.org/projects/clep/badge/?version=latest)](https://clep.readthedocs.io/en/latest/?badge=latest)
+## Documentation
 
 Read the [official docs](https://clep.readthedocs.io/en/latest/) for more information.
 
