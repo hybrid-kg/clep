@@ -16,19 +16,19 @@
   </a>
 </h1>
 
-## Table of contents
+## Table of Contents
 
-* [General info](#general-info)
+* [General Info](#general-info)
 * [Installation](#installation)
 * [Documentation](#documentation)
-* [Input data](#input-data-formats)
+* [Input Data](#input-data-formats)
 * [Usage](#usage)
 * [Issues](#issues)
 * [Acknowledgements](#acknowledgements)
 * [Citation](#citation)
 * [Disclaimer](#disclaimer)
 
-## General info
+## General Info
 
 CLEP is a framework that contains novel methods for generating patient representations from any patient level data and its corresponding prior knowledge encoded in a knowledge graph. The framework is depicted in the graphic below
 
