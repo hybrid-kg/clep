@@ -16,13 +16,13 @@ before_install:
   - sudo add-apt-repository 'deb [arch=amd64,i386] https://cran.rstudio.com/bin/linux/ubuntu xenial/'
   - sudo apt-get update
   - sudo apt-get install r-base
-addons:
-  apt:
-    sources:
-      - sourceline: 'deb [arch=amd64,i386] https://cran.rstudio.com/bin/linux/ubuntu xenial/'
-    update: true
-    packages:
-      - r-base
+#addons:
+#  apt:
+#    sources:
+#      - sourceline: 'deb [arch=amd64,i386] https://cran.rstudio.com/bin/linux/ubuntu xenial/'
+#    update: true
+#    packages:
+#      - r-base
 jobs:
   include:
     # lint stage
