@@ -7,6 +7,7 @@ import logging
 import sys
 from collections import defaultdict
 from typing import Dict, List, Any, Callable, Tuple
+import copy
 
 import click
 import numpy as np
@@ -86,7 +87,7 @@ def do_classification(
             return_estimator=True,
         )
 
-    _save_json(results=cv_results, out_dir=out_dir)
+    _save_json(results=copy.deepcopy(cv_results), out_dir=out_dir)
 
     return cv_results
 
