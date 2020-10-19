@@ -32,6 +32,8 @@ def do_kge(
     :param validation_size: Size of the validation data for KGE ranging from 0 - 1. It must be lower than training size
     :return: Dataframe containing the embedding from the KGE
     """
+    design_norm_df = design.astype(str, copy=True)
+
     unique_nodes = edgelist[~edgelist['label'].isna()].drop_duplicates('source')
 
     label_mapping = {patient: label for patient, label in zip(unique_nodes['source'], unique_nodes['label'])}
@@ -88,7 +90,7 @@ def do_kge(
 
     if return_patients:
         # TODO: Use clustering before classification to see if embeddings are already good enough
-        embedding = embedding[embedding.index.isin(design['FileName'])]
+        embedding = embedding[embedding.index.isin(design_norm_df['FileName'])]
 
         for index in embedding.index:
             embedding.at[index, 'label'] = label_mapping[index]
