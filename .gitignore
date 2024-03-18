@@ -112,6 +112,7 @@ resources/*
 # History files
 .Rhistory
 .Rapp.history
+.history/
 
 # Session Data files
 .RData
