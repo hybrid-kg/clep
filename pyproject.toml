@@ -1,0 +1,69 @@
+[project]
+name = "clep"
+version = "0.0.3"
+description = "A Hybrid Data and Knowledge Driven Framework for Generating Patient Representations"
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = [
+    "Bioinformatics",
+    "Machine Learning",
+    "Prediction Models",
+    "Embeddings",
+]
+license = { file = "LICENSE" }
+authors = [
+    { name = "Vinay Bharadhwaj", email = "vinay.srinivas.bharadhwaj@scai.fraunhofer.de" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [
+    "click",
+    "pandas",
+    "rpy2",
+    "statsmodels",
+    "scikit-learn",
+    "seaborn",
+    "gseapy",
+    "cffi",
+    "pycairo",
+    "networkx",
+    "xgboost",
+    "tqdm",
+    "scikit-optimize",
+    "pykeen",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.optional-dependencies]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+    "sphinx-click",
+    "sphinx-autodoc-typehints",
+]
+
+[project.scripts]
+"clep" = "clep.cli:main"
+
+[tool.doc8]
+max-line-length = 120
+
+[tool.coverage.run]
+branch = true
+source = "clep"
+
+[tool.coverage.report]
+exclude_lines = ["def __repr__", "def __str__"]
