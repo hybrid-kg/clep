@@ -54,7 +54,7 @@ docs = [
     "sphinx-click",
     "sphinx-autodoc-typehints",
 ]
-dev = ["black", "mypy", "bump-my-version"]
+dev = ["black", "mypy", "bump-my-version", "pandas-stubs"]
 
 [project.scripts]
 "clep" = "clep.cli:main"
