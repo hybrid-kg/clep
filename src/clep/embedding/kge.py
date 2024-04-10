@@ -2,7 +2,7 @@
 
 """Embed patients with the biomedical entities (genes and metabolites) using Knowledge graph embedding."""
 import os
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Dict
 
 import numpy as np
 import pandas as pd
@@ -17,9 +17,9 @@ def do_kge(
         design: pd.DataFrame,
         out: str,
         model_config: Dict,
-        return_patients: Optional[bool] = True,
-        train_size: Optional[float] = 0.8,
-        validation_size: Optional[float] = 0.1
+        return_patients: bool = True,
+        train_size: float = 0.8,
+        validation_size: float = 0.1
 ) -> pd.DataFrame:
     """Carry out KGE on the given data.
 
@@ -47,32 +47,22 @@ def do_kge(
         validation_size=validation_size
     )
 
-    train.to_csv(f'{out}/train.edgelist', sep='\t', index=False, header=False)
-    validation.to_csv(f'{out}/validation.edgelist', sep='\t', index=False, header=False)
-    test.to_csv(f'{out}/test.edgelist', sep='\t', index=False, header=False)
+    train_path = os.path.join(out, 'train.edgelist')
+    validation_path = os.path.join(out, 'validation.edgelist')
+    test_path = os.path.join(out, 'test.edgelist')
 
-    create_inverse_triples = False  # In a second HPO configuration, this can be set to true
-    training_factory = TriplesFactory(
-        path=f'{out}/train.edgelist',
-        create_inverse_triples=create_inverse_triples,
-    )
-    validation_factory = TriplesFactory(
-        path=f'{out}/validation.edgelist',
-        create_inverse_triples=create_inverse_triples,
-    )
-    testing_factory = TriplesFactory(
-        path=f'{out}/test.edgelist',
-        create_inverse_triples=create_inverse_triples,
-    )
+    train.to_csv(train_path, sep='\t', index=False, header=False)
+    validation.to_csv(validation_path, sep='\t', index=False, header=False)
+    test.to_csv(test_path, sep='\t', index=False, header=False)
 
     run_optimization(
-        dataset=(training_factory, validation_factory, testing_factory),
+        dataset=(train_path, validation_path, test_path),
         model_config=model_config,
         out_dir=out
     )
 
     best_model = run_pipeline(
-        dataset=(training_factory, validation_factory, testing_factory),
+        dataset=(train_path, validation_path, test_path),
         out_dir=out
     ).model
 
@@ -100,8 +90,8 @@ def do_kge(
 
 def _weighted_splitter(
         edgelist: pd.DataFrame,
-        train_size: Optional[float] = 0.8,
-        validation_size: Optional[float] = 0.1
+        train_size: float = 0.8,
+        validation_size: float = 0.1
 ) -> Tuple[pd.DataFrame, ...]:
     """Split the given edgelist into training, validation and testing sets on the basis of the ratio of relations.
 
@@ -140,21 +130,21 @@ def _weighted_splitter(
 
 def _model_to_numpy(
         model: Model
-) -> np.array:
+) -> np.ndarray:
     """Retrieve embedding from the models as a numpy array."""
     return model.entity_embeddings.weight.detach().cpu().numpy()
 
 
-def run_optimization(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFactory], model_config: Dict, out_dir: str):
+def run_optimization(dataset: Tuple[str, str, str], model_config: Dict, out_dir: str):
     """Run HPO."""
-    training_factory, testing_factory, validation_factory = dataset
+    train_path, validation_path, test_path = dataset
 
     # Define HPO pipeline
     hpo_results = hpo_pipeline(
         dataset=None,
-        training_triples_factory=training_factory,
-        testing_triples_factory=testing_factory,
-        validation_triples_factory=validation_factory,
+        training=train_path,
+        testing=test_path,
+        validation=validation_path,
         model=model_config["model"],
         model_kwargs=model_config["model_kwargs"],
         model_kwargs_ranges=model_config["model_kwargs_ranges"],
@@ -194,18 +184,18 @@ def run_optimization(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFacto
 
 
 def run_pipeline(
-        dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFactory],
+        dataset: Tuple[str, str, str],
         out_dir: str
 ):
     """Run Pipeline."""
-    training_factory, testing_factory, validation_factory = dataset
+    train_path, validation_path, test_path = dataset
 
     config_path = os.path.join(out_dir, 'pykeen_results_optim', 'best_pipeline', 'pipeline_config.json')
     pipeline_results = pipeline_from_path(
         path=config_path,
-        training_triples_factory=training_factory,
-        testing_triples_factory=testing_factory,
-        validation_triples_factory=validation_factory,
+        training=train_path,
+        testing=test_path,
+        validation=validation_path
     )
 
     best_pipeline_dir = os.path.join(out_dir, 'pykeen_results_final')
