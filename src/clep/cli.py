@@ -11,7 +11,7 @@ from typing import List, Union, Optional
 import click
 import numpy as np
 import pandas as pd
-from sklearn.metrics import SCORERS
+from sklearn.metrics import get_scorer_names
 
 from clep.classification import do_classification
 from clep.embedding import (
@@ -484,7 +484,7 @@ def kge(
     '-m',
     '--metrics',
     help="Metrics that should be tested during cross validation (comma separated)",
-    type=click.Choice(list(SCORERS.keys())),
+    type=click.Choice(get_scorer_names()),
     required=False,
     multiple=True,
 )
