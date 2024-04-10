@@ -25,15 +25,20 @@
 
 ## Table of Contents
 
-* [General Info](#general-info)
-* [Installation](#installation)
-* [Documentation](#documentation)
-* [Input Data](#input-data-formats)
-* [Usage](#usage)
-* [Issues](#issues)
-* [Acknowledgements](#acknowledgements)
-* [Citation](#citation)
-* [Disclaimer](#disclaimer)
+- [Table of Contents](#table-of-contents)
+- [General Info](#general-info)
+- [Installation](#installation)
+- [Documentation](#documentation)
+- [Input Data Formats](#input-data-formats)
+  - [Data](#data)
+  - [Design](#design)
+  - [Knowledge Graph](#knowledge-graph)
+- [Usage](#usage)
+- [Issues](#issues)
+- [Acknowledgements](#acknowledgements)
+  - [Citation](#citation)
+  - [Graphics](#graphics)
+- [Disclaimer](#disclaimer)
 
 ## General Info
 
@@ -44,6 +49,15 @@ CLEP is a framework that contains novel methods for generating patient represent
 </p>
 
 ## Installation
+
+**NOTE**: The installation of CLEP **requires** R to be installed on your system along with limma package for R. R can be downloaded from [CRAN](https://cran.r-project.org/). The limma package can be installed in R with the following command:
+
+```R
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("limma")
+```
 
 The code can be installed from [PyPI](https://pypi.org/project/clep/) with:
 
@@ -73,21 +87,21 @@ Read the [official docs](https://clep.readthedocs.io/en/latest/) for more inform
 
 ### Data
 
-| Symbol | Sample_1 | Sample_2 | Sample_3 |
-| ------ | -------- | -------- | -------- |
-| HGNC_ID_1 | 0.354 | 2.568 | 1.564 |
-| HGNC_ID_2 | 1.255 | 1.232 | 0.26452 |
-| HGNC_ID_3 | 3.256 | 1.5 | 1.5462 |
+| Symbol    | Sample_1 | Sample_2 | Sample_3 |
+| --------- | -------- | -------- | -------- |
+| HGNC_ID_1 | 0.354    | 2.568    | 1.564    |
+| HGNC_ID_2 | 1.255    | 1.232    | 0.26452  |
+| HGNC_ID_3 | 3.256    | 1.5      | 1.5462   |
 
 **Note:** The data must be in a tab separated file format.
 
 ### Design
 
-| FileName | Target |
-| -------- | ------ |
+| FileName | Target   |
+| -------- | -------- |
 | Sample_1 | Abnormal |
 | Sample_2 | Abnormal |
-| Sample_3 | Control |
+| Sample_3 | Control  |
 
 **Note:** The data must be in a tab separated file format.
 
@@ -95,11 +109,11 @@ Read the [official docs](https://clep.readthedocs.io/en/latest/) for more inform
 
 The graph format CLEP can handle is a modified version of the Edge List Format. Which looks as follows:
 
-| Source | Relation | Target |
-| ------ | -------- | ------ |
-| HGNC_ID_1 | association | HGNC_ID_2
-| HGNC_ID_2 | decreases | HGNC_ID_3
-| HGNC_ID_3 | increases | HGNC_ID_1
+| Source    | Relation    | Target    |
+| --------- | ----------- | --------- |
+| HGNC_ID_1 | association | HGNC_ID_2 |
+| HGNC_ID_2 | decreases   | HGNC_ID_3 |
+| HGNC_ID_3 | increases   | HGNC_ID_1 |
     
 **Note:** The data must be in a tab separated file format & if your knowledge graph does not have relations between the source and the target, just populate the relation column with "No Relation".
 
