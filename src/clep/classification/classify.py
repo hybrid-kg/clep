@@ -48,7 +48,7 @@ def do_classification(
     :return: Dictionary containing the cross validation results
     """
     # Get classifier user arguments
-    model, optimizer_cv = get_classifier(model_name=model_name, cv_opt=validation_cv, *args)
+    model, optimizer_cv = get_classifier(model_name, validation_cv, *args)
 
     # Separate embeddings from labels in data
     labels = data['label'].values
@@ -226,7 +226,7 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
 def _multiclass_metric_evaluator(metric_func: Callable[..., float], n_classes: int, y_test: np.ndarray,
                                  y_pred: np.ndarray, **kwargs) -> float:
     """Calculate the average metric for multiclass classifiers."""
-    metric = 0
+    metric = 0.0
 
     for label in range(n_classes):
         metric += metric_func(y_test[:, label], y_pred[:, label], **kwargs)
