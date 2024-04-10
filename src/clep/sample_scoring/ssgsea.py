@@ -2,15 +2,17 @@
 
 """single sample GSEA scoring."""
 
+from typing import Optional
+
 import pandas as pd
 from gseapy import ssgsea
-from gseapy.gsea import SingleSampleGSEA
+from gseapy.ssgsea import SingleSampleGSEA
 
 
 def do_ssgsea(
         filtered_expression_data: pd.DataFrame,
         gene_set: str,
-        output_dir: str = None,
+        output_dir: Optional[str] = None,
         processes: int = 96,
         max_size: int = 3000,
         min_size: int = 15,
