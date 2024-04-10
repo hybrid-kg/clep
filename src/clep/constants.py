@@ -6,6 +6,7 @@ import os
 
 from scipy.stats import uniform, loguniform
 from skopt.space import Real, Categorical, Integer
+from typing import Dict, Any, List
 
 MODULE_NAME = 'clep'
 DEFAULT_CLEP_DIR = os.path.join(os.path.expanduser('~'), '.clep')
@@ -37,11 +38,11 @@ def get_data_dir() -> str:
     return CLEP_DIR
 
 
-def get_param_grid(model_name):
+def get_param_grid(model_name: str) -> Dict[str, List[Any]]:
     """Get the parameter grid for each machine learning model for grid search."""
     if model_name == 'logistic_regression':
         c_values = [0.01, 0.1, 0.25, 0.5, 0.8, 0.9, 1, 10]
-        param_grid = dict(C=c_values)
+        param_grid: Dict[str, List[Any]] = dict(C=c_values)
 
     elif model_name == 'elastic_net':
         # Logistic regression with elastic net penalty & equal weightage to l1 and l2
@@ -78,7 +79,7 @@ def get_param_grid(model_name):
     return param_grid
 
 
-def get_param_dist(model_name):
+def get_param_dist(model_name: str) -> Dict[str, Any]:
     """Get the parameter distribution for each machine learning model for random search."""
     if model_name == 'logistic_regression':
         param_dist = dict(C=loguniform(1e-6, 1e+6))
@@ -110,7 +111,7 @@ def get_param_dist(model_name):
     return param_dist
 
 
-def get_param_space(model_name):
+def get_param_space(model_name: str) -> Dict[str, Any]:
     """Get the parameter space for each machine learning model for bayesian search."""
     if model_name == 'logistic_regression':
         param_space = dict(C=Real(1e-6, 1e+6, prior='log-uniform'))

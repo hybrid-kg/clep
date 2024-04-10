@@ -54,12 +54,12 @@ def do_limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float, method: str
         data_df[col] = sample_data.iloc[:, col_idx]
 
         # Add the design of that sample with the control samples to make the design table
-        design_df = ctrl_design.append(sample_design.iloc[col_idx, :], ignore_index=True)
+        design_df = ctrl_design.append(sample_design.iloc[col_idx, :], ignore_index=True)  # type: ignore
 
         output = _limma(data=data_df, design=design_df, alpha=alpha, adjust_method=method)
 
         # Only store the logFC values
-        output_df.iloc[col_idx, :] = output['logFC'].values.flatten()
+        output_df.iloc[col_idx, :] = output['logFC'].values.flatten()  # type: ignore
 
     label = sample_design['Target'].map(label_mapping)
     label.reset_index(drop=True, inplace=True)
@@ -122,7 +122,7 @@ def _limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float = 0.05,
 
     # Convert R dataframe to Pandas
     with localconverter(ro.default_converter + pandas2ri.converter):
-        output = ro.conversion.rpy2py(r_output)
+        output: pd.DataFrame = ro.conversion.rpy2py(r_output)
 
     # Adjust P value with the provided adjusted method
     output['adj.P.Val'] = multipletests(output['P.Value'], alpha=alpha, method=adjust_method)[1]
@@ -132,7 +132,7 @@ def _limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float = 0.05,
     return output
 
 
-def _bin(row: pd.Series) -> List[int]:
+def _bin(row: pd.Series[int]) -> List[int]:
     """Replace values greater than 0 as 1 and lesser than 0 as -1."""
     return [
         1 if (val > 0) else (-1 if (val < 0) else 0)

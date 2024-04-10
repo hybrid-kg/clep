@@ -11,6 +11,7 @@ import copy
 
 import click
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 from sklearn import linear_model, svm, ensemble, model_selection, multiclass, metrics, preprocessing
 from sklearn.base import BaseEstimator
@@ -33,7 +34,7 @@ def do_classification(
         validation_cv: int,
         scoring_metrics: List[str],
         rand_labels: bool,
-        *args
+        *args: str
 ) -> Dict[str, Any]:
     """Perform classification on embeddings generated from previous step.
 
@@ -55,9 +56,9 @@ def do_classification(
     data = data.drop(columns='label')
 
     if rand_labels:
-        np.random.shuffle(labels)
+        np.random.shuffle(labels)  # type: ignore
 
-    if len(np.unique(labels)) > 2:
+    if len(np.unique(labels)) > 2:  # type: ignore
         multi_roc_auc = metrics.make_scorer(multiclass_score_func, metric_func=metrics.roc_auc_score)
         optimizer = get_optimizer(optimizer_name, model, model_name, optimizer_cv, multi_roc_auc)
         optimizer.fit(data, labels)
@@ -67,7 +68,7 @@ def do_classification(
         cv_results = _do_multiclass_classification(
             estimator=optimizer,
             x=data,
-            y=labels,
+            y=labels,  # type: ignore
             cv=validation_cv,
             scoring=scoring_metrics,
             return_estimator=True,
@@ -92,7 +93,7 @@ def do_classification(
     return cv_results
 
 
-def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: pd.Series, cv: int, scoring: List[str],
+def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: pd.Series[str | int | float], cv: int, scoring: List[str],
                                   return_estimator: bool = True) -> Dict[str, Any]:
     """Do multiclass classification using OneVsRest classifier.
 
@@ -223,8 +224,8 @@ def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: 
     return cv_results
 
 
-def _multiclass_metric_evaluator(metric_func: Callable[..., float], n_classes: int, y_test: np.ndarray,
-                                 y_pred: np.ndarray, **kwargs) -> float:
+def _multiclass_metric_evaluator(metric_func: Callable[..., float], n_classes: int, y_test: npt.NDArray[Any],
+                                 y_pred: npt.NDArray[Any], **kwargs: str) -> float:
     """Calculate the average metric for multiclass classifiers."""
     metric = 0.0
 
@@ -235,7 +236,7 @@ def _multiclass_metric_evaluator(metric_func: Callable[..., float], n_classes: i
     return metric
 
 
-def get_classifier(model_name: str, cv_opt: int, *args) -> Tuple[BaseEstimator, StratifiedKFold]:
+def get_classifier(model_name: str, cv_opt: int, *args: str) -> Tuple[BaseEstimator, StratifiedKFold]:
     """Retrieve the appropriate classifier from sci-kit learn based on the arguments."""
     cv = model_selection.StratifiedKFold(n_splits=cv_opt, shuffle=True)
 
@@ -265,11 +266,11 @@ def get_classifier(model_name: str, cv_opt: int, *args) -> Tuple[BaseEstimator, 
 
 def get_optimizer(
         optimizer: str,
-        estimator,
-        model,
+        estimator: BaseEstimator,
+        model: str,
         cv: StratifiedKFold,
-        scorer
-):
+        scorer: str
+) -> BaseEstimator:
     """Retrieve the appropriate optimizer from sci-kit learn based on the arguments."""
     if optimizer == 'grid_search':
         param_grid = constants.get_param_grid(model)
@@ -285,7 +286,7 @@ def get_optimizer(
         raise ValueError(f'Unknown optimizer, {optimizer}.')
 
 
-def multiclass_score_func(y, y_pred, metric_func, **kwargs):
+def multiclass_score_func(y: npt.NDArray[Any], y_pred: npt.NDArray[Any], metric_func: Callable[..., float], **kwargs: str) -> float:
     """Calculate the multiclass metric score of any sklearn metric."""
     classes = np.unique(y)
     n_classes = len(classes)
@@ -296,7 +297,7 @@ def multiclass_score_func(y, y_pred, metric_func, **kwargs):
     y = preprocessing.label_binarize(y, classes=classes)
     y_pred = preprocessing.label_binarize(y_pred, classes=classes)
 
-    metric = 0
+    metric = 0.0
 
     for label in range(n_classes):
         metric += metric_func(y[:, label], y_pred[:, label], **kwargs)
@@ -310,11 +311,11 @@ def _save_json(results: Dict[str, Any], out_dir: str) -> None:
     """Save the cross validation results as a json file."""
     for key in results.keys():
         # Check if the result is a numpy array, if yes convert to list
-        if isinstance(results[key], np.ndarray):
+        if isinstance(results[key], npt.NDArray):
             results[key] = results[key].tolist()
 
         # Check if the results are numpy float values, if yes skip it
-        elif isinstance(results[key][0], np.float):
+        elif isinstance(results[key][0], np.float64) or isinstance(results[key][0], np.float32):
             continue
 
         elif isinstance(results[key][0], list):

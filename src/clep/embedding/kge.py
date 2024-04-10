@@ -2,21 +2,23 @@
 
 """Embed patients with the biomedical entities (genes and metabolites) using Knowledge graph embedding."""
 import os
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Any
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 from pykeen.hpo.hpo import hpo_pipeline
 from pykeen.models.base import Model
-from pykeen.pipeline import pipeline_from_path
-from pykeen.triples import TriplesFactory
+from pykeen.models.nbase import ERModel
+from pykeen.typing import HeadRepresentation, RelationRepresentation, TailRepresentation
+from pykeen.pipeline import pipeline_from_path, PipelineResult
 
 
 def do_kge(
         edgelist: pd.DataFrame,
         design: pd.DataFrame,
         out: str,
-        model_config: Dict,
+        model_config: Dict[str, Any],
         return_patients: bool = True,
         train_size: float = 0.8,
         validation_size: float = 0.1
@@ -66,8 +68,8 @@ def do_kge(
         out_dir=out
     ).model
 
-    # Get the embedding as a numpy array
-    embedding_values = _model_to_numpy(best_model)
+    # Get the embedding as a numpy array. Ignore the type as the model will be of type ERModel (Embedding model)
+    embedding_values = _model_to_numpy(best_model)  # type: ignore
 
     # Create columns as component names
     embedding_columns = [f'Component_{i}' for i in range(1, embedding_values.shape[1] + 1)]
@@ -129,13 +131,14 @@ def _weighted_splitter(
 
 
 def _model_to_numpy(
-        model: Model
-) -> np.ndarray:
+        model: ERModel[HeadRepresentation, RelationRepresentation, TailRepresentation]
+) -> npt.NDArray[np.float64 | np.float32]:
     """Retrieve embedding from the models as a numpy array."""
-    return model.entity_embeddings.weight.detach().cpu().numpy()
+    embedding_numpy: npt.NDArray[np.float64 | np.float32] = model.entity_representations[0](indices=None).detach().cpu().numpy()
+    return embedding_numpy
 
 
-def run_optimization(dataset: Tuple[str, str, str], model_config: Dict, out_dir: str):
+def run_optimization(dataset: Tuple[str, str, str], model_config: Dict[str, Any], out_dir: str) -> None:
     """Run HPO."""
     train_path, validation_path, test_path = dataset
 
@@ -180,13 +183,11 @@ def run_optimization(dataset: Tuple[str, str, str], model_config: Dict, out_dir:
 
     hpo_results.save_to_directory(optimization_dir)
 
-    return None
-
 
 def run_pipeline(
         dataset: Tuple[str, str, str],
         out_dir: str
-):
+) -> PipelineResult:
     """Run Pipeline."""
     train_path, validation_path, test_path = dataset
 

@@ -2,10 +2,12 @@
 
 """Carry out Radical search to identify extreme samples in the dataset and give them a single sample score."""
 
-from typing import Callable, Optional, List, Tuple
+from typing import Callable, Optional, List, Tuple, Any
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
+import pandas._typing as pdt
 from scipy.interpolate import interp1d
 from statsmodels.distributions.empirical_distribution import ECDF
 from tqdm import tqdm
@@ -60,7 +62,7 @@ def do_radical_search(
     else:
         # Calculate the empirical cdf for every gene and get the cdf score for the data
         feature_to_ecdf = {
-            feature: _get_ecdf(data_transpose[feature])
+            feature: _get_ecdf(data_transpose[feature].values)
             for feature in data_transpose
             if len(data_transpose[feature].unique()) > 1  # Check not all values are the same
         }
@@ -99,11 +101,11 @@ def do_radical_search(
 
 
 def _get_ecdf(
-        obs: np.array,
+        obs: pdt.ArrayLike,
         side: Optional[str] = 'right',
         step: Optional[bool] = True,
         extrapolate: Optional[bool] = False
-) -> Callable:
+) -> Any:
     """Calculate the Empirical CDF of an array and return it as a function.
 
     :param obs: Observations
@@ -132,7 +134,7 @@ def _get_ecdf(
 
 def _apply_func(
         df: pd.DataFrame,
-        func_list: List[Callable]
+        func_list: List[Callable[..., Any]]
 ) -> pd.DataFrame:
     """Apply functions from the list (in order) on the respective column.
 
@@ -142,14 +144,14 @@ def _apply_func(
     """
     final_df = pd.DataFrame()
 
-    new_columns = [index for index, _ in enumerate(df.columns)]
+    new_columns = ["index" for index, _ in enumerate(df.columns)]
     old_columns = list(df.columns)
 
-    df.columns = new_columns
+    df.columns = pd.Index(new_columns)
 
     for idx, i in enumerate(tqdm(df.columns, desc='Searching for radicals: ')):
         final_df[i] = np.apply_along_axis(func_list[idx], 0, df[i].values)
 
-    final_df.columns = old_columns
+    final_df.columns = pd.Index(old_columns)
 
     return final_df

@@ -3,9 +3,10 @@
 """Assess the differences between the 2 pre-processing methods."""
 
 import itertools
-from typing import List, Dict
+from typing import List, Dict, Any
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
 
@@ -51,12 +52,12 @@ def do_ss_evaluation(data: List[pd.DataFrame], labels: List[str]) -> Dict[str, D
     return result
 
 
-def _similarity(arr1, arr2):
+def _similarity(arr1: npt.NDArray[Any], arr2: npt.NDArray[Any]) -> Any:
     """Count the number of values that remain unchanged between the given files."""
     return np.sum(arr1 == arr2)
 
 
-def _missense(arr1, arr2):
+def _missense(arr1: npt.NDArray[Any], arr2: npt.NDArray[Any]) -> Any:
     """Count the number of values that change from 1 -> 0 or -1 -> 0 between the given files."""
     one2zero = np.sum(((arr1 == 0) & (arr2 == 1)) | ((arr1 == 1) & (arr2 == 0)))
     neg_one2zero = np.sum(((arr1 == 0) & (arr2 == -1)) | ((arr1 == -1) & (arr2 == 0)))
@@ -64,6 +65,6 @@ def _missense(arr1, arr2):
     return one2zero + neg_one2zero
 
 
-def _nonsense(arr1, arr2):
+def _nonsense(arr1: npt.NDArray[Any], arr2: npt.NDArray[Any]) -> Any:
     """Count the number of values that change from 1 -> -1 or vice-versa between the given files."""
     return np.sum(((arr1 == -1) & (arr2 == 1)) | ((arr1 == 1) & (arr2 == -1)))

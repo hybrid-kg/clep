@@ -4,7 +4,7 @@
 from itertools import combinations
 from os import listdir
 from os.path import isfile, join
-from typing import TextIO, Optional, Tuple, Union, Set
+from typing import TextIO, Optional, Tuple, Union, Set, List
 import logging
 
 import networkx as nx
@@ -18,14 +18,14 @@ logger = logging.getLogger(__name__)
 
 def do_graph_gen(
         data: pd.DataFrame,
-        network_gen_method: Optional[str] = 'interaction_network',
+        network_gen_method: str = 'interaction_network',
         gmt: Optional[str] = None,
-        intersection_threshold: Optional[float] = 0.1,
+        intersection_threshold: float = 0.1,
         kg_data: Optional[pd.DataFrame] = None,
         folder_path: Optional[str] = None,
-        jaccard_threshold: Optional[float] = 0.2,
+        jaccard_threshold: float = 0.2,
         summary: bool = False,
-) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame, Set]]:
+) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame, Set[str]]]:
     """Generate patient-feature network given the data using a certain network generation method.
 
     :param data: Dataframe containing the patient-feature scores
@@ -40,11 +40,11 @@ def do_graph_gen(
     """
     information_graph = nx.DiGraph()
 
-    if network_gen_method == 'pathway_overlap':
+    if network_gen_method == 'pathway_overlap' and gmt is not None:
         with open(gmt, 'r') as geneset:
             information_graph = plot_pathway_overlap(geneset, intersection_threshold)
 
-    elif network_gen_method == 'interaction_network':
+    elif network_gen_method == 'interaction_network' and kg_data is not None:
         interaction_graph = nx.from_pandas_edgelist(
             df=kg_data,
             source=kg_data.columns[0],
@@ -60,7 +60,7 @@ def do_graph_gen(
 
         information_graph = plot_interaction_network(kg_data)
 
-    elif network_gen_method == 'interaction_network_overlap':
+    elif network_gen_method == 'interaction_network_overlap' and folder_path is not None:
         information_graph = plot_interaction_net_overlap(folder_path, jaccard_threshold)
 
     if summary:
@@ -68,7 +68,7 @@ def do_graph_gen(
     else:
         final_graph = overlay_samples(data, information_graph, summary=False)
 
-    graph_df = nx.to_pandas_edgelist(final_graph)
+    graph_df: pd.DataFrame = nx.to_pandas_edgelist(final_graph)
 
     graph_df['relation'].fillna('no_change', inplace=True)
 
@@ -98,7 +98,7 @@ def plot_pathway_overlap(
                 continue
 
             union = list(set().union(pathway_dict[pathway_1], pathway_dict[pathway_2]))
-            intersection = list(set().intersection(pathway_dict[pathway_1], pathway_dict[pathway_2]))
+            intersection: List[Set[str]] = list(set().intersection(pathway_dict[pathway_1], pathway_dict[pathway_2]))
 
             if len(intersection) > (intersection_threshold * len(union)):
                 pathway_overlap_graph.add_edge(str(pathway_1), str(pathway_2))
@@ -159,7 +159,7 @@ def _get_jaccard_index(
         graph_2: nx.DiGraph
 ) -> float:
     """Calculate the jaccard index between 2 graphs based on pairwise (edges) jaccard index."""
-    j = 0
+    j = 0.0
     iterations = 0
     for v in graph_1:
         if v in graph_2:
@@ -179,7 +179,7 @@ def overlay_samples(
         data: pd.DataFrame,
         information_graph: nx.DiGraph,
         summary: bool = False,
-) -> Union[nx.DiGraph, Tuple[nx.DiGraph, pd.DataFrame, Set]]:
+) -> Union[nx.DiGraph, Tuple[nx.DiGraph, pd.DataFrame, Set[str]]]:
     """Overlay the data onto the information graph by adding edges between patients and information nodes."""
     patient_label_mapping = {patient: label for patient, label in zip(data.index, data['label'])}
     value_mapping = {0: 'no_change', 1: 'up_reg', -1: 'down_reg'}

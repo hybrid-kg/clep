@@ -17,7 +17,7 @@ DUMMY_LABELS = os.path.join(TEST_FOLDER, 'resources', 'dummy_labels.csv')
 class TestCdf(unittest.TestCase):
     """Tests for cdf method."""
 
-    def test_cdf_1(self):
+    def test_cdf_1(self) -> None:
         """Test cdf."""
         # Load dummy data
         df_data = pd.read_csv(DUMMY_DATA, sep='\t', index_col=0)
@@ -73,7 +73,7 @@ class TestCdf(unittest.TestCase):
             [],
         )
 
-    def test_cdf_2(self):
+    def test_cdf_2(self) -> None:
         """Test cdf."""
         # Load dummy data
         df_data = pd.read_csv(DUMMY_DATA, sep='\t', index_col=0)

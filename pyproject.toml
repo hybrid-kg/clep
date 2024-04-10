@@ -68,3 +68,9 @@ source = "clep"
 
 [tool.coverage.report]
 exclude_lines = ["def __repr__", "def __str__"]
+
+[tool.mypy]
+ignore_missing_imports = true
+strict = true
+plugins = ["numpy.typing.mypy_plugin"]
+exclude = "docs"

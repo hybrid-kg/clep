@@ -22,12 +22,12 @@ logger = logging.getLogger(__name__)
 
 
 @click.group()
-def main():
+def main() -> None:
     logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
 
 
 @main.command()
-def make_targets():
+def make_targets() -> None:
     design_raw = pd.read_csv(design_raw_path, sep='\t')
     xml = ElementTree.parse(miniml_xml_path)
     ns = {'namespace': namespace_string}
@@ -38,7 +38,10 @@ def make_targets():
     for i in tags:
         temp_lst = []
         for char in root.findall(f"./namespace:Sample/namespace:Channel/namespace:Characteristics[@tag='{i}']", ns):
-            temp_var = char.text.replace('\n', '').strip()
+            if char.text is None:
+                temp_var = 'NA'
+            else:
+                temp_var = char.text.replace('\n', '').strip()
             temp_lst.append(np.nan if temp_var == 'NA' else temp_var)
         design_raw[f'{i}'] = temp_lst
 
@@ -48,10 +51,10 @@ def make_targets():
         np.nan: np.nan,
         '0': 'SS',
         '1': 'SNS',
-        }
+    }
     control_mapping = {
         'no-cap': 'Control',
-        }
+    }
 
     design_matrix['Target'] = design_matrix['mortality_event_28days'].map(survivor_mapping)
     design_matrix['Control'] = design_matrix['pneumonia diagnoses'].map(control_mapping)
@@ -70,7 +73,7 @@ def make_targets():
 
 
 @main.command()
-def make_exp():
+def make_exp() -> None:
     platform = pd.read_csv(platform_design_path, sep='\t', index_col=0, header=43)
     exp = pd.read_csv(exp_path, sep='\t')
     exp.rename(columns={'Unnamed: 0': 'genes'}, inplace=True)

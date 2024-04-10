@@ -7,7 +7,7 @@ import json
 import bio2bel_hgnc
 
 
-def main():
+def main() -> None:
     """Make mapping files."""
     manager = bio2bel_hgnc.Manager()
 

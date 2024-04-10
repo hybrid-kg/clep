@@ -24,13 +24,13 @@ logger = logging.getLogger(__name__)
 
 
 @click.group()
-def main():
+def main() -> None:
     """Run clep."""
     logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
 
 
 @main.group()
-def sample_scoring():
+def sample_scoring() -> None:
     """List Single Sample Scoring methods available."""
 
 
@@ -229,7 +229,7 @@ def radical_search(
 
 
 @main.group()
-def embedding():
+def embedding() -> None:
     """List Vectorization methods available."""
 
 
@@ -370,15 +370,17 @@ def generate_network(
             summary=ret_summary
         )
 
-    if ret_summary:
+    if ret_summary and isinstance(graph_df, tuple):
         graph_df, summary_data, linked_genes = graph_df
 
-        summary_data.to_csv(f'{out}/network_summary.tsv', sep='\t')
+        if isinstance(summary_data, pd.DataFrame):
+            summary_data.to_csv(f'{out}/network_summary.tsv', sep='\t')
 
         with open(f'{out}/linked_genes.pkl', 'wb') as pickle_file:
             pickle.dump(linked_genes, pickle_file)
 
-    graph_df.to_csv(f'{out}/weighted.edgelist', sep='\t', header=False, index=False)
+    if isinstance(graph_df, pd.DataFrame):
+        graph_df.to_csv(f'{out}/weighted.edgelist', sep='\t', header=False, index=False)
 
     click.echo("Done with network generation")
 
@@ -421,9 +423,9 @@ def kge(
         design: str,
         out: str,
         model_config: str,
-        all_nodes: Optional[bool] = False,
-        train_size: Optional[float] = 0.8,
-        validation_size: Optional[float] = 0.1
+        all_nodes: bool = False,
+        train_size: float = 0.8,
+        validation_size: float = 0.1
 ) -> None:
     """Perform knowledge graph embedding."""
     with open(model_config, 'r') as config_file:
@@ -434,7 +436,7 @@ def kge(
     edgelist_df = pd.read_csv(data, sep='\t', index_col=None, header=None)
     design_df = pd.read_csv(design, sep='\t')
 
-    edgelist_df.columns = ['source', 'target', 'relation', 'label']
+    edgelist_df.columns = pd.Index(['source', 'target', 'relation', 'label'])
     edgelist_df = edgelist_df[['source', 'relation', 'target', 'label']]
 
     embedding_df = do_kge(
