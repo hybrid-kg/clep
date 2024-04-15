@@ -13,6 +13,7 @@ import click
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+import pandera.typing as pat
 from sklearn import linear_model, svm, ensemble, model_selection, multiclass, metrics, preprocessing
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import StratifiedKFold
@@ -56,9 +57,9 @@ def do_classification(
     data = data.drop(columns='label')
 
     if rand_labels:
-        np.random.shuffle(labels)  # type: ignore
+        np.random.shuffle(labels)
 
-    if len(np.unique(labels)) > 2:  # type: ignore
+    if len(np.unique(labels)) > 2:
         multi_roc_auc = metrics.make_scorer(multiclass_score_func, metric_func=metrics.roc_auc_score)
         optimizer = get_optimizer(optimizer_name, model, model_name, optimizer_cv, multi_roc_auc)
         optimizer.fit(data, labels)
@@ -68,7 +69,7 @@ def do_classification(
         cv_results = _do_multiclass_classification(
             estimator=optimizer,
             x=data,
-            y=labels,  # type: ignore
+            y=labels,
             cv=validation_cv,
             scoring=scoring_metrics,
             return_estimator=True,
@@ -93,7 +94,7 @@ def do_classification(
     return cv_results
 
 
-def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: pd.Series[str | int | float], cv: int, scoring: List[str],
+def _do_multiclass_classification(estimator: BaseEstimator, x: pd.DataFrame, y: pat.Series[str | int | float], cv: int, scoring: List[str],
                                   return_estimator: bool = True) -> Dict[str, Any]:
     """Do multiclass classification using OneVsRest classifier.
 
