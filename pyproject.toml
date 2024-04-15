@@ -42,6 +42,7 @@ dependencies = [
     "tqdm",
     "scikit-optimize",
     "pykeen",
+    "pandera",
 ]
 
 [tool.setuptools.packages.find]
@@ -72,5 +73,5 @@ exclude_lines = ["def __repr__", "def __str__"]
 [tool.mypy]
 ignore_missing_imports = true
 strict = true
-plugins = ["numpy.typing.mypy_plugin"]
+plugins = ["numpy.typing.mypy_plugin", "pandera.mypy"]
 exclude = "docs"
