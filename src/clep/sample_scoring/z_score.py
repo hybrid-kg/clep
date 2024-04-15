@@ -6,6 +6,7 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+import pandera.typing as pat
 
 
 def do_z_score(
@@ -67,7 +68,7 @@ def do_z_score(
     return output_df
 
 
-def _bin(row: pd.Series[int]) -> List[int]:
+def _bin(row: pat.Series[int]) -> List[int]:
     """Replace values greater than 0 as 1 and lesser than 0 as -1."""
     return [
         1 if (val > 0) else (-1 if (val < 0) else 0)

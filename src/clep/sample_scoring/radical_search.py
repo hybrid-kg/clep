@@ -144,7 +144,7 @@ def _apply_func(
     """
     final_df = pd.DataFrame()
 
-    new_columns = ["index" for index, _ in enumerate(df.columns)]
+    new_columns = [index for index, _ in enumerate(df.columns)]
     old_columns = list(df.columns)
 
     df.columns = pd.Index(new_columns)
