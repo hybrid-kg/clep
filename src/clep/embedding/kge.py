@@ -159,6 +159,7 @@ def run_optimization(dataset: Tuple[str, str, str], model_config: Dict[str, Any]
         optimizer_kwargs=model_config["optimizer_kwargs"],
         optimizer_kwargs_ranges=model_config["optimizer_kwargs_ranges"],
         training_loop=model_config["training_loop"],
+        training_loop_kwargs=model_config["training_loop_kwargs"],
         training_kwargs=model_config["training_kwargs"],
         training_kwargs_ranges=model_config["training_kwargs_ranges"],
         negative_sampler=model_config["negative_sampler"],
