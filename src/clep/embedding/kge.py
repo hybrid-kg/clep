@@ -62,9 +62,11 @@ def do_kge(
         out_dir=out
     )
 
-    best_model = run_pipeline(
+    pipeline_results = run_pipeline(
         out_dir=out
-    ).model
+    )
+
+    best_model, triple_factory = pipeline_results.model, pipeline_results.training
 
     # Get the embedding as a numpy array. Ignore the type as the model will be of type ERModel (Embedding model)
     embedding_values = _model_to_numpy(best_model)  # type: ignore
@@ -73,8 +75,8 @@ def do_kge(
     embedding_columns = [f'Component_{i}' for i in range(1, embedding_values.shape[1] + 1)]
 
     # Get the nodes of the training triples as index
-    node_list = list(best_model.triples_factory.entity_to_id.keys())
-    embedding_index = sorted(node_list, key=lambda x: best_model.triples_factory.entity_to_id[x])
+    node_list = list(triple_factory.entity_to_id.keys())
+    embedding_index = sorted(node_list, key=lambda x: triple_factory.entity_to_id[x])
 
     embedding = pd.DataFrame(data=embedding_values, columns=embedding_columns, index=embedding_index)
 
