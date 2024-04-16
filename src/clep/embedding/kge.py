@@ -8,7 +8,6 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from pykeen.hpo.hpo import hpo_pipeline
-from pykeen.models.base import Model
 from pykeen.models.nbase import ERModel
 from pykeen.typing import HeadRepresentation, RelationRepresentation, TailRepresentation
 from pykeen.pipeline import pipeline_from_path, PipelineResult
@@ -64,7 +63,6 @@ def do_kge(
     )
 
     best_model = run_pipeline(
-        dataset=(train_path, validation_path, test_path),
         out_dir=out
     ).model
 
@@ -186,18 +184,13 @@ def run_optimization(dataset: Tuple[str, str, str], model_config: Dict[str, Any]
 
 
 def run_pipeline(
-        dataset: Tuple[str, str, str],
         out_dir: str
 ) -> PipelineResult:
     """Run Pipeline."""
-    train_path, validation_path, test_path = dataset
 
     config_path = os.path.join(out_dir, 'pykeen_results_optim', 'best_pipeline', 'pipeline_config.json')
     pipeline_results = pipeline_from_path(
-        path=config_path,
-        training=train_path,
-        testing=test_path,
-        validation=validation_path
+        path=config_path
     )
 
     best_pipeline_dir = os.path.join(out_dir, 'pykeen_results_final')
