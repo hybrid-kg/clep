@@ -55,7 +55,7 @@ def do_limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float, method: str
         data_df[col] = sample_data.iloc[:, col_idx]
 
         # Add the design of that sample with the control samples to make the design table
-        design_df = ctrl_design.append(sample_design.iloc[col_idx, :], ignore_index=True)  # type: ignore
+        design_df = pd.concat([ctrl_design, sample_design.iloc[col_idx, :]], ignore_index=True)
 
         output = _limma(data=data_df, design=design_df, alpha=alpha, adjust_method=method)
 
