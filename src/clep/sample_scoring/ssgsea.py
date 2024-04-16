@@ -40,4 +40,8 @@ def do_ssgsea(
         format='png',
     )
 
-    return single_sample_gsea
+    single_sample_gsea_df = single_sample_gsea.res2d.pivot(index='Name', columns='Term', values='NES')
+    single_sample_gsea_df.columns.name = None
+    single_sample_gsea_df.index.name = None
+
+    return single_sample_gsea_df

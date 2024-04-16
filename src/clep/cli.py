@@ -152,14 +152,12 @@ def ssgsea(data: str, design: str, out: str, gs: str) -> None:
 
     single_sample_gsea = do_ssgsea(data_df, gs)
 
-    df = single_sample_gsea.res2d.transpose()
-
     label = design_df['Target'].map(label_mapping)
     label.reset_index(drop=True, inplace=True)
 
-    df['label'] = label.values
+    single_sample_gsea['label'] = label.values
 
-    df.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
+    single_sample_gsea.to_csv(f'{out}/sample_scoring.tsv', sep='\t')
 
     click.echo(f"Done with ssGSEA for {data}")
 
