@@ -127,8 +127,8 @@ def _limma(data: pd.DataFrame, design: pd.DataFrame, alpha: float = 0.05,
 
     # Adjust P value with the provided adjusted method
     output['adj.P.Val'] = multipletests(output['P.Value'], alpha=alpha, method=adjust_method)[1]
-    output['logFC'].loc[output['adj.P.Val'] > 0.05] = 0
-    output['logFC'].loc[np.abs(output['logFC']) < 1.3] = 0
+    output.loc[output['adj.P.Val'] > 0.05, 'logFC'] = 0
+    output.loc[np.abs(output['logFC']) < 1.3, 'logFC'] = 0
 
     return output
 
