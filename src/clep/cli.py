@@ -19,6 +19,7 @@ from clep.embedding import (
 from clep.sample_scoring import (
     do_limma, do_z_score, do_ssgsea, do_radical_search
 )
+from clep.constants import scorers
 
 logger = logging.getLogger(__name__)
 
@@ -494,7 +495,7 @@ def kge(
     '-m',
     '--metrics',
     help="Metrics that should be tested during cross validation (comma separated)",
-    type=click.Choice(get_scorer_names()),
+    type=click.Choice(scorers),
     required=False,
     multiple=True,
 )

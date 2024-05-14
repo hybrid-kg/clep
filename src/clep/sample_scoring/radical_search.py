@@ -102,9 +102,9 @@ def do_radical_search(
 
 def _get_ecdf(
         obs: pdt.ArrayLike,
-        side: Optional[str] = 'right',
-        step: Optional[bool] = True,
-        extrapolate: Optional[bool] = False
+        side: str = 'right',
+        step: bool = True,
+        extrapolate: bool = False
 ) -> Any:
     """Calculate the Empirical CDF of an array and return it as a function.
 
@@ -127,14 +127,14 @@ def _get_ecdf(
         y = np.linspace(1. / num_of_obs, 1, num_of_obs)
 
         if extrapolate:
-            return interp1d(obs, y, bounds_error=False, fill_value="extrapolate")
+            return interp1d(obs, y, bounds_error=False, fill_value="extrapolate")  # type: ignore
         else:
             return interp1d(obs, y)
 
 
 def _apply_func(
         df: pd.DataFrame,
-        func_list: List[Callable[..., Any]]
+        func_list: npt.NDArray[Any]
 ) -> pd.DataFrame:
     """Apply functions from the list (in order) on the respective column.
 
@@ -150,7 +150,7 @@ def _apply_func(
     df.columns = pd.Index(new_columns)
 
     for idx, i in enumerate(tqdm(df.columns, desc='Searching for radicals: ')):
-        final_df[i] = np.apply_along_axis(func_list[idx], 0, df[i].values)
+        final_df[i] = np.apply_along_axis(func_list[idx], 0, df[i].values)  # type: ignore
 
     final_df.columns = pd.Index(old_columns)
 

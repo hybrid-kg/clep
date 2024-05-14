@@ -5,6 +5,7 @@
 import os
 
 from scipy.stats import uniform, loguniform
+from sklearn.metrics import get_scorer_names
 from skopt.space import Real, Categorical, Integer
 from typing import Dict, Any, List
 
@@ -30,6 +31,9 @@ VALUE_TO_COLNAME = {
     -1: 'negative_relation',
     1: 'positive_relation'
 }
+
+
+scorers: List[str] = list(get_scorer_names())
 
 
 def get_data_dir() -> str:

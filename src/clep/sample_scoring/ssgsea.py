@@ -6,7 +6,6 @@ from typing import Optional
 
 import pandas as pd
 from gseapy import ssgsea
-from gseapy.ssgsea import SingleSampleGSEA
 
 
 def do_ssgsea(
@@ -16,7 +15,7 @@ def do_ssgsea(
         processes: int = 96,
         max_size: int = 3000,
         min_size: int = 15,
-) -> SingleSampleGSEA:
+) -> pd.DataFrame:
     """Run single sample GSEA (ssGSEA) on filtered gene expression data set.
 
     :param filtered_expression_data: filtered gene expression values for samples
@@ -40,7 +39,12 @@ def do_ssgsea(
         format='png',
     )
 
-    single_sample_gsea_df = single_sample_gsea.res2d.pivot(index='Name', columns='Term', values='NES')
+    single_sample_gsea_df = single_sample_gsea.res2d
+
+    if single_sample_gsea_df is None:
+        raise ValueError("No results found for ssGSEA")
+
+    single_sample_gsea_df = single_sample_gsea_df.pivot(index='Name', columns='Term', values='NES')
     single_sample_gsea_df.columns.name = None
     single_sample_gsea_df.index.name = None
 
