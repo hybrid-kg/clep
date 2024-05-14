@@ -416,6 +416,14 @@ def generate_network(
     default=0.1,
     show_default=True,
 )
+@click.option(
+    '--raw_embedding',
+    help='Flag to indicate if the embedding should be returned as is (default only returns the real part of a complex embedding)',
+    is_flag=True,
+    show_default=True,
+    default=False,
+    required=False,
+)
 def kge(
         data: str,
         design: str,
@@ -423,7 +431,8 @@ def kge(
         model_config: str,
         all_nodes: bool = False,
         train_size: float = 0.8,
-        validation_size: float = 0.1
+        validation_size: float = 0.1,
+        raw_embedding: bool = False
 ) -> None:
     """Perform knowledge graph embedding."""
     with open(model_config, 'r') as config_file:
@@ -444,7 +453,8 @@ def kge(
         return_patients=(not all_nodes),
         model_config=config,
         train_size=train_size,
-        validation_size=validation_size
+        validation_size=validation_size,
+        complex_embedding=raw_embedding
     )
 
     embedding_df.to_csv(f'{out}/embedding.tsv', sep='\t')

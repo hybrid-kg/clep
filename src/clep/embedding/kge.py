@@ -20,7 +20,8 @@ def do_kge(
         model_config: Dict[str, Any],
         return_patients: bool = True,
         train_size: float = 0.8,
-        validation_size: float = 0.1
+        validation_size: float = 0.1,
+        complex_embedding: bool = False
 ) -> pd.DataFrame:
     """Carry out KGE on the given data.
 
@@ -31,13 +32,15 @@ def do_kge(
     :param return_patients: Flag to indicate if the final data should contain only patients or even the features
     :param train_size: Size of the training data for KGE ranging from 0 - 1
     :param validation_size: Size of the validation data for KGE ranging from 0 - 1. It must be lower than training size
+    :param complex_embedding: Flag to indicate if only the real part of the embedding should be returned.
     :return: Dataframe containing the embedding from the KGE
     """
     design_norm_df = design.astype(str, copy=True)
 
     unique_nodes = edgelist[~edgelist['label'].isna()].drop_duplicates('source')
 
-    label_mapping = {patient: label for patient, label in zip(unique_nodes['source'], unique_nodes['label'])}
+    # Create a mapping of the patient to the label. The patient id is converted to string to avoid duplicates
+    label_mapping = {str(patient): label for patient, label in zip(unique_nodes['source'], unique_nodes['label'])}
 
     edgelist = edgelist.drop(columns='label')
 
@@ -69,7 +72,7 @@ def do_kge(
     best_model, triple_factory = pipeline_results.model, pipeline_results.training
 
     # Get the embedding as a numpy array. Ignore the type as the model will be of type ERModel (Embedding model)
-    embedding_values = _model_to_numpy(best_model)  # type: ignore
+    embedding_values = _model_to_numpy(best_model, complex=complex_embedding)  # type: ignore
 
     # Create columns as component names
     embedding_columns = [f'Component_{i}' for i in range(1, embedding_values.shape[1] + 1)]
@@ -131,11 +134,17 @@ def _weighted_splitter(
 
 
 def _model_to_numpy(
-        model: ERModel[HeadRepresentation, RelationRepresentation, TailRepresentation]
+        model: ERModel[HeadRepresentation, RelationRepresentation, TailRepresentation],
+        complex: bool = False
 ) -> npt.NDArray[np.float64 | np.float32]:
     """Retrieve embedding from the models as a numpy array."""
     embedding_numpy: npt.NDArray[np.float64 | np.float32] = model.entity_representations[0](indices=None).detach().cpu().numpy()
-    return embedding_numpy
+
+    if complex:
+        return embedding_numpy
+
+    # Get the real part of the embedding for classification tasks
+    return embedding_numpy.real
 
 
 def run_optimization(dataset: Tuple[str, str, str], model_config: Dict[str, Any], out_dir: str) -> None:
