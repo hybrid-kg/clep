@@ -1,6 +1,6 @@
 from typing import Callable, cast
 
-import optuna
+from optuna import create_study, Trial
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.datasets import load_iris
@@ -50,8 +50,8 @@ X, y = load_iris(return_X_y=True)
 objective = OptunaObjective(X, y)
 
 # Create a study object and optimize the hyperparameters for the chosen classifier
-study = optuna.create_study(direction='maximize')
-study.optimize(cast(Callable[[optuna.Trial], float], objective), n_trials=100)
+study = create_study(direction='maximize')
+study.optimize(cast(Callable[[Trial], float], objective), n_trials=100)
 
 # Get the best hyperparameters and the best accuracy score
 best_params = study.best_params
