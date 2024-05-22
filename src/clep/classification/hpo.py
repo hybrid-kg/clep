@@ -23,17 +23,23 @@ class OptunaObjective:
         self.classifier = None
 
     def __call__(self, trial):
-        self.classifier = trial.suggest_categorical('classifier', ['SVM', 'ElasticNet'])
+        self.classifier = trial.suggest_categorical('classifier', ['SVM', 'ElasticNet', 'LogisticRegression', 'RandomForest', 'GradientBoosting'])
         # Define the hyperparameters to optimize based on the suggested classifier
         clf = self._get_clf(trial)
 
-        cv_results = _do_multiclass_classification(
-            estimator=clf,
-            x=self.X,
-            y=self.y,
-            cv=self.cv,
-            scoring=self.metric
-        )
+        if len(np.unique(self.y)) > 2:
+            cv_results = _do_multiclass_classification(estimator=clf,
+                                                       x=self.X,
+                                                       y=self.y,
+                                                       cv=self.cv,
+                                                       scoring=self.metric)
+        else:
+            cv_results =  model_selection.cross_validate(estimator=clf,
+                                                         X=self.X,
+                                                         y=self.y,
+                                                         cv=model_selection.StratifiedKFold(n_splits=self.cv, shuffle=True),
+                                                         scoring=self.metric,
+                                                         return_estimator=True)
 
         for key, value in cv_results.items():
             trial.set_user_attr(key, value)
