@@ -117,17 +117,27 @@ if __name__ == '__main__':
     # Create a study object and optimize the hyperparameters for the chosen classifier
     directions = ['maximize'] * len(metrics)
 
+    ############################################################################
+    # Speed comparison for 30 trials
+    # study.optimize(study, 30): 47s
+    # study.optimize(study, 30, n_jobs = 5) additional argument: 33s
+    # multiprocessing on single node using joblib.parallel_config(n_jobs=5): 27s
+    ############################################################################
     if args.num_processes <= 1:
         study = create_study(directions=directions)
         run_optuna_optimization(study, args.num_trials)
     else:
-        # Multiprocessing instead of Multithreading? https://github.com/optuna/optuna/issues/2202
-        trials_per_node = args.num_trials
-        # trials_per_node = int(args.num_trials // args.num_processes)
-        #storage_dir = "mysql://root@localhost/example"
+        # Multiprocessing or Multithreading? https://github.com/optuna/optuna/issues/2202
         with joblib.parallel_config(n_jobs=args.num_processes):
             study = create_study(directions=directions)
-            run_optuna_optimization(study, trials_per_node)
+            run_optuna_optimization(study, args.num_trials)
+
+    # # Alternative 4 NOT TESTED
+    # storage_dir = "mysql://root@localhost/example"
+    # # trials_per_node = int(args.num_trials // args.num_processes)
+    # with joblib.parallel_config(n_jobs=args.num_processes):
+    #     study = create_study(storage=storage_dir, directions=directions)
+    #     study.optimize(objective, n_trials=30)
 
 
     # # Get the best hyperparameters and the best accuracy score
@@ -139,8 +149,6 @@ if __name__ == '__main__':
     # print(study.best_trials)
 
     joblib.dump(study, args.out_dir)
-
-    # TODO: Add multi-processing to the code
 
     # def multiprocess():
     #     mydb = mysql.connector.connect(
