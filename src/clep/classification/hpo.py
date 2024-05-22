@@ -1,4 +1,5 @@
 from typing import Callable, cast
+import joblib
 
 import numpy as np
 from optuna import create_study, Trial
@@ -33,6 +34,9 @@ class OptunaObjective:
             cv=self.cv,
             scoring=self.metric
         )
+
+        for key, value in cv_results.items():
+            trial.set_user_attr(key, value)
 
         metric_scores = self._get_metric(cv_results)
 
@@ -94,4 +98,20 @@ study.optimize(cast(Callable[[Trial], float], objective), n_trials=100)
 
 # print("Best Hyperparameters:", best_params)
 # print("Best Accuracy:", best_accuracy)
-print(study.best_trials)
+# print(study.best_trials)
+
+joblib.dump(study, 'study.pkl')
+
+# TODO: Add multi-processing to the code
+# def multiprocess():
+#     mydb = mysql.connector.connect(
+#     host="localhost",
+#     user="yourusername",
+#     password="yourpassword"
+#     )
+
+#     mycursor = mydb.cursor()
+
+#     mycursor.execute("CREATE DATABASE mydatabase")
+
+#     Pool(5).map(init, sql_path)
