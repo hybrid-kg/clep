@@ -87,6 +87,9 @@ class OptunaObjective:
 
         return tuple(results)
 
+def run_optuna_optimization(study: optuna.study.study.Study, n_trials:int):
+    study.optimize(cast(Callable[[Trial], float], objective), n_trials=n_trials)
+
 
 if __name__ == '__main__':
     # Load the dataset
@@ -95,7 +98,13 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-dd', '--data_dir', type=str)
+    parser.add_argument('-o', '--out_dir', type=str, default='study.pkl')
+    parser.add_argument('-mp','--num_processes', type=int, default=1)
+    parser.add_argument('-nt', '--num_trials', type=int, default=10)
+
     args = parser.parse_args()
+
+
     data_df = pd.read_csv(args.data_dir, sep='\t', index_col=0)
     X = data_df.drop(columns='label')
     y = list(data_df['label'].values)
@@ -106,8 +115,15 @@ if __name__ == '__main__':
 
     # Create a study object and optimize the hyperparameters for the chosen classifier
     directions = ['maximize'] * len(metrics)
-    study = create_study(directions=directions)
-    study.optimize(cast(Callable[[Trial], float], objective), n_trials=10)
+
+    if args.num_processes <= 1:
+        study = create_study(directions=directions)
+        run_optuna_optimization(study, 10)
+    else:
+        trials_per_node = int(args.num_trials // args.num_processes)
+        storage_dir = "mysql://root@localhost/example"
+        study = create_study(directions=directions, storage=storage_dir)
+        run_optuna_optimization(study, trials_per_node)
 
     # # Get the best hyperparameters and the best accuracy score
     # best_params = study.best_params
@@ -115,9 +131,9 @@ if __name__ == '__main__':
 
     # print("Best Hyperparameters:", best_params)
     # print("Best Accuracy:", best_accuracy)
-    # p"D:\embedding.tsv"rint(study.best_trials)
+    # print(study.best_trials)
 
-    joblib.dump(study, 'study.pkl')
+    joblib.dump(study, args.out_dir)
 
     # TODO: Add multi-processing to the code
     # def multiprocess():
