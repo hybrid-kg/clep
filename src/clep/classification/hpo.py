@@ -1,9 +1,10 @@
+import time
 from typing import Callable, cast
 import joblib
 
 import numpy as np
 import pandas as pd
-from optuna import create_study, Trial
+from optuna import create_study, Trial, study
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.datasets import load_iris
@@ -61,7 +62,7 @@ class OptunaObjective:
                 clf = LogisticRegression(C=C, solver='saga', penalty='elasticnet', l1_ratio=l1_ratio, max_iter=5000)
             case 'RandomForest':
                 n_estimators = trial.suggest_int('n_estimators', 100, 1000)
-                max_features = trial.suggest_categorical('max_features', ['auto', 'log2'])
+                max_features = trial.suggest_categorical('max_features', ['sqrt', 'log2'])   # ! auto does not work
                 clf = RandomForestClassifier(n_estimators=n_estimators, max_features=max_features)
             case 'GradientBoosting':
                 learning_rate = trial.suggest_float('learning_rate', 0.0, 1.0)
@@ -87,7 +88,7 @@ class OptunaObjective:
 
         return tuple(results)
 
-def run_optuna_optimization(study: optuna.study.study.Study, n_trials:int):
+def run_optuna_optimization(study: study.study.Study, n_trials:int):
     study.optimize(cast(Callable[[Trial], float], objective), n_trials=n_trials)
 
 
@@ -118,12 +119,16 @@ if __name__ == '__main__':
 
     if args.num_processes <= 1:
         study = create_study(directions=directions)
-        run_optuna_optimization(study, 10)
+        run_optuna_optimization(study, args.num_trials)
     else:
-        trials_per_node = int(args.num_trials // args.num_processes)
-        storage_dir = "mysql://root@localhost/example"
-        study = create_study(directions=directions, storage=storage_dir)
-        run_optuna_optimization(study, trials_per_node)
+        # Multiprocessing instead of Multithreading? https://github.com/optuna/optuna/issues/2202
+        trials_per_node = args.num_trials
+        # trials_per_node = int(args.num_trials // args.num_processes)
+        #storage_dir = "mysql://root@localhost/example"
+        with joblib.parallel_config(n_jobs=args.num_processes):
+            study = create_study(directions=directions)
+            run_optuna_optimization(study, trials_per_node)
+
 
     # # Get the best hyperparameters and the best accuracy score
     # best_params = study.best_params
@@ -136,6 +141,7 @@ if __name__ == '__main__':
     joblib.dump(study, args.out_dir)
 
     # TODO: Add multi-processing to the code
+
     # def multiprocess():
     #     mydb = mysql.connector.connect(
     #     host="localhost",
