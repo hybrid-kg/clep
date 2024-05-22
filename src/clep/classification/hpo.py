@@ -2,6 +2,7 @@ from typing import Callable, cast
 import joblib
 
 import numpy as np
+import pandas as pd
 from optuna import create_study, Trial
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -9,9 +10,9 @@ from sklearn.datasets import load_iris
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
+from sklearn import model_selection
 
-from classify import _do_multiclass_classification
+from xgboost import XGBClassifier
 
 
 class OptunaObjective:
@@ -28,6 +29,7 @@ class OptunaObjective:
         clf = self._get_clf(trial)
 
         if len(np.unique(self.y)) > 2:
+            from classify import _do_multiclass_classification
             cv_results = _do_multiclass_classification(estimator=clf,
                                                        x=self.X,
                                                        y=self.y,
@@ -86,38 +88,47 @@ class OptunaObjective:
         return tuple(results)
 
 
-# Load the dataset
-X, y = load_iris(return_X_y=True, as_frame=True)
+if __name__ == '__main__':
+    # Load the dataset
+    # X, y = load_iris(return_X_y=True, as_frame=True)
+    import argparse
 
-metrics = ['roc_auc', 'accuracy']
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-dd', '--data_dir', type=str)
+    args = parser.parse_args()
+    data_df = pd.read_csv(args.data_dir, sep='\t', index_col=0)
+    X = data_df.drop(columns='label')
+    y = list(data_df['label'].values)
 
-objective = OptunaObjective(X, y, metrics, 10)
+    metrics = ['roc_auc', 'accuracy']
 
-# Create a study object and optimize the hyperparameters for the chosen classifier
-directions = ['maximize'] * len(metrics)
-study = create_study(directions=directions)
-study.optimize(cast(Callable[[Trial], float], objective), n_trials=100)
+    objective = OptunaObjective(X, y, metrics, 10)
 
-# # Get the best hyperparameters and the best accuracy score
-# best_params = study.best_params
-# best_accuracy = study.best_value
+    # Create a study object and optimize the hyperparameters for the chosen classifier
+    directions = ['maximize'] * len(metrics)
+    study = create_study(directions=directions)
+    study.optimize(cast(Callable[[Trial], float], objective), n_trials=10)
 
-# print("Best Hyperparameters:", best_params)
-# print("Best Accuracy:", best_accuracy)
-# print(study.best_trials)
+    # # Get the best hyperparameters and the best accuracy score
+    # best_params = study.best_params
+    # best_accuracy = study.best_value
 
-joblib.dump(study, 'study.pkl')
+    # print("Best Hyperparameters:", best_params)
+    # print("Best Accuracy:", best_accuracy)
+    # p"D:\embedding.tsv"rint(study.best_trials)
 
-# TODO: Add multi-processing to the code
-# def multiprocess():
-#     mydb = mysql.connector.connect(
-#     host="localhost",
-#     user="yourusername",
-#     password="yourpassword"
-#     )
+    joblib.dump(study, 'study.pkl')
 
-#     mycursor = mydb.cursor()
+    # TODO: Add multi-processing to the code
+    # def multiprocess():
+    #     mydb = mysql.connector.connect(
+    #     host="localhost",
+    #     user="yourusername",
+    #     password="yourpassword"
+    #     )
 
-#     mycursor.execute("CREATE DATABASE mydatabase")
+    #     mycursor = mydb.cursor()
 
-#     Pool(5).map(init, sql_path)
+    #     mycursor.execute("CREATE DATABASE mydatabase")
+
+    #     Pool(5).map(init, sql_path)
