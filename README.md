@@ -146,10 +146,10 @@ $ clep embedding kge --data <NETWORK_FILE> --design <DESIGN_FILE> --model_config
 
 4. **Classification**
 
-The following command carries out classification on the given data file for a chosen model (Elastic Net) using a chosen optimizer (Grid Search).
+The following command carries out classification on the given data file for a chosen model (Elastic Net) with 100 hyper-parameter optimization trials.
 
 ```bash
-$ clep classify --data <EMBEDDING_FILE> --model elastic_net --optimizer grid_search --out <OUTPUT_DIR>
+$ clep classify --data <EMBEDDING_FILE> --model elastic_net --num-trials 100 --out <OUTPUT_DIR>
 ```
 
 ## Issues

@@ -43,6 +43,10 @@ dependencies = [
     "scikit-optimize",
     "pykeen",
     "pandera",
+    "optuna",
+    "joblib",
+    "sqlalchemy",
+    "mysqlclient",
 ]
 
 [tool.setuptools.packages.find]

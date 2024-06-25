@@ -1,164 +1,135 @@
-import time
-from typing import Callable, cast
-import joblib
+""" Hyperparameter optimization using Optuna """
+
+import copy
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
-from optuna import create_study, Trial, study
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-from sklearn.datasets import load_iris
-from sklearn.svm import SVC
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
+from joblib import Parallel, delayed
+from optuna import create_study
+from optuna.storages import RDBStorage
 from sklearn import model_selection
+from tqdm import tqdm
 
-from xgboost import XGBClassifier
-
-
-class OptunaObjective:
-    def __init__(self, X, y, metric, cv):
-        self.X = X
-        self.y = y
-        self.metric = metric
-        self.cv = cv
-        self.classifier = None
-
-    def __call__(self, trial):
-        self.classifier = trial.suggest_categorical('classifier', ['SVM', 'ElasticNet', 'LogisticRegression', 'RandomForest', 'GradientBoosting'])
-        # Define the hyperparameters to optimize based on the suggested classifier
-        clf = self._get_clf(trial)
-
-        if len(np.unique(self.y)) > 2:
-            from classify import _do_multiclass_classification
-            cv_results = _do_multiclass_classification(estimator=clf,
-                                                       x=self.X,
-                                                       y=self.y,
-                                                       cv=self.cv,
-                                                       scoring=self.metric)
-        else:
-            cv_results =  model_selection.cross_validate(estimator=clf,
-                                                         X=self.X,
-                                                         y=self.y,
-                                                         cv=model_selection.StratifiedKFold(n_splits=self.cv, shuffle=True),
-                                                         scoring=self.metric,
-                                                         return_estimator=True)
-
-        for key, value in cv_results.items():
-            trial.set_user_attr(key, value)
-
-        metric_scores = self._get_metric(cv_results)
-
-        return metric_scores
-
-    def _get_clf(self, trial):
-        match self.classifier:
-            case 'LogisticRegression':
-                C = trial.suggest_float('C', 1e-6, 1e+6, log=True)
-                clf = LogisticRegression(C=C, solver='lbfgs', max_iter=5000)
-            case 'ElasticNet':
-                C = trial.suggest_float('C', 1e-6, 1e+6, log=True)
-                l1_ratio = trial.suggest_float('l1_ratio', 0.0, 1.0)
-                clf = LogisticRegression(C=C, solver='saga', penalty='elasticnet', l1_ratio=l1_ratio, max_iter=5000)
-            case 'RandomForest':
-                n_estimators = trial.suggest_int('n_estimators', 100, 1000)
-                max_features = trial.suggest_categorical('max_features', ['sqrt', 'log2'])   # ! auto does not work
-                clf = RandomForestClassifier(n_estimators=n_estimators, max_features=max_features)
-            case 'GradientBoosting':
-                learning_rate = trial.suggest_float('learning_rate', 0.0, 1.0)
-                subsample = trial.suggest_float('subsample', 0.1, 0.9)
-                max_depth = trial.suggest_int('max_depth', 0, 10)
-                min_child_weight = trial.suggest_int('min_child_weight', 0, 25)
-                clf = XGBClassifier(learning_rate=learning_rate, subsample=subsample, max_depth=max_depth, min_child_weight=min_child_weight)
-            case 'SVM':
-                C = trial.suggest_float('C', 1e-3, 1e+3, log=True)
-                kernel = trial.suggest_categorical('kernel', ['linear', 'rbf', 'poly'])
-                degree = trial.suggest_int('degree', 1, 5)
-                clf = SVC(C=C, kernel=kernel, degree=degree)
-            case _:
-                raise ValueError("Invalid classifier specified.")
-
-        return clf
-
-    def _get_metric(self, cv_results):
-        results = []
-        for metric in self.metric:
-            if f'test_{metric}' in cv_results:
-                results.append(np.mean(cv_results[f'test_{metric}']))
-
-        return tuple(results)
-
-def run_optuna_optimization(study: study.study.Study, n_trials:int):
-    study.optimize(cast(Callable[[Trial], float], objective), n_trials=n_trials)
+from .utils import (OptunaObjective, init_db, run_final_classification,
+                    run_optuna_optimization, save_json)
+from ..constants import MODEL_NAME_MAPPING
 
 
-if __name__ == '__main__':
-    # Load the dataset
-    # X, y = load_iris(return_X_y=True, as_frame=True)
-    import argparse
+def hpo_cross_validate(X, y, metrics, cv, classifier, num_processes=1, db_url=None, num_trials=100, **kwargs):
+    k_fold = model_selection.StratifiedKFold(n_splits=cv, shuffle=True)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-dd', '--data_dir', type=str)
-    parser.add_argument('-o', '--out_dir', type=str, default='study.pkl')
-    parser.add_argument('-mp','--num_processes', type=int, default=1)
-    parser.add_argument('-nt', '--num_trials', type=int, default=10)
+    outer_cv_results = {}
 
-    args = parser.parse_args()
+    for run_num, (train_indexes, test_indexes) in enumerate(tqdm(k_fold.split(X, y), total=cv, desc='Outer CV')):
+        x_train = np.asarray(
+            [X.iloc[train_index, :].values.tolist()
+             for train_index in train_indexes]
+        )
+        x_test = np.asarray(
+            [X.iloc[test_index, :].values.tolist()
+             for test_index in test_indexes]
+        )
+        y_train = np.asarray(
+            [y[train_index]
+             for train_index in train_indexes]
+        )
+        y_test = np.asarray(
+            [y[test_index]
+             for test_index in test_indexes]
+        )
 
+        objective = OptunaObjective(x_train, y_train, metrics, cv, classifier, **kwargs)
+        directions = ['maximize'] * len(metrics)
 
-    data_df = pd.read_csv(args.data_dir, sep='\t', index_col=0)
-    X = data_df.drop(columns='label')
-    y = list(data_df['label'].values)
+        ############################################################################
+        # Speed comparison for 100 trials
+        # 1 process: 218.6 seconds
+        # 2 processes: 169.9 seconds
+        # 5 processes: 80.45 seconds
+        ############################################################################
 
-    metrics = ['roc_auc', 'accuracy']
-
-    objective = OptunaObjective(X, y, metrics, 10)
-
-    # Create a study object and optimize the hyperparameters for the chosen classifier
-    directions = ['maximize'] * len(metrics)
-
-    ############################################################################
-    # Speed comparison for 30 trials
-    # study.optimize(study, 30): 47s
-    # study.optimize(study, 30, n_jobs = 5) additional argument: 33s
-    # multiprocessing on single node using joblib.parallel_config(n_jobs=5): 27s
-    ############################################################################
-    if args.num_processes <= 1:
-        study = create_study(directions=directions)
-        run_optuna_optimization(study, args.num_trials)
-    else:
-        # Multiprocessing or Multithreading? https://github.com/optuna/optuna/issues/2202
-        with joblib.parallel_config(n_jobs=args.num_processes):
+        if num_processes <= 1:
             study = create_study(directions=directions)
-            run_optuna_optimization(study, args.num_trials)
+            run_optuna_optimization(study, num_trials, objective)
+        else:
+            if db_url is None:
+                raise ValueError('Database URL must be provided for parallel optimization')
 
-    # # Alternative 4 NOT TESTED
-    # storage_dir = "mysql://root@localhost/example"
-    # # trials_per_node = int(args.num_trials // args.num_processes)
-    # with joblib.parallel_config(n_jobs=args.num_processes):
-    #     study = create_study(storage=storage_dir, directions=directions)
-    #     study.optimize(objective, n_trials=30)
+            init_db(db_url=db_url)
+            storage = RDBStorage(url=db_url + '/optuna')
+
+            study = create_study(
+                directions=directions,
+                storage=storage
+            )
+
+            number_of_trials = -(-num_trials // num_processes)  # Round up division
+
+            Parallel(n_jobs=num_processes)(
+                delayed(run_optuna_optimization)(
+                    study,
+                    number_of_trials,
+                    objective
+                )
+                for _ in range(num_processes)
+            )
+
+        # TODO: Add support for multiple metrics
+        best_trial = max(study.best_trials, key=lambda trial: trial.values[0])
+        cv_results = run_final_classification(x_train, y_train, x_test, y_test, metrics, best_trial.params, 'RandomForest')
+        outer_cv_results[run_num] = cv_results
+
+    return outer_cv_results
 
 
-    # # Get the best hyperparameters and the best accuracy score
-    # best_params = study.best_params
-    # best_accuracy = study.best_value
+def do_classification(
+        data: pd.DataFrame,
+        model_name: str,
+        out_dir: str,
+        validation_cv: int,
+        scoring_metrics: List[str],
+        rand_labels: bool,
+        num_processes: int,
+        mysql_url: Optional[str],
+        num_trials: int,
+        **kwargs
+) -> Dict[str, Any]:
+    """Perform classification on embeddings generated from previous step.
 
-    # print("Best Hyperparameters:", best_params)
-    # print("Best Accuracy:", best_accuracy)
-    # print(study.best_trials)
+    :param data: Dataframe containing the embeddings
+    :param model_name: model that should be used for cross validation
+    :param out_dir: Path to the output directory
+    :param validation_cv: Number of cross validation steps
+    :param scoring_metrics: Scoring metrics tested during cross validation
+    :param rand_labels: Boolean variable to indicate if labels must be randomized to check for ML stability
+    :param num_processes: Number of processes to use for parallelization
+    :param mysql_url: URL for the MySQL database to store Optuna results
+    :param num_trials: Number of trials to run for hyperparameter optimization
+    :arg kwargs: Additional named arguments to be passed to the classifier
+    :return: Dictionary containing the cross validation results
+    """
 
-    joblib.dump(study, args.out_dir)
+    # Separate embeddings from labels in data
+    labels = list(data['label'].values)
+    data = data.drop(columns='label')
 
-    # def multiprocess():
-    #     mydb = mysql.connector.connect(
-    #     host="localhost",
-    #     user="yourusername",
-    #     password="yourpassword"
-    #     )
+    if rand_labels:
+        np.random.shuffle(labels)
 
-    #     mycursor = mydb.cursor()
+    # Perform cross validation with optuna based hyperparameter optimization
+    cv_results = hpo_cross_validate(
+        X=data,
+        y=labels,
+        metrics=scoring_metrics,
+        cv=validation_cv,
+        classifier=MODEL_NAME_MAPPING[model_name],
+        num_processes=num_processes,
+        db_url=mysql_url,
+        num_trials=num_trials,
+        **kwargs
+    )
 
-    #     mycursor.execute("CREATE DATABASE mydatabase")
+    save_json(results=copy.deepcopy(cv_results), out_dir=out_dir)
 
-    #     Pool(5).map(init, sql_path)
+    return cv_results
