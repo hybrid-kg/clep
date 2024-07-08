@@ -25,7 +25,7 @@ def do_graph_gen(
         folder_path: Optional[str] = None,
         jaccard_threshold: float = 0.2,
         summary: bool = False,
-) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame, Set[str]]]:
+) -> Tuple[pd.DataFrame, Optional[pd.DataFrame], Optional[Set[str]]]:
     """Generate patient-feature network given the data using a certain network generation method.
 
     :param data: Dataframe containing the patient-feature scores
@@ -66,7 +66,7 @@ def do_graph_gen(
     if summary:
         final_graph, summary_data, linked_genes = overlay_samples(data, information_graph, summary=True)
     else:
-        final_graph = overlay_samples(data, information_graph, summary=False)
+        final_graph, _, _ = overlay_samples(data, information_graph, summary=False)
 
     graph_df: pd.DataFrame = nx.to_pandas_edgelist(final_graph)
 
@@ -77,7 +77,7 @@ def do_graph_gen(
     if summary:
         return graph_df, summary_data, linked_genes
     else:
-        return graph_df
+        return graph_df, None, None
 
 
 def plot_pathway_overlap(
@@ -179,7 +179,7 @@ def overlay_samples(
         data: pd.DataFrame,
         information_graph: nx.DiGraph,
         summary: bool = False,
-) -> Union[nx.DiGraph, Tuple[nx.DiGraph, pd.DataFrame, Set[str]]]:
+) -> Tuple[nx.Graph, Optional[pd.DataFrame], Optional[Set[str]]]:
     """Overlay the data onto the information graph by adding edges between patients and information nodes."""
     patient_label_mapping = {patient: label for patient, label in zip(data.index, data['label'])}
     value_mapping = {0: 'no_change', 1: 'up_reg', -1: 'down_reg'}
@@ -232,5 +232,5 @@ def overlay_samples(
             logger.warning(f'{len(non_conn_pats)} samples is/are not connected to any genes.')
 
         return overlay_graph, summary_data, linked_genes
-    else:
-        return overlay_graph
+
+    return overlay_graph, None, None

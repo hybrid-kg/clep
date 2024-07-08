@@ -2,6 +2,6 @@
 
 """Wrap Machine-Learning Classifiers for clep."""
 
-from clep.classification.classify import do_classification
+from .hpo import do_classification
 
 __all__ = ['do_classification']

@@ -6,20 +6,19 @@ import json
 import logging
 import pickle
 import warnings
-from typing import List, Union, Optional
+from typing import List, Optional
 
 import click
 import numpy as np
 import pandas as pd
-from sklearn.metrics import get_scorer_names
 
-from clep.classification import do_classification
-from clep.embedding import (
+from .classification import do_classification
+from .embedding import (
     do_ss_evaluation, do_graph_gen, do_kge)
-from clep.sample_scoring import (
+from .sample_scoring import (
     do_limma, do_z_score, do_ssgsea, do_radical_search
 )
-from clep.constants import scorers
+from .constants import scorers
 
 logger = logging.getLogger(__name__)
 
@@ -336,7 +335,7 @@ def generate_network(
         assert gmt is not None
         click.echo(f"Generating {method} based network with {data} & {gmt} and outputting it to {out}")
 
-        graph_df = do_graph_gen(
+        graph_results = do_graph_gen(
             data=data_df,
             gmt=gmt,
             network_gen_method=method,
@@ -350,7 +349,7 @@ def generate_network(
 
         kg_data_df = pd.read_csv(kg, sep='\t', header=None)
 
-        graph_df = do_graph_gen(
+        graph_results = do_graph_gen(
             data=data_df,
             kg_data=kg_data_df,
             network_gen_method=method,
@@ -361,7 +360,7 @@ def generate_network(
         assert network_folder is not None
         design = network_folder
 
-        graph_df = do_graph_gen(
+        graph_results = do_graph_gen(
             data=data_df,
             folder_path=design,
             network_gen_method=method,
@@ -369,16 +368,16 @@ def generate_network(
             summary=ret_summary
         )
 
-    if ret_summary and isinstance(graph_df, tuple):
-        graph_df, summary_data, linked_genes = graph_df
+    if ret_summary:
+        graph_df, summary_data, linked_genes = graph_results
 
         if isinstance(summary_data, pd.DataFrame):
             summary_data.to_csv(f'{out}/network_summary.tsv', sep='\t')
 
         with open(f'{out}/linked_genes.pkl', 'wb') as pickle_file:
             pickle.dump(linked_genes, pickle_file)
-
-    if isinstance(graph_df, pd.DataFrame):
+    else:
+        graph_df, _, _ = graph_results
         graph_df.to_csv(f'{out}/weighted.edgelist', sep='\t', header=False, index=False)
 
     click.echo("Done with network generation")
@@ -478,12 +477,6 @@ def kge(
     required=True
 )
 @click.option(
-    '--optimizer',
-    help="Optimizer used for classifier.",
-    type=click.Choice(['grid_search', 'random_search', 'bayesian_search']),
-    required=True
-)
-@click.option(
     '--cv',
     help="Number of cross validation steps",
     type=int,
@@ -505,14 +498,40 @@ def kge(
     is_flag=True,
     required=False,
 )
+@click.option(
+    '--num-processes',
+    help="Number of processes to use for parallelization",
+    type=int,
+    required=False,
+    default=1,
+    show_default=True,
+)
+@click.option(
+    '--mysql-url',
+    help="URL for the MySQL database (with username and password) to store the optuna study results",
+    type=str,
+    required=False,
+    default=None,
+    show_default=True,
+)
+@click.option(
+    '--num-trials',
+    help="Number of trials to run for hyperparameter optimization",
+    type=int,
+    required=False,
+    default=100,
+    show_default=True,
+)
 def classify(
         data: str,
         out: str,
         model: str,
-        optimizer: str,
         cv: int,
-        metrics: Union[List[str], None],
+        metrics: Optional[List[str]],
         randomize: bool,
+        num_processes: int,
+        mysql_url: Optional[str],
+        num_trials: int
 ) -> None:
     """Perform machine-learning classification."""
     # Ignore bayesian search warning. Waiting for a fix (https://github.com/scikit-optimize/scikit-optimize/issues/302)
@@ -521,12 +540,28 @@ def classify(
     if not metrics:
         metrics = ['roc_auc', 'accuracy', 'f1_micro', 'f1_macro', 'f1']
 
+    if num_processes > 1 and mysql_url is None:
+        ctx = click.get_current_context()
+        click.echo("Please provide a MySQL URL to store the optuna study results")
+        click.echo(ctx.get_help())
+        return
+
     click.echo(
         f"Starting {model} classification with {data} and out-putting to results to {out}/cross_validation_results.json")
 
     data_df = pd.read_csv(data, sep='\t', index_col=0)
 
-    _ = do_classification(data_df, model, optimizer, out, cv, list(metrics), randomize)
+    _ = do_classification(
+        data=data_df,
+        model_name=model,
+        out_dir=out,
+        validation_cv=cv,
+        scoring_metrics=list(metrics),
+        rand_labels=randomize,
+        num_processes=num_processes,
+        mysql_url=mysql_url,
+        num_trials=num_trials
+    )
 
     click.echo(f"Done with {model} classification")
 
