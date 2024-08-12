@@ -87,11 +87,11 @@ Read the [official docs](https://clep.readthedocs.io/en/latest/) for more inform
 
 ### Data
 
-| Symbol    | Sample_1 | Sample_2 | Sample_3 |
-| --------- | -------- | -------- | -------- |
-| HGNC_ID_1 | 0.354    | 2.568    | 1.564    |
-| HGNC_ID_2 | 1.255    | 1.232    | 0.26452  |
-| HGNC_ID_3 | 3.256    | 1.5      | 1.5462   |
+| Symbol    | Sample_1 | Sample_2 | Sample_3 | ... |
+| --------- | -------- | -------- | -------- | --- |
+| HGNC_ID_1 | 0.354    | 2.568    | 1.564    | ... |
+| HGNC_ID_2 | 1.255    | 1.232    | 0.26452  | ... |
+| HGNC_ID_3 | 3.256    | 1.5      | 1.5462   | ... |
 
 **Note:** The data must be in a tab separated file format.
 
