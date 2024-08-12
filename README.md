@@ -103,7 +103,7 @@ Read the [official docs](https://clep.readthedocs.io/en/latest/) for more inform
 | Sample_2 | Abnormal |
 | Sample_3 | Control  |
 
-**Note:** The data must be in a tab separated file format.
+**Note:** The data must be in a tab separated file format. The name of the "Target" column must be "Target" and the samples in the "FileName" column should match the names of the columns in the data file 
 
 ### Knowledge Graph
 
