@@ -378,7 +378,8 @@ def generate_network(
             pickle.dump(linked_genes, pickle_file)
     else:
         graph_df, _, _ = graph_results
-        graph_df.to_csv(f'{out}/weighted.edgelist', sep='\t', header=False, index=False)
+    
+    graph_df.to_csv(f'{out}/weighted.edgelist', sep='\t', header=False, index=False)
 
     click.echo("Done with network generation")
 
