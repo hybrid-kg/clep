@@ -7,7 +7,7 @@ from typing import Tuple, Dict, Any
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from pykeen.hpo.hpo import hpo_pipeline
+from pykeen.hpo.hpo import hpo_pipeline_from_config
 from pykeen.models.nbase import ERModel
 from pykeen.typing import HeadRepresentation, RelationRepresentation, TailRepresentation
 from pykeen.pipeline import pipeline_from_path, PipelineResult
@@ -152,39 +152,12 @@ def run_optimization(dataset: Tuple[str, str, str], model_config: Dict[str, Any]
     train_path, validation_path, test_path = dataset
 
     # Define HPO pipeline
-    hpo_results = hpo_pipeline(
+    hpo_results = hpo_pipeline_from_config(
         dataset=None,
         training=train_path,
         testing=test_path,
         validation=validation_path,
-        model=model_config["model"],
-        model_kwargs=model_config["model_kwargs"],
-        model_kwargs_ranges=model_config["model_kwargs_ranges"],
-        loss=model_config["loss_function"],
-        loss_kwargs=model_config["loss_kwargs"],
-        loss_kwargs_ranges=model_config["loss_kwargs_ranges"],
-        regularizer=model_config["regularizer"],
-        optimizer=model_config["optimizer"],
-        optimizer_kwargs=model_config["optimizer_kwargs"],
-        optimizer_kwargs_ranges=model_config["optimizer_kwargs_ranges"],
-        training_loop=model_config["training_loop"],
-        training_loop_kwargs=model_config["training_loop_kwargs"],
-        training_kwargs=model_config["training_kwargs"],
-        training_kwargs_ranges=model_config["training_kwargs_ranges"],
-        negative_sampler=model_config["negative_sampler"],
-        negative_sampler_kwargs=model_config["negative_sampler_kwargs"],
-        negative_sampler_kwargs_ranges=model_config["negative_sampler_kwargs_ranges"],
-        stopper=model_config["stopper"],
-        stopper_kwargs=model_config["stopper_kwargs"],
-        evaluator=model_config["evaluator"],
-        evaluator_kwargs=model_config["evaluator_kwargs"],
-        evaluation_kwargs=model_config["evaluation_kwargs"],
-        n_trials=model_config["n_trials"],
-        timeout=model_config["timeout"],
-        metric=model_config["metric"],
-        direction=model_config["direction"],
-        sampler=model_config["sampler"],
-        pruner=model_config["pruner"],
+        config=model_config
     )
 
     optimization_dir = os.path.join(out_dir, 'pykeen_results_optim')
