@@ -24,7 +24,6 @@ def hpo_cross_validate(
     classifier,
     num_processes=1,
     db_url=None,
-    db_name='optuna',
     study_name='hpo_study',
     num_trials=100,
     **kwargs
@@ -38,12 +37,13 @@ def hpo_cross_validate(
         cv: Number of cross-validation folds.
         classifier: Classifier to be used for hyperparameter optimization.
         num_processes: Number of parallel processes to use for optimization.
-        db_url: URL for the MySQL database to store Optuna results.
-        db_name: Name of the database to use for Optuna storage.
+        db_url: Full URL for the MySQL database including the database name, user, password, and socket path if applicable. Used to to store Optuna results.
         study_name: Name of the Optuna study.
         num_trials: Number of trials to run for hyperparameter optimization.
         kwargs: Additional named arguments to be passed to the classifier.
     
+    returns:
+        Dictionary containing the cross-validation results for each fold.
     """
     k_fold = model_selection.StratifiedKFold(n_splits=cv, shuffle=True)
 
@@ -83,12 +83,8 @@ def hpo_cross_validate(
         else:
             if db_url is None:
                 raise ValueError('Database URL must be provided for parallel optimization')
-
-            if db_url.endswith('/'):
-                db_url = db_url[:-1]
             
-            init_db(db_url=db_url, db_name=db_name)
-            storage = RDBStorage(url=db_url + '/' + db_name)
+            storage = RDBStorage(url=db_url)
 
             study = create_study(
                 directions=directions,

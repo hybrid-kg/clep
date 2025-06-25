@@ -516,14 +516,6 @@ def kge(
     show_default=True,
 )
 @click.option(
-    '--db-name',
-    help="Name of the MySQL database to store the optuna study results",
-    type=str,
-    required=False,
-    default='optuna',
-    show_default=True,
-)
-@click.option(
     '--study-name',
     help="Name of the Optuna study to store the results",
     type=str,
@@ -548,14 +540,10 @@ def classify(
         randomize: bool,
         num_processes: int,
         mysql_url: Optional[str],
-        db_name: str,
         study_name: str,
         num_trials: int
 ) -> None:
     """Perform machine-learning classification."""
-    # Ignore bayesian search warning. Waiting for a fix (https://github.com/scikit-optimize/scikit-optimize/issues/302)
-    warnings.filterwarnings("ignore", message='The objective has been evaluated at this point before.')
-
     if not metrics:
         metrics = ['roc_auc', 'accuracy', 'f1_micro', 'f1_macro', 'f1']
 
@@ -579,7 +567,6 @@ def classify(
         rand_labels=randomize,
         num_processes=num_processes,
         mysql_url=mysql_url,
-        db_name=db_name,
         study_name=study_name,
         num_trials=num_trials
     )
