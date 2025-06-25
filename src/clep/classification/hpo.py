@@ -90,6 +90,7 @@ def hpo_cross_validate(
                 directions=directions,
                 storage=storage,
                 study_name=study_name,
+                load_if_exists=True
             )
 
             number_of_trials = -(-num_trials // num_processes)  # Round up division
