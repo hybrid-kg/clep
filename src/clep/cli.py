@@ -516,6 +516,22 @@ def kge(
     show_default=True,
 )
 @click.option(
+    '--db-name',
+    help="Name of the MySQL database to store the optuna study results",
+    type=str,
+    required=False,
+    default='optuna',
+    show_default=True,
+)
+@click.option(
+    '--study-name',
+    help="Name of the Optuna study to store the results",
+    type=str,
+    required=False,
+    default='hpo_study',
+    show_default=True,
+)
+@click.option(
     '--num-trials',
     help="Number of trials to run for hyperparameter optimization",
     type=int,
@@ -532,6 +548,8 @@ def classify(
         randomize: bool,
         num_processes: int,
         mysql_url: Optional[str],
+        db_name: str,
+        study_name: str,
         num_trials: int
 ) -> None:
     """Perform machine-learning classification."""
@@ -561,6 +579,8 @@ def classify(
         rand_labels=randomize,
         num_processes=num_processes,
         mysql_url=mysql_url,
+        db_name=db_name,
+        study_name=study_name,
         num_trials=num_trials
     )
 
