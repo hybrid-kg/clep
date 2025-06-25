@@ -1,6 +1,6 @@
 [project]
 name = "clep"
-version = "0.0.6-dev0"
+version = "0.0.6-dev1"
 description = "A Hybrid Data and Knowledge Driven Framework for Generating Patient Representations"
 readme = "README.md"
 requires-python = ">=3.7"
