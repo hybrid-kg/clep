@@ -150,11 +150,11 @@ def run_final_classification(x_train, y_train, x_test, y_test, metrics, best_par
     return cv_results
 
 
-def init_db(db_url):
+def init_db(db_url, db_name='optuna'):
     engine = sqlalchemy.create_engine(db_url)
     connection = engine.connect()
     connection.execute(sqlalchemy.text('commit'))
-    connection.execute(sqlalchemy.text('CREATE DATABASE IF NOT EXISTS optuna'))
+    connection.execute(sqlalchemy.text(f'CREATE DATABASE IF NOT EXISTS {db_name}'))
     connection.close()
 
 

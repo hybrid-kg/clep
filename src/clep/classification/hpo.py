@@ -16,7 +16,35 @@ from .utils import (OptunaObjective, init_db, run_final_classification,
 from ..constants import MODEL_NAME_MAPPING
 
 
-def hpo_cross_validate(X, y, metrics, cv, classifier, num_processes=1, db_url=None, num_trials=100, **kwargs):
+def hpo_cross_validate(
+    X,
+    y,
+    metrics,
+    cv,
+    classifier,
+    num_processes=1,
+    db_url=None,
+    db_name='optuna',
+    study_name='hpo_study',
+    num_trials=100,
+    **kwargs
+) -> Dict[str, Any]:
+    """Perform hyperparameter optimization using Optuna with cross-validation.
+    
+    args:
+        X: DataFrame containing the features for classification.
+        y: List or array containing the labels for classification.
+        metrics: List of metrics to evaluate during cross-validation.
+        cv: Number of cross-validation folds.
+        classifier: Classifier to be used for hyperparameter optimization.
+        num_processes: Number of parallel processes to use for optimization.
+        db_url: URL for the MySQL database to store Optuna results.
+        db_name: Name of the database to use for Optuna storage.
+        study_name: Name of the Optuna study.
+        num_trials: Number of trials to run for hyperparameter optimization.
+        kwargs: Additional named arguments to be passed to the classifier.
+    
+    """
     k_fold = model_selection.StratifiedKFold(n_splits=cv, shuffle=True)
 
     outer_cv_results = {}
@@ -56,12 +84,16 @@ def hpo_cross_validate(X, y, metrics, cv, classifier, num_processes=1, db_url=No
             if db_url is None:
                 raise ValueError('Database URL must be provided for parallel optimization')
 
-            init_db(db_url=db_url)
-            storage = RDBStorage(url=db_url + '/optuna')
+            if db_url.endswith('/'):
+                db_url = db_url[:-1]
+            
+            init_db(db_url=db_url, db_name=db_name)
+            storage = RDBStorage(url=db_url + '/' + db_name)
 
             study = create_study(
                 directions=directions,
-                storage=storage
+                storage=storage,
+                study_name=study_name,
             )
 
             number_of_trials = -(-num_trials // num_processes)  # Round up division
