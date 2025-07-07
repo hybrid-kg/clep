@@ -11,7 +11,7 @@ from pykeen.hpo.hpo import hpo_pipeline_from_config
 from pykeen.models.nbase import ERModel
 from pykeen.typing import HeadRepresentation, RelationRepresentation, TailRepresentation
 from pykeen.pipeline import pipeline_from_path, PipelineResult
-
+from pykeen.triples import TriplesFactory
 
 def do_kge(
         edgelist: pd.DataFrame,
@@ -58,9 +58,13 @@ def do_kge(
     train.to_csv(train_path, sep='\t', index=False, header=False)
     validation.to_csv(validation_path, sep='\t', index=False, header=False)
     test.to_csv(test_path, sep='\t', index=False, header=False)
+    
+    train_triples_factory = TriplesFactory.from_path(train_path, create_inverse_triples=True)
+    validation_triples_factory = TriplesFactory.from_path(validation_path, create_inverse_triples=True)
+    test_triples_factory = TriplesFactory.from_path(test_path, create_inverse_triples=True)
 
     run_optimization(
-        dataset=(train_path, validation_path, test_path),
+        dataset=(train_triples_factory, validation_triples_factory, test_triples_factory),
         model_config=model_config,
         out_dir=out
     )
@@ -147,16 +151,16 @@ def _model_to_numpy(
     return embedding_numpy.real
 
 
-def run_optimization(dataset: Tuple[str, str, str], model_config: Dict[str, Any], out_dir: str) -> None:
+def run_optimization(dataset: Tuple[TriplesFactory, TriplesFactory, TriplesFactory], model_config: Dict[str, Any], out_dir: str) -> None:
     """Run HPO."""
-    train_path, validation_path, test_path = dataset
+    train_triples_factory, validation_triples_factory, test_triples_factory = dataset
 
     # Define HPO pipeline
     hpo_results = hpo_pipeline_from_config(
         dataset=None,
-        training=train_path,
-        testing=test_path,
-        validation=validation_path,
+        training=train_triples_factory,
+        testing=test_triples_factory,
+        validation=validation_triples_factory,
         config=model_config
     )
 
