@@ -21,12 +21,16 @@ project = 'CLEP'
 copyright = '2019-2020, Vinay Bharadhwaj, Daniel Domingo-Fernández and Charles Tapley Hoyt'
 author = 'Vinay Bharadhwaj, Daniel Domingo-Fernández and Charles Tapley Hoyt'
 
-release = '0.0.6-dev3'
+release = '0.0.6'
 
 parsed_version = re.match(
     '(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(?:-(?P<release>[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+(?P<build>[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?',
     release
 )
+
+if parsed_version is None:
+    raise ValueError(f"Invalid version string: {release}")
+
 version = parsed_version.expand('\g<major>.\g<minor>.\g<patch>')
 
 tags = set()
